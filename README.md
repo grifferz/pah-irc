@@ -84,12 +84,12 @@ are all fine.
 
     If a game is currently playing then this will say:
 
-**      Who we're waiting on (either to play their turn, or to pick the winner
+    *   Who we're waiting on (either to play their turn, or to pick the winner
         if they're the Card Tsar);
 
-**      The current text of the Black Card;
+    *   The current text of the Black Card;
 
-**      The top three points-scorers in that game.
+    *   The top three points-scorers in that game.
 
 *   `start`
 
