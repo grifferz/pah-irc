@@ -15,5 +15,8 @@ Build.bat
 /MYMETA.*
 nytprof.out
 /pm_to_blib
+/.bitfolk-rsync-filter
+/pah-libs/
 *.o
 *.bs
+*.swp
