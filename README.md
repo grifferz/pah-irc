@@ -103,6 +103,7 @@ are all fine.
     one of them resigns.
 
 *   `resign`
+
     `deal me out`
 
     Resign from the currently-active game. Your scores will still be kept and
@@ -128,9 +129,13 @@ time that can be left off and the bot will work it out.
     Provides a numbered list of the White Cards in the player's hand.
 
 *   `[#channel] play <number>`
+
     `[#channel] play <number> <number>`
+
     `[#channel] play <number>,<number>`
+
     `[#channel] play <number> and <number>`
+
     `[#channel] play <number> & <number>`
 
     Play the numbered White Card for this round. Some rounds require two White
