@@ -185,6 +185,7 @@ If that doesn't happen in a reasonable amount of time—and for now we'll go wit
 timed out of the game. For now we'll treat that like resigning.
 
 For a Card Tsar that means:
+
 1. The current round is abandoned
 2. No one gets any Awesome Points
 3. Any played White Cards go on the bottom of the deck
@@ -193,6 +194,7 @@ For a Card Tsar that means:
    play continues. Otherwise the game is paused until more players join.
 
 For anyone else that means:
+
 1. Their hand, including any White Cards played in the current round, go on the
    bottom of the deck.
 2. If there's still at least 4 players then play continues, otherwise play is
