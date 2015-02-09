@@ -195,8 +195,8 @@ For a Card Tsar that means:
 
 For anyone else that means:
 
-1. Their hand, including any White Cards played in the current round, go on the
-   bottom of the deck.
+1. The White Cards in their hand, including any White Cards played in the
+   current round, go on the bottom of the deck.
 2. If there's still at least 4 players then play continues, otherwise play is
    paused until more players join.
 
