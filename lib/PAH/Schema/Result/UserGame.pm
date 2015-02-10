@@ -101,6 +101,21 @@ __PACKAGE__->add_unique_constraint(
     ]
 );
 
+# Relationships.
+
+# A UserGame always has a User.
+__PACKAGE__->belongs_to(
+    rel_user => 'PAH::Schema::Result::User', 
+    { 'foreign.id' => 'self.user' }
+);
+
+# A UserGame always has a Game.
+__PACKAGE__->belongs_to(
+    rel_game => 'PAH::Schema::Result::Game', 
+    { 'foreign.id' => 'self.game' }
+);
+
+
 # On deploy add some indexes.
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
