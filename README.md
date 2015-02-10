@@ -115,8 +115,8 @@ are all fine.
 
 ### Private commands
 
-These commands can be given in private message to the bot. Against there are
-some interactions that are more natural, in response to the state of the game.
+These commands can be given in private message to the bot. Again there are some
+interactions that are more natural, in response to the state of the game.
 
 Many commands optionally take a channel parameter. This is only needed if the
 player is in more than one active game. That's fairly unlikely so most of the
