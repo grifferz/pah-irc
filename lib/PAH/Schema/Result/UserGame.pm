@@ -115,19 +115,4 @@ __PACKAGE__->belongs_to(
     { 'foreign.id' => 'self.game' }
 );
 
-
-# On deploy add some indexes.
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
-
-    $sqlt_table->add_index(
-        name   => 'users_games_user_idx',
-        fields => ['user']
-    );
-    $sqlt_table->add_index(
-        name   => 'users_games_game_idx',
-        fields => ['game']
-    );
-}
-
 1;
