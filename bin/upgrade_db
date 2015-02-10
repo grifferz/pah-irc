@@ -1,0 +1,52 @@
+#!/usr/bin/env perl
+
+=pod
+
+Perpetually Against Humanity, IRC Edition (pah-irc)
+
+Play endless games of Cards Against Humanity on IRC.
+
+https://github.com/grifferz/pah-irc
+
+This code:
+    Copyright ©2015 Andy Smith <andy-pah-irc@strugglers.net>
+
+    Artistic license same as Perl.
+
+Get Cards Against Humanity here!
+    http://cardsagainsthumanity.com/
+
+    Cards Against Humanity content is distributed under a Creative Commons
+    BY-NC-SA 2.0 license. Cards Against Humanity is a trademark of Cards
+    Against Humanity LLC.
+
+=cut
+
+use strict;
+use warnings;
+
+use Config;
+use FindBin;
+
+BEGIN {
+    chdir "$FindBin::Bin/..";
+}
+
+use lib "lib", map "pah-libs/lib/perl5/$_", "", $Config{archname};
+
+use PAH::Schema;
+
+my $dbfile = './var/pah-irc.sqlite';
+
+my $schema = PAH::Schema->connect("dbi:SQLite:dbname=$dbfile", '', '');
+
+if (! $schema->get_db_version()) {
+    # Unversioned. Shouldn't happen, unless DB is empty/non-existent. Just
+    # deploy what we have.
+    $schema->deploy();
+} else {
+    my $sql_dir = './sql';
+
+    $schema->upgrade_directory($sql_dir);
+    $schema->upgrade();
+}

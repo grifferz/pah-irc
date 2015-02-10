@@ -1,0 +1,12 @@
+requires 'Moose';
+requires 'MooseX::Getopt';
+requires 'Daemon::Control';
+requires 'EV';
+requires 'AnyEvent::IRC::Util';
+requires 'Config::Tiny';
+requires 'Try::Tiny';
+requires 'Cpanel::JSON::XS';
+requires 'JSON::MaybeXS';
+requires 'DBIx::Class';
+requires 'DBD::SQLite';
+requires 'SQL::Translator', '>= 0.11018';

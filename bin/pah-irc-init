@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use FindBin;
+use Daemon::Control;
+
+my $bin = "$FindBin::Bin/..";
+
+Daemon::Control->new({
+        name        => "pah-irc",
+        path        => $bin . '/bin/pah-irc-init',
+        program     => $bin . '/bin/pah-irc.pl',
+        pid_file    => $bin . '/var/pah-irc.pid',
+        stderr_file => $bin . '/var/pah-irc.out',
+        stdout_file => $bin . '/var/pah-irc.out',
+        fork        => 2,
+    })->run;
