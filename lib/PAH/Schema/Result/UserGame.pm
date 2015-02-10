@@ -48,6 +48,49 @@ __PACKAGE__->add_columns(
         extra       => { unsigned => 1 },
     },
 
+    # Awesome Points (wins).
+    wins => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
+    # Hands played in this game.
+    hands => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
+    # Number of times this user was Card Tsar.
+    tsarcount => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
+    # Is this user the Card Tsar in the current hand?
+    #
+    # 0: No.
+    # 1: Yes.
+    is_tsar => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
+    # Waiting on a move since timestamp.
+    wait_since => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
 );
 
 __PACKAGE__->set_primary_key('id');
