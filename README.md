@@ -87,7 +87,9 @@ are all fine.
     *   Who we're waiting on (either to play their turn, or to pick the winner
         if they're the Card Tsar);
 
-    *   The current text of the Black Card;
+    *   Who the current Card Tsar is.
+
+    *   The text of the current Black Card;
 
     *   The top three points-scorers in that game.
 
