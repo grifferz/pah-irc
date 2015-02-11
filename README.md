@@ -100,8 +100,9 @@ are all fine.
 
 *   `deal me in`
 
-    Join in to the currently-active game. You'll receive a hand at the next
-    deal.
+    Join in to the currently-active game. You'll immediately receive a hand and
+    a reminder of the current Black Card by private message. You can play your
+    hand immediately.
 
     If the game already has 20 players then you will need to wait until
     one of them resigns.
@@ -116,6 +117,12 @@ are all fine.
     you can join in to the game again later on. If this takes the number of
     active players below 4 then the game will be paused until someone joins
     again.
+
+    Your hand of White Cards including any White Cards you already played are
+    discarded.
+
+    If you are the current round's Card Tsar then you aren't allowed to resign.
+    Choose the winning play first!
 
 ### Private commands
 
@@ -194,15 +201,15 @@ For a Card Tsar that means:
 
 1. The current round is abandoned
 2. No one gets any Awesome Points
-3. Any played White Cards go on the bottom of the deck
-4. The Card Tsar's own hand goes on the bottom of the deck
+3. Any played White Cards will be discarded.
+4. The Card Tsar's own hand is discarded.
 5. If there's still at least 4 players, the next player becomes Card Tsar and
    play continues. Otherwise the game is paused until more players join.
 
 For anyone else that means:
 
 1. The White Cards in their hand, including any White Cards played in the
-   current round, go on the bottom of the deck.
+   current round, are discarded.
 2. If there's still at least 4 players then play continues, otherwise play is
    paused until more players join.
 

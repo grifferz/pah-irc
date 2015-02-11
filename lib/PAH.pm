@@ -704,13 +704,92 @@ sub do_pub_dealin {
     }
 }
 
+# A user wants to resign from the game. If they are the current round's Card
+# Tsar then they aren't allowed to resign. Otherwise, their White Cards
+# (including any that were already played in this round) are discarded and they
+# are removed from the running game.
+#
+# If this brings the number of players below 4 then the game will be paused.
+#
+# The player can rejoin ther game at a later time.
 sub do_pub_resign {
     my ($self, $args) = @_;
 
-    my $chan = $args->{chan};
-    my $who  = $args->{nick};
+    my $chan    = $args->{chan};
+    my $who     = $args->{nick};
+    my $schema  = $self->_schema;
+    my $my_nick = $self->_irc->nick();
 
-    $self->_irc->msg($chan, "$who: Sorry, not implemented yet!");
+    my $channel = $self->db_get_channel($chan);
+
+    if (not defined $channel) {
+        $self->_irc->msg($chan,
+            "$who: I can't seem to find a Channel object for this channel."
+            . " That's weird and shouldn't happen. Report this!");
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    # Is there a game actually running?
+    if (not defined $game) {
+        $self->_irc->msg($chan,
+            "$who: There isn't a game running at the moment.");
+        return;
+    }
+
+    my $user = $schema->resultset('User')->find_or_create(
+        { nick => $who },
+    );
+
+    my $usergame = $schema->resultset('UserGame')->find(
+        {
+            'user' => $user->id,
+            'game' => $game->id,
+        },
+    );
+
+    # Is the user active in the game?
+    if (not defined $usergame or 0 == $usergame->active) {
+        # No.
+        $self->_irc->msg($chan, "$who: You're not playing!");
+        return;
+    }
+
+    # Are they the Card Tsar? If so then they can't resign!
+    if (1 == $usergame->is_tsar) {
+        $self->_irc->msg($chan, "$who: You're the Card Tsar, you can't resign!");
+        $self->_irc->msg($chan,
+            "$who: Just pick a winner for this round first, then you can"
+           . " resign.");
+        return;
+    }
+
+    # Mark them as inactive.
+    $usergame->active(0);
+    $usergame->update;
+
+    $self->_irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
+    $self->_irc->msg($chan,
+        "$who: If you want to join in again later then type \"$my_nick: deal"
+       . " me in\"");
+
+   # Has this taken the number of players too low for the game to continue?
+   my $player_count = scalar $game->rel_active_usergames;
+
+   if ($player_count < 4) {
+       $game->status(1);
+       $game->update;
+
+       $self->_irc->msg($chan,
+           "That's taken us down to $player_count player"
+          . (1 == $player_count ? '' : 's') . ". Game paused until we get back"
+          . " up to 4.");
+      $self->_irc->msg($chan,
+          "Would anyone else would like to play? If so type \"$my_nick: me\"");
+   }
+
+   # TODO: all the card handling.
 }
 
 # Get the channel row from the database that corresponds to the channel name as
