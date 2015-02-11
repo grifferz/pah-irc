@@ -54,4 +54,11 @@ __PACKAGE__->has_many(
     { 'foreign.user' => 'self.id' }
 );
 
+# A User has zero or more active UserGames
+__PACKAGE__->has_many(
+    rel_active_usergames => 'PAH::Schema::Result::UserGame',
+    { 'foreign.user'   => 'self.id' },
+    { where => { 'active' => 1 } }
+);
+
 1;

@@ -91,6 +91,17 @@ __PACKAGE__->add_columns(
         default_value => 0,
     },
 
+    # Is the User active in this Game?
+    #
+    # 0: No.
+    # 1: Yes.
+    active => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 1,
+    },
+
 );
 
 __PACKAGE__->set_primary_key('id');

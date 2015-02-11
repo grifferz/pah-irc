@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Tue Feb 10 07:03:23 2015
+-- Created on Wed Feb 11 08:17:50 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -69,6 +69,7 @@ CREATE TABLE users_games (
   tsarcount integer NOT NULL DEFAULT 0,
   is_tsar integer NOT NULL DEFAULT 0,
   wait_since integer NOT NULL DEFAULT 0,
+  active integer NOT NULL DEFAULT 1,
   FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

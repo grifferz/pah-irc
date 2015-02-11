@@ -75,14 +75,21 @@ __PACKAGE__->add_unique_constraint('games_channel_idx' => ['channel']);
 
 # A Game always has a Channel.
 __PACKAGE__->belongs_to(
-    rel_channel => 'PAH::Schema::Result::Channel', 
+    rel_channel => 'PAH::Schema::Result::Channel',
     { 'foreign.id' => 'self.channel' }
 );
 
 # A Game has zero or more UserGames
 __PACKAGE__->has_many(
-    rel_usergames => 'PAH::Schema::Result::UserGame', 
+    rel_usergames => 'PAH::Schema::Result::UserGame',
     { 'foreign.game' => 'self.id' }
+);
+
+# A Game has zero or more active UserGames
+__PACKAGE__->has_many(
+    rel_active_usergames => 'PAH::Schema::Result::UserGame',
+    { 'foreign.game' => 'self.id' },
+    { where => { 'active' => 1 } }
 );
 
 # On deploy add some indexes.

@@ -92,6 +92,14 @@ sub BUILD {
           sub        => \&do_pub_start,
           privileged => 1,
       },
+      'me'  => {
+          sub       => \&do_pub_dealin,
+          privileged => 1,
+      },
+      'me!'  => {
+          sub       => \&do_pub_dealin,
+          privileged => 1,
+      },
       'deal me in'  => {
           sub       => \&do_pub_dealin,
           privileged => 1,
@@ -192,7 +200,7 @@ sub joined {
     if (0 == $game->status) {
         debug("…and it's currently paused so I'm going to activate it");
 
-        my $num_players = scalar $game->rel_usergames;
+        my $num_players = scalar $game->rel_active_usergames;
 
         if ($num_players < 4) {
             $game->status(1); # Waiting for players.
@@ -419,9 +427,7 @@ sub do_pub_status {
     my $who    = $args->{nick};
     my $schema = $self->_schema;
 
-    my $channel = $schema->resultset('Channel')->find(
-        { 'name' => $chan },
-    );
+    my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
         $self->_irc->msg($chan,
@@ -447,11 +453,36 @@ sub do_pub_status {
             "$who: A game is active! We're currently waiting on NOT"
            . " IMPLEMENTED to NOT IMPLEMENTED.");
         $self->_irc->msg($chan, "The current Card Tsar is NOT IMPLEMENTED.");
-        $self->_irc->msg($chan, "Top three players: NOT IMPLEMENTED.");
+
+        my @active_usergames = sort {
+            $b->wins <=> $a->wins
+        } $game->rel_active_usergames;
+
+        my $winstring = join(' ',
+            map { $_->rel_user->nick . '(' . $_->wins . ')' }
+            @active_usergames);
+
+        $self->_irc->msg($chan, "Active Players: $winstring");
+
+        my @top3 = $schema->resultset('UserGame')->search(
+            {},
+            {
+                join     => 'rel_user',
+                prefetch => 'rel_user',
+                order_by => 'wins DESC',
+                rows     => 3,
+            },
+        );
+
+        $winstring = join(' ',
+            map { $_->rel_user->nick . '(' . $_->wins . ')' }
+            @top3);
+
+        $self->_irc->msg($chan, "Top 3 all time: $winstring");
         $self->_irc->msg($chan, "Current Black Card:");
         $self->_irc->msg($chan, "NOT IMPLEMENTED.");
     } elsif (1 == $game->status) {
-        my $num_players = scalar $game->rel_usergames;
+        my $num_players = scalar $game->rel_active_usergames;
 
         $self->_irc->msg($chan,
             "$who: A game exists but we only have $num_players player"
@@ -481,9 +512,7 @@ sub do_pub_start {
     # Do we have a channel in the database yet? The only way to create a
     # channel is to be invited there, so there will not be any need to create
     # it here, and it's a weird error to not have it.
-    my $channel = $schema->resultset('Channel')->find(
-        { 'name' => $chan },
-    );
+    my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
         $self->_irc->msg($chan,
@@ -521,7 +550,7 @@ sub do_pub_start {
                 "$who: Sorry, there's already a game for this channel, though"
                . " it seems to be paused when it shouldn't be! Ask around?");
         } elsif (1 == $status) {
-            my $count = scalar ($game->rel_usergames);
+            my $count = scalar ($game->rel_active_usergames);
 
             $self->_irc->msg($chan,
                 "$who: Sorry, there's already a game here but we only have"
@@ -569,13 +598,108 @@ sub do_pub_start {
         "Say \"$my_nick: me\" if you'd like to!");
 }
 
+# A user wants to join a (presumably) already-running game. This can happen
+# from either of the following scenarios:
+#
+# <foo> AgainstHumanity: start
+# <AgainstHumanity> foo: You're on! We have a game of Perpetually Against
+#                   Humanity up in here. 4 players minimum are required. Who
+#                   else wants to play?
+# <AgainstHumanity> Say "AgainstHumanity: me" if you'd like to!
+# <bar> AgainstHumanity: me!
+#
+# or:
+#
+# <bar> AgainstHumanity: deal me in.
 sub do_pub_dealin {
     my ($self, $args) = @_;
 
-    my $chan = $args->{chan};
-    my $who  = $args->{nick};
+    my $chan    = $args->{chan};
+    my $who     = $args->{nick};
+    my $schema  = $self->_schema;
+    my $my_nick = $self->_irc->nick();
 
-    $self->_irc->msg($chan, "$who: Sorry, not implemented yet!");
+    my $channel = $self->db_get_channel($chan);
+
+    if (not defined $channel) {
+        $self->_irc->msg($chan,
+            "$who: I can't seem to find a Channel object for this channel."
+           . " That's weird and shouldn't happen. Report this!");
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    # Is there a game running already?
+    if (not defined $game) {
+        # No, there is no game.
+        #
+        # This raises the question of whether we should treat a user asking to
+        # be dealt in to a non-existent game as request to start the game
+        # itself.
+        #
+        # I'm leaning towards "no" because the fact that the channel doesn't
+        # already have a game running may hint towards the norms of the channel
+        # being that games aren't welcome.
+        $self->_irc->msg($chan,
+            "$who: Sorry, there's no game here to deal you in to. Want to start"
+           . " one?");
+       $self->_irc->msg($chan,
+            "$who: If so, type \"$my_nick: start\"");
+        return;
+    }
+
+    my $user = $schema->resultset('User')->find_or_create(
+        { nick => $who },
+    );
+
+    my @active_usergames = $game->rel_active_usergames;
+
+    # Are they already in it?
+    if (defined $game->rel_active_usergames
+            and grep $_->id == $user->id, @active_usergames) {
+        $self->_irc->msg($chan, "$who: Heyyy, you're already playing!");
+        return;
+    }
+
+    # Maximum 20 players in a game.
+    my $num_players = scalar @active_usergames;
+
+    if ($num_players >= 20) {
+        $self->_irc->msg($chan,
+            "$who: Sorry, there's already $num_players players in this game and"
+           . " that's the maximum. Try again once someone has resigned!");
+        return;
+    }
+
+    # "Let the User see the Game!" Ahem. Add the User to the Game.
+    my $usergame = $schema->resultset('UserGame')->update_or_create(
+        {
+            user   => $user->id,
+            game   => $game->id,
+            active => 1,
+        }
+    );
+
+    # Update Channel activity timer.
+    $game->activity_time(time());
+    $game->update;
+
+    $self->_irc->msg($chan, "$who: Nice! You're in!");
+
+    # Does the game have enough players to start yet?
+    $num_players = scalar $game->rel_active_usergames;
+
+    if ($num_players >= 4 and 1 == $game->status) {
+        $game->status(2);
+        $game->update;
+        $self->_irc->msg($chan, "The game begins!");
+    } else {
+        $self->_irc->msg($chan,
+            "We've now got $num_players of minimum 4. Anyone else?");
+        $self->_irc->msg($chan,
+            "Type \"$my_nick: me\" if you'd like to play too.");
+    }
 }
 
 sub do_pub_resign {
@@ -585,6 +709,26 @@ sub do_pub_resign {
     my $who  = $args->{nick};
 
     $self->_irc->msg($chan, "$who: Sorry, not implemented yet!");
+}
+
+# Get the channel row from the database that corresponds to the channel name as
+# a string.
+#
+# Arguments:
+#
+# - channel name
+#
+# Returns:
+#
+# PAH::Schema::Result::Channel object, or undef.
+sub db_get_channel {
+    my ($self, $chan) = @_;
+
+    my $schema = $self->_schema;
+
+    return $schema->resultset('Channel')->find(
+        { 'name' => $chan },
+    );
 }
 
 1;

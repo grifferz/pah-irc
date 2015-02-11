@@ -101,8 +101,12 @@ are all fine.
 *   `deal me in`
 
     Join in to the currently-active game. You'll receive a hand at the next
-    deal. If the game already has 20 players then you will need to wait until
+    deal.
+
+    If the game already has 20 players then you will need to wait until
     one of them resigns.
+
+    If the game now has enough players to start then it will start.
 
 *   `resign`
 
