@@ -491,6 +491,8 @@ sub do_pub_status {
         $self->_irc->msg($chan,
             "Any takers? Just type \"$my_nick: me\" and you're in.");
     } elsif (0 == $game->status) {
+        $self->_irc->msg($chan,
+            "$who: The game is paused but I don't know why! Report this!");
     } else {
         debug("Game for %s has an unexpected status (%u)", $chan,
             $game->status);
