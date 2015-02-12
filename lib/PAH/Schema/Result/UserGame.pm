@@ -102,6 +102,14 @@ __PACKAGE__->add_columns(
         default_value => 1,
     },
 
+    # The current BCard (if this User is the Card Tsar) or 0 (if not).
+    bcard => {
+        data_type    => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    }
+
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -116,14 +124,26 @@ __PACKAGE__->add_unique_constraint(
 
 # A UserGame always has a User.
 __PACKAGE__->belongs_to(
-    rel_user => 'PAH::Schema::Result::User', 
+    rel_user => 'PAH::Schema::Result::User',
     { 'foreign.id' => 'self.user' }
 );
 
 # A UserGame always has a Game.
 __PACKAGE__->belongs_to(
-    rel_game => 'PAH::Schema::Result::Game', 
+    rel_game => 'PAH::Schema::Result::Game',
     { 'foreign.id' => 'self.game' }
+);
+
+# A UserGame has zero or one BCards.
+__PACKAGE__->might_have(
+    rel_bcard => 'PAH::Schema::Result::BCard',
+    { 'foreign.id' => 'self.bcard' }
+);
+
+# A UserGame has zero or more UserGameHands.
+__PACKAGE__->has_many(
+    rel_usergamehands => 'PAH::Schema::Result::UserGameHand',
+    { 'foreign.user_game' => 'self.id' }
 );
 
 1;

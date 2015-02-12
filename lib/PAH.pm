@@ -727,6 +727,12 @@ sub do_pub_dealin {
         $game->status(2);
         $game->update;
         $self->_irc->msg($chan, "The game begins!");
+        # Get a chat window open with all the players.
+        $self->brief_players($game);
+        # Top everyone's White Card hands up to 10 cards.
+        $self->topup_hands($game);
+        # And deal out a Black Card to the Tsar.
+        $self->deal_to_tsar($game);
     } else {
         $self->_irc->msg($chan,
             "We've now got $num_players of minimum 4. Anyone else?");
@@ -875,6 +881,141 @@ sub db_populate_cards {
 
     $schema->resultset('BCard')->populate(\@bcards);
     $schema->resultset('WCard')->populate(\@wcards);
+}
+
+# A game has just started so give a brief private introduction to each player.
+#
+# Arguments:
+#
+# - Game Schema object
+#
+# Returns:
+#
+# Nothing.
+sub brief_players {
+    my ($self, $game) = @_;
+
+    my $chan    = $game->rel_channel->disp_name;
+    my $my_nick = $self->_irc->nick();
+
+    my @active_usergames = $game->rel_active_usergames;
+
+    foreach my $ug (@active_usergames) {
+        my $who = $ug->rel_user->nick;
+
+        $self->_irc->msg($who,
+            "Hi! The game's about to start. You may find it easier to keep this"
+           . " window open for sending me game commands.");
+        $self->_irc->msg($who,
+            "Turns in this game can take up to 48 hours, so there's no need to"
+           . " rush.");
+        $self->_irc->msg($who,
+            "If you need to stop playing though, please type"
+           . " \"$my_nick: resign\" in $chan so the others aren't kept"
+           . " waiting.");
+    }
+}
+
+# A round has just started so each player will need their hand topping back up
+# to 10 White Cards.
+#
+# Arguments:
+#
+# - Game Schema object
+#
+# Returns:
+#
+# Nothing.
+sub topup_hands {
+    my ($self, $game) = @_;
+
+    my $schema  = $self->_schema;
+    my $channel = $game->rel_channel;
+
+    my @active_usergames = $game->rel_active_usergames;
+
+    foreach my $ug (@active_usergames) {
+        my $user       = $ug->rel_user;
+        my $num_wcards = scalar $ug->rel_usergamehands;
+
+        debug("%s currently has %u White Cards in %s game",
+            $user->nick, $num_wcards, $channel->disp_name);
+
+        my $needed = 10 - $num_wcards;
+
+        $needed = 0  if ($needed < 0);
+        $needed = 10 if ($needed > 10);
+
+        debug("Dealing %u White Cards off the top for %s",
+            $needed, $user->nick);
+
+        # Grab the top $needed cards off this game's White deck…
+        my @new = $schema->resultset('WCard')->search(
+            {
+                game => $game->id,
+            },
+            {
+                order_by => { '-asc' => 'id' },
+                rows     => $needed,
+            },
+        );
+
+        # Construct an array of hashrefs representing the insert into the hand…
+        my @to_insert = map {
+            { user_game => $ug->id, wcardidx => $_->cardidx }
+        } @new;
+
+        # Actually do the insert…
+        $schema->resultset('UserGameHand')->populate(\@to_insert);
+
+        my @to_delete = map { $_->id } @new;
+
+        # Now delete those cards from the White deck (because they now reside
+        # in the user's hand.
+        $schema->resultset('WCard')->search(
+            {
+                game => $game->id,
+                id   => { '-in' => \@to_delete },
+            }
+        )->delete;
+
+        $self->notify_new_wcards($ug, \@new);
+    }
+}
+
+# Tell a user about the fact that some White Cards just got added to their hand.
+#
+# Arguments
+#
+# - The UserGame Schema object for this User/Game.
+# - An arrayref of WCard Schema objects representing the new cards.
+#
+# Returns:
+#
+# Nothing.
+sub notify_new_wcards {
+    my ($self, $ug, $new) = @_;
+
+    my $who  = $ug->rel_user->nick;
+    my $deck = $self->_deck->{$ug->rel_game->deck};
+
+    my $num_added = scalar @{ $new };
+
+    $self->_irc->msg($who,
+        "$num_added new White Card" . (1 == $num_added ? '' :  's')
+        . " have been dealt to you:");
+
+    my $i = 0;
+
+    foreach my $wcard (@{ $new }) {
+        $i++;
+        $self->_irc->msg($who,
+            sprintf(" %2u ", $i) . $deck->{White}->[$wcard->cardidx]);
+    }
+
+    if ($num_added < 10) {
+        $self->_irc->msg($who, "To see your full hand, say \"hand\".");
+    }
 }
 
 1;
