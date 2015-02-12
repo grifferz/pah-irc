@@ -1,0 +1,73 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity UK Edition
+License:        Creative Commons BY-NC-SA 2.0
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - How did I lose my virginity?
+    - Why can't I sleep at night?
+    - What's that smell?
+    - I got 99 problems but _____ ain't one.
+    - Maybe she's born with it. Maybe it's _____.
+    # Black Cards with multiple lines are rare, but they do exist. You'll need
+    # to double quote these and use newlines:
+    - "Step 1: _____.\nStep 2: _____.\nStep 3: Profit."
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - being on fire
+    - racism
+    - old-people smell
+    - a micropenis
+    - used knickers
+    - classist undertones
+    - not giving a shit about the Third World
+    - a man on the brink of orgasm
+    - the bloody Welsh
+    - a windmill full of corpses
+    - the gays
+    - an oversized lollipop
+    - African children
+    - an asymmetric boob job
+    - a Super Soaker™ full of cat piss
+    - blowing up parliament
+    - an Oedipus complex
+    - a tiny horse
+    - a Chelsea smile
+    - penis envy
+    - Barack Obama
+    - my humps
+    - waking up half-naked in a Little Chef car park
+    - Scientology
+    - dry heaving
+    - badger culling
+    - Darth Vader
+    - the sudden appearance of the Go Compare man
+    - women in yoghurt adverts
+    - seeing Granny naked
+    - elderly Japanese men
+    - free samples
+    - estrogen
+    - sexual tension
+    - famine
+    - a stray pube
+    - men
+    - heartwarming orphans
+    - genuine human connection
+    - a bag of magic beans
