@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Wed Feb 11 08:17:50 2015
+-- Created on Thu Feb 12 10:53:32 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -46,6 +46,7 @@ CREATE TABLE games (
   create_time integer NOT NULL,
   activity_time integer NOT NULL,
   status integer NOT NULL,
+  deck varchar NOT NULL DEFAULT 'cah_uk',
   FOREIGN KEY (channel) REFERENCES channels(id) ON DELETE CASCADE
 );
 
@@ -54,6 +55,34 @@ CREATE INDEX games_idx_channel ON games (channel);
 CREATE INDEX games_status_idx ON games (status);
 
 CREATE UNIQUE INDEX games_channel_idx ON games (channel);
+
+--
+-- Table: bcards
+--
+DROP TABLE bcards;
+
+CREATE TABLE bcards (
+  id INTEGER PRIMARY KEY NOT NULL,
+  game integer NOT NULL,
+  cardidx integer NOT NULL,
+  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX bcards_idx_game ON bcards (game);
+
+--
+-- Table: wcards
+--
+DROP TABLE wcards;
+
+CREATE TABLE wcards (
+  id INTEGER PRIMARY KEY NOT NULL,
+  game integer NOT NULL,
+  cardidx integer NOT NULL,
+  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX wcards_idx_game ON wcards (game);
 
 --
 -- Table: users_games

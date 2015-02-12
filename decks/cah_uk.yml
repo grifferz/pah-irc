@@ -24,9 +24,144 @@ Black:
     - What's that smell?
     - I got 99 problems but _____ ain't one.
     - Maybe she's born with it. Maybe it's _____.
-    # Black Cards with multiple lines are rare, but they do exist. You'll need
-    # to double quote these and use newlines:
-    - "Step 1: _____.\nStep 2: _____.\nStep 3: Profit."
+    - What's the next Happy Meal® toy?
+    # Black Cards with multiple lines are rare, but they do exist. You can use
+    # "|" and then your newlines will be included in the data.
+    - |
+      Here is the church
+      Here is the steeple
+      Open the doors
+      And there is _____.
+    - It's a pity that kids these days are all getting involved with _____.
+    - I get by with a little help from _____.
+    - Alternative medicine is now embracing the curative powers of _____.
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+      They said we were crazy. They said we couldn't put _____ inside of _____.
+      They were wrong.
+    - What's that sound?
+    - What ended my last relationship?
+    - >
+      The Natural History Museum has just opened an interactive exhibit on
+      _____.
+    - I drink to forget _____.
+    - >
+      Dear Agony Aunt, I'm having some trouble with _____ and would like your
+      advice.
+    - What is Batman's guilty pleasure?
+    - |
+      This is the way the world ends \
+      This is the way the world ends \
+      Not with a bang but with _____.
+    - What's a girl's best friend?
+    - Daddy, why is mummy crying?
+    - _____. That's how I want to die.
+    - For my next trick, I will pull _____ out of _____.
+    - I'm sorry, Sir, but I couldn't complete my homework because of _____.
+    - _____ is a slippery slope that leads to _____.
+    - The theme for next year's Eurovision Song Contest is "We are _____."
+    - >
+      Nobody expects the Spanish Inquisition. Our chief weapons are fear,
+      surprise, and _____.
+    - In Wormwood Scrubs, word is you can trade 200 cigarettes for _____.
+    - What's the most emo?
+    - >
+      In 1,000 years, when paper money is a distant memory, how will we pay for
+      goods and services?
+    - Introducing the amazing superhero/sidekick duo! It's _____ and _____!
+    - >
+      In M. Night Shyamalan's new movie, Bruce Willis discovers that _____ had
+      really been _____ all along.
+    - A romantic, candlelit dinner would be incomplete without _____.
+    - _____? Jim'll fix it!
+    - White people like _____.
+    - >
+      When I am Prime Minister of the United Kingdon, I will create the
+      Ministry of _____.
+    # Embedded colons (":") will also mess things up by becoming an errant hash
+    # key, so again pipe is needed.
+    - |
+      Next from J.K. Rowling: Harry Potter and the Chamber of _____.
+    - What kept Margaret Thatcher busy in her waning years?
+    - In a world ravaged by _____, our only solace is _____.
+    - |
+      War!
+      What is it good for?
+    - During sex, I like to think about _____.
+    - What are my parents hiding from me?
+    - What will always get you laid?
+    - >
+      In her latest feature-length film, Tracy Beaker struggles with _____ for
+      the first time.
+    - Airpost security guidelines now prohibit _____ on airplanes.
+    - What don't you want to find in your Kung Pao chicken?
+    - >
+      What will I bring back in time to convince people that I am a powerful
+      wizard?
+    - How am I maintaining my relationship status?
+    - _____. It's a trap!
+    - The school trip was completely ruined by _____.
+    - What did I bring back from Amsterdam?
+    - After the earthquake, Sean Penn brought _____ to the people of Haiti.
+    - TFL apologises for the delay in train service due to _____.
+    - |
+      Step 1: _____.
+      Step 2: _____.
+      Step 3: Profit.
+    - And the BAFTA for _____ goes to _____.
+    - But before I kill you, Mr. Bond, I must show you _____.
+    - What gives me uncontrollable gas?
+    - |
+      Today on The Jeremy Kyle Show: "Help! My son is _____!"
+    - |
+      Next on Sky Sports: The World Championship of _____.
+    - When Pharaoh remained unmoved, Moses called down a Plague of _____.
+    - What's my secret power?
+    - What's there a ton of in heaven?
+    - What would grandma find disturbing, yet oddly charming?
+    - I never truly understood _____ until I encountered _____.
+    - What did the U.S. airdrop to the children of Afghanistan?
+    - What heps Obama unwind?
+    - What did Vin Diesel eat for dinner?
+    - |
+      _____: good to the last drop.
+    - Why am I sticky?
+    - What gets better with age?
+    - |
+      _____: kid-tested, mother-approved.
+    - >
+      Channel 5's new reality show features eight washed-up celebrities living
+      with _____.
+    - Instead of coal, Father Christmas now gives the bad children _____.
+    - >
+      A recent laboratory study shows that undergraduates have 50% less sex
+      after being exposed to _____.
+    - >
+      Life for American Indians was foever changed when the White Man
+      introduced them to _____.
+    - >
+      I do not know with what weapons World War III will be fought, but World
+      War IV will be fought with _____.
+    - Why do I hurt all over?
+    - What am I giving up for Lent?
+    - >
+      Fun tip! When your man asks you to go down on him, try surprising him
+      with _____ instead.
+    - |
+      Coming to the West End this year, _____: The Musical.
+    - |
+      _____: Once you pop, the fun don't stop!
+    - Channel 4 presents "_____, the Story of _____."
+    - >
+      When I am a billionaire, I shall erect a 50-foot statue to commemorate
+      _____.
+    - When I was tripping on acid, _____ turned into _____.
+    - That's right, I killed _____. How, you ask? _____.
+    - What are school administrators using to curb rampant teenage pregnancy?
+    - What never fails to liven up the party?
+    - What's the new fad diet?
+    - _____. That's why mums go to Iceland.
 
 # Start with a lower case letter unless the word is always capitalised (e.g.
 # proper noun). End with no punctuation unless required by the text.
@@ -71,3 +206,425 @@ White:
     - heartwarming orphans
     - genuine human connection
     - a bag of magic beans
+    - repression
+    - prancing
+    - my relationship status
+    - overcompensation
+    - peeing a little bit
+    - pooping back and forth. Forever
+    - a ginger's freckled ballsack
+    - testicular torsion
+    - the Devil himself
+    - the World of Warcraft
+    - some bloody peace and quiet
+    - MechaHitler
+    - being fabulous
+    - pictures of boobs.
+    - a gentle caress of the inner thigh
+    - wiping her bum
+    - doing a shit in Pudsey Bear's eyehole
+    - Lance Armstrong's missing testicle
+    - England
+    - the Pope
+    - flying sex snakes
+    - Emma Watson
+    - my ex-wife
+    - sexy pillow fights
+    - a Fleshlight
+    - cybernetic enhacements
+    - civilian casualties
+    - magnets
+    - the female orgasm
+    - bitches
+    - Madeleine McCann
+    - Auschwitz
+    - finger painting
+    - a sober Irishman who doesn't care for potatoes
+    - the Jews
+    - being marginalised
+    - the blood of Christ
+    - dead parents
+    - the art of seduction
+    - dying of dysentery
+    - an entrenched class system
+    - the North
+    - rubbing Boris Johnson's belly until he falls asleep
+    - the Hillsborough Disaster
+    - Natalie Portman
+    - agriculture
+    - ripping off The Beatles
+    - surprise sex!
+    - the homosexual agenda
+    - bio-engineered assault turtles with acid breath
+    - the end of days
+    - an M. Night Shyamalan plot twist
+    - funky fresh rhymes
+    - the light of a billion suns
+    - amputees
+    - throwing a virgin into a volcano
+    - Italians
+    - explosions
+    - a good sniff
+    - destroying the evidence
+    - children on leashes
+    - catapults
+    - one trillion dollars
+    - establishing dominance
+    - dying
+    - silence
+    - growing a pair
+    - YOU MUST CONSTRUCT ADDITIONAL PYLONS
+    - Justin Bieber
+    - the Holy Bible
+    - balls
+    - praying the gay away
+    - teenage pregnancy
+    - German dungeon porn
+    - Jedward
+    - my inner demons
+    - powerful thighs
+    - a bleached arsehole
+    - crippling debt
+    - kamikaze pilots
+    - teaching a robot to love
+    - police brutality
+    - horse meat
+    - a madman who lives in a police box and kidnaps women
+    - the Scouts
+    - Michael Jackson
+    - a really cool hat
+    - copping a feel
+    - crystal meth
+    - shapeshifters
+    - fingering
+    - a disappointing birthday party
+    - getting naked and watching CBeebies
+    - my soul
+    - the unstoppable tide of Islam
+    - Ed Balls
+    - eugenics
+    - synergistic management solutions
+    - RoboCop
+    - serfdom
+    - Stephen Hawking talking dirty
+    - saying "I love you"
+    - Millwall fans
+    - public ridicule
+    - holding down a child and farting all over him
+    - penis breath
+    - object permanence
+    - chivalry
+    - lockjaw
+    - the cool, refreshing taste of Pepsi®
+    - Daniel Radcliffe's delicious arsehole
+    - wet dreams
+    - crumbs all over the bloody carpet
+    - firing a rifle into the air while balls deep in a squealing hog
+    - panda sex
+    - necrophilia
+    - grave robbing
+    - not wearing trousers
+    - Muhammad (Praise Be Unto Him)
+    - multiple stab wounds
+    - a ball of earwax, semen and toenail clippings
+    - a monkey smoking a cigar
+    - smegma
+    - a live studio audience
+    - making a pouty face
+    - the violation of our most basic human rights
+    - unfathomable stupidity
+    - sunshine and rainbows
+    - whipping it out
+    - the token minority
+    - the terrorists
+    - cheating in the Paralympics
+    - a snapping turtle biting the tip of your penis
+    - the Honey Monster
+    - the Great Depression
+    - emotions
+    - getting so angry that you pop a boner
+    - same-sex ice dancing
+    - anything that coems out of Prince Philip's mouth
+    - man meat
+    - incest
+    - David Bowie flying in on a tiger made of lightning
+    - flightless birds
+    - doing the right thing
+    - when you fart and a little bit comes out
+    - frolicking
+    - being a dick to children
+    - Queen Elizabeth's immaculate anus
+    - the Black Death
+    - raptor attacks
+    - swooping
+    - perfunctory foreplay
+    - full frontal nudity
+    - vigorous jazz hands
+    - nipple blades
+    - a bitch slap
+    - a mad cow
+    - mouth herpes
+    - a robust mongoloid
+    - mutually-assured destruction
+    - a fanny fart
+    - the Stig
+    - Stalin
+    - lactation
+    - wanking into a pool of children's tears
+    - the true meaning of Christmas
+    - self-loathing
+    - a brain tumour
+    - dead babies
+    - New Age music
+    - a thermonuclear detonation
+    - geese
+    - a posh wank
+    - God
+    - a spastic nerd
+    - Harry Potter erotica
+    - kids with bum cancer
+    - lumberjack fantasies
+    - the American Dream
+    - puberty
+    - sweet, sweet vengeance
+    - winking at old people
+    - haggis
+    - Oompa-Loompas
+    - being hunted like a fox
+    - preteens
+    - Jade Goody's cancerous remains
+    - having anuses for eyes
+    - erectile dysfunction
+    - inserting a Mson jar into my anus
+    - cheeky bum sex
+    - a saxophone solo
+    - land mines
+    - Jehova's Witnesses
+    - me time
+    - Nickelback
+    - vigilante justice
+    - leaked footage of Kate Middleton's colonoscopy
+    - opposable thumbs
+    - ghosts
+    - alcoholism
+    - poorly-timed Holocaust jokes
+    - inappropriate yodeling
+    - battlefield amputations
+    - exactly what you'd expect
+    - a time travel paradox
+    - a foul mouth
+    - running out of semen
+    - an endless stream of diarrhoea
+    - a sassy black woman
+    - being a motherfucking sorceror
+    - a mopey zoo lion
+    - a murder most foul
+    - a falcom with a cap on its head
+    - farting and walking away
+    - a mating display
+    - the Chinese gymnastics team
+    - friction
+    - the petty troubles of the landed gentry
+    - fear itself
+    - scousers
+    - yeast
+    - Maureen of Blackpool, Reader's Wife of the Year 1988
+    - licking things to claim them as your own
+    - Vikings
+    - bogies
+    - hot cheese
+    - Nicolas Cage
+    - a defective condom
+    - the inevitable heat death of the universe
+    - blood, toil, tears and sweat
+    - William Shatner
+    - tentacle porn
+    - sperm whales
+    - Lady Gaga
+    - chunks of dead hitchhiker
+    - gloryholes
+    - daddy issues
+    - a mime having a stroke
+    - white people
+    - a lifetime of sadness
+    - tasteful sideboon
+    - a sea of troubles
+    - Nazis
+    - a cooler full of organs
+    - giving 110%
+    - scalping the Milkybar Kid
+    - concealing an erection
+    - the morbidly obese
+    - a homoerotic volleyball montage
+    - puppies!
+    - natural male enhancement
+    - brown people
+    - dropping a chandelier on your enemies and riding the rope up
+    - soup that is too hot
+    - three dicks at the same time
+    - hormone injections
+    - pulling out
+    - the Big Bang
+    - an AK-47 assault rifle
+    - the wrath of Vladimir Putin
+    - court-ordered rehab
+    - Christopher Walken
+    - giving birth to the Antichrist
+    - a foetus
+    - not reciprocating oral sex
+    - ecstasy
+    - hot people
+    - foreskin
+    - the BNP
+    - the miracle of childbirth
+    - waiting 'til marriage
+    - two midgets shitting into a bucket
+    - David Cameron
+    - a sad handjob
+    - just touching David Beckham's hair
+    - the glass ceiling
+    - extremely tight trousers
+    - your weird brother
+    - hip hop jewels
+    - breaking out into a song and dance
+    - druids
+    - trench foot
+    - an argument with Richard Dawkins
+    - the Rev. Dr. Martin Luther King, Jr
+    - the French
+    - dirty nappies
+    - Germans on holiday
+    - sexual peeing
+    - white privilege
+    - hope
+    - taking off your shirt
+    - One Direction's supple, hairless bodies
+    - ethnic cleansing
+    - paedophiles
+    - Daddies® Brown Sause
+    - getting really high
+    - natural selection
+    - a gassy antelope
+    - my sex life
+    - Arnold Schwarzenegger
+    - pretending to care
+    - pronouncing the names of northern Welsh towns
+    - >
+      getting web, having a few kids, taking some pictures, retiring to the
+      south of France, and dying
+    - an ugly face
+    - sex with Patrick Stewart
+    - BATMAN!!!
+    - homeless people
+    - Spaniards
+    - Centaurs
+    - a salty surprise
+    - 72 virgins
+    - embryonic stem cells
+    - pixellated bukkake
+    - seppuku
+    - an icepick lobotomy
+    - dark and mysterious forces beyond our control
+    - menstrual rage
+    - the rhythms of Africa
+    - invading Poland
+    - gentleman's Relish
+    - horrifying laser hair removal accidents
+    - autocannibalism
+    - slapping an biscuit out of an orphan's mouth
+    - riding off into the sunset
+    - Goblins
+    - Excalibur
+    - shiny objects
+    - being rich
+    - Gary Glitter
+    - leprosy
+    - world peace
+    - dick fingers
+    - chainsaws for hands
+    - a white van man
+    - Miley Cyrus at 55
+    - laying an egg
+    - the folly of man
+    - my genitals
+    - Grandma
+    - flesh-eating bacteria
+    - poor people
+    - 50,000 volts straight to the nipples
+    - Hurling one's body down a hill in pursuit of a wheel of cheese
+    - strong female characters
+    - poor lofe choices
+    - altar boys
+    - my vagina
+    - Pac-Man uncontrollably guzzling cum
+    - sniffing glue
+    - the placenta
+    - the profoundly handicapped
+    - spontaneous human combustion
+    - the KKK
+    - the clitoris
+    - shitting out a perfect Cumberland sausage
+    - consensual sex
+    - black people
+    - a bucket full of fish heads
+    - hospice care
+    - passive-aggressive Post-it notes
+    - the entire cast of Downton Abbey
+    - the heart of a child
+    - the pirate's life
+    - cottaging
+    - being fat and syupid
+    - five litres of Special Brew
+    - Sean Penn
+    - Sean Connery
+    - expecting a burp and vomiting on the floor
+    - wifely duties
+    - a pyramid of severed heads
+    - Genghis Khan
+    - a vindaloo poo
+    - crucifixion
+    - a subscription to Men's Fitness
+    - the milk man
+    - friendly fire
+    - women's suffrage
+    - AIDS
+    - a bit of slap and tickle
+    - 8 oz. of sweet Mexican black-tar heroin
+    - a thousand Scottish warriors lifting their kilts in unison
+    - edible underwear
+    - my colection of high-tech sex toys
+    - The Force
+    - Buckfast Tonic Wine
+    - Tories
+    - a micropig wearing a tiny raincoat and booties
+    - jobs
+    - masturbation
+    - Tom Cruise
+    - a balanced breakfast
+    - anal beads
+    - drinking alone
+    - Cards Against Humanity
+    - coat hanger abortions
+    - 400 years of colonial atrocities
+    - cuddling
+    - faffing about
+    - a nice cup of tea
+    - mining accidents
+    - Morgan Freeman's voice
+    - a middle-aged man on roller skates
+    - Gandhi
+    - Jimmy Savile
+    - spectacular abs
+    - Keanu Reeves
+    - child beauty pageants
+    - child abuse
+    - LYNX® Body Spray
+    - science
+    - a tribe of warrior women
+    - Viagra®
+    - Her Majesty, Queen Elizabeth II
+    - the way James Bond treats women
+    - dogging
+    - take-backsies
+    - an erection that lasts longer than four hours
+

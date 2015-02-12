@@ -29,11 +29,14 @@ use Moose;
 use MooseX::Getopt;
 with 'MooseX::Getopt';
 use Try::Tiny;
+use List::Util qw/shuffle/;
+
 use Data::Dumper;
 
 use PAH::IRC;
 use PAH::Log;
 use PAH::Schema;
+use PAH::Deck;
 
 has config_file => (
     isa     => 'Str',
@@ -72,6 +75,10 @@ has _priv_dispatch => (
 );
 
 has _whois_queue => (
+    is => 'ro',
+);
+
+has _deck => (
     is => 'ro',
 );
 
@@ -115,6 +122,16 @@ sub BUILD {
   };
 
   $self->{_whois_queue} = {};
+
+  my $default_deck = 'cah_uk';
+
+  $self->{_deck} = PAH::Deck->load($default_deck);
+
+  my $deck = $self->{_deck}->{$default_deck};
+
+  debug("Loaded deck: %s", $deck->{Description});
+  debug("Deck has %u Black Cards, %u White Cards",
+      scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
 }
 
 # The "main"
@@ -580,6 +597,15 @@ sub do_pub_start {
         }
     );
 
+    # Seems to be necessary in order to get the default DB values back into the
+    # object.
+    $game->discard_changes;
+
+    # Stuff the cards from memory structure into the database so that this game
+    # has its own unique deck to work through, that will persist across process
+    # restarts.
+    $self->db_populate_cards($game);
+
     my $user = $schema->resultset('User')->find_or_create(
         { nick => $who },
     );
@@ -815,6 +841,40 @@ sub db_get_channel {
     return $schema->resultset('Channel')->find(
         { 'name' => $chan },
     );
+}
+
+# Create a Black Card deck and a White Card deck in the database, unique to a
+# specific game, referencing indices into our arrays of cards.
+#
+# The indices of the cards will be inserted in random order. Therefore we can
+# iterate through a random deck by selecting increasing row ID numbers.
+#
+# Our template decks are:
+#  $self->_deck->{deckname}->{Black}
+#  $self->_deck->{deckname}->{White}
+#
+# Arguments:
+#
+# - Game Schema object
+#
+# Returns:
+#
+# Nothing.
+sub db_populate_cards {
+    my ($self, $game) = @_;
+
+    my $schema   = $self->_schema;
+    my $deckname = $game->deck;
+    my $deck     = $self->_deck->{$deckname};
+
+    my @bcard_indices = shuffle (0 .. (scalar @{ $deck->{Black} } - 1));
+    my @wcard_indices = shuffle (0 .. (scalar @{ $deck->{White} } - 1));
+
+    my @bcards = map { { game => $game->id, cardidx => $_ } } @bcard_indices;
+    my @wcards = map { { game => $game->id, cardidx => $_ } } @wcard_indices;
+
+    $schema->resultset('BCard')->populate(\@bcards);
+    $schema->resultset('WCard')->populate(\@wcards);
 }
 
 1;

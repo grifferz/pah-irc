@@ -66,6 +66,13 @@ __PACKAGE__->add_columns(
         extra       => { unsigned => 1 },
     },
 
+    # Deck name in use by this Game.
+    deck => {
+        data_type     => 'varchar',
+        is_nullable   => 0,
+        default_value => 'cah_uk',
+    },
+
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -79,17 +86,29 @@ __PACKAGE__->belongs_to(
     { 'foreign.id' => 'self.channel' }
 );
 
-# A Game has zero or more UserGames
+# A Game has zero or more UserGames.
 __PACKAGE__->has_many(
     rel_usergames => 'PAH::Schema::Result::UserGame',
     { 'foreign.game' => 'self.id' }
 );
 
-# A Game has zero or more active UserGames
+# A Game has zero or more active UserGames.
 __PACKAGE__->has_many(
     rel_active_usergames => 'PAH::Schema::Result::UserGame',
     { 'foreign.game' => 'self.id' },
     { where => { 'active' => 1 } }
+);
+
+# A Game has zero or more BCards.
+__PACKAGE__->has_many(
+    rel_bcards => 'PAH::Schema::Result::BCard',
+    { 'foreign.game' => 'self.id' }
+);
+
+# A Game has zero or more WCards.
+__PACKAGE__->has_many(
+    rel_wcards => 'PAH::Schema::Result::WCard',
+    { 'foreign.game' => 'self.id' }
 );
 
 # On deploy add some indexes.
