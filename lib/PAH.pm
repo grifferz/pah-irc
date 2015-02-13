@@ -126,6 +126,10 @@ sub BUILD {
           sub        => \&do_priv_hand,
           privileged => 1,
       },
+      'black' => {
+          sub        => \&do_priv_black,
+          privileged => 0,
+      },
   };
 
   $self->{_whois_queue} = {};
@@ -590,7 +594,7 @@ sub do_pub_status {
 
         $self->_irc->msg($chan, "Top 3 all time: $winstring");
         $self->_irc->msg($chan, "Current Black Card:");
-        $self->notify_bcard($game);
+        $self->notify_bcard($chan, $game);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
@@ -1296,21 +1300,22 @@ sub deal_to_tsar {
 
     # Notify the channel about the new Black Card.
     $self->_irc->msg($chan, "Time for the next Black Card:");
-    $self->notify_bcard($game);
+    $self->notify_bcard($chan, $game);
     $self->_irc->msg($chan, "Now message me your answers please!");
 }
 
-# Tell a channel about the Black Card that has just been dealt.
+# Tell a channel or nick about the Black Card that has just been dealt.
 #
 # Arguments:
 #
+# - The target of the message (channel name or nickname).
 # - The Game Schema object for this game.
 #
 # Returns:
 #
 # Nothing.
 sub notify_bcard {
-    my ($self, $game) = @_;
+    my ($self, $who, $game) = @_;
 
     my $channel = $game->rel_channel;
     my $chan    = $channel->disp_name;
@@ -1321,7 +1326,107 @@ sub notify_bcard {
         # Sometimes YAML leaves us with a trailing newline in the text.
         next if ($line =~ /^\s*$/);
 
-        $self->_irc->msg($chan, "→ $line");
+        $self->_irc->msg($who, "→ $line");
+    }
+
+}
+
+# Tell a user the text of the current black card.
+#
+# A complication here is that this command can be called by anyone, so they may
+# not be an active player or even be a player at all.
+#
+# If they are an active player in just one game then we know what channel this
+# relates to, but if no channel is specified and they're not active or are
+# active in multiple then we'll need to ask them to specify.
+sub do_priv_black {
+    my ($self, $args) = @_;
+
+    my $irc     = $self->_irc;
+    my $schema  = $self->_schema;
+    my $who     = $args->{nick};
+    my $user    = $self->db_get_user($who);
+    my $my_nick = $self->_irc->nick();
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    my $game;
+
+    # Try to work out which Game we should be operating on here.
+    if (defined $chan) {
+        # They specified a channel. Is there a game for that channel?
+        my $channel = $schema->resultset('Channel')->find(
+            {
+                name => $chan,
+            }
+        );
+
+        if (not defined $channel) {
+            # Can't be a game there, then.
+            $irc->msg($who, sprintf("There's no game running in %s!", $chan));
+            return;
+        }
+
+        $game = $channel->rel_game;
+    } else {
+        my @active_usergames = $user->rel_active_usergames;
+
+        my $game_count = scalar @active_usergames;
+
+        if (1 == $game_count) {
+            # Simplest case: they are an active player in one game.
+            $game = $active_usergames[0]->rel_game;
+            $chan = $game->rel_channel->disp_name;
+        } elsif (0 == $game_count) {
+            # They aren't active in any game, and they didn't specify a
+            # channel, so no way to know which channel they meant.
+            $irc->msg($who,
+                "Sorry, you're going to have to tell me which channel's game you're"
+               . " interested in.");
+            $irc->msg($who, "Try again with \"/msg $my_nick #channel black\"");
+            return;
+        } else {
+            # They're in more than one game so again no way to tell which one
+            # they mean.
+            $irc->msg($who,
+                "Sorry, you appear to be in multiple games so you're going to have"
+               . " to specify which one you mean.");
+            $irc->msg($who, "Try again with \"/msg $my_nick #channel black\"");
+            return;
+        }
+    }
+
+    if (not defined $game) {
+        # Shouldn't be possible to get here without a Game.
+        debug("Somehow ended up without a valid Game object");
+        return;
+    }
+
+    if ($game->status != 2) {
+        # There is a game but it's not running.
+        $irc->msg($who, "The game in $chan is currently paused.");
+        return;
+    }
+
+    $irc->msg($who, "Current Black Card for game in $chan:");
+    $self->notify_bcard($who, $game);
+
+    my @active_usergames = $game->rel_active_usergames;
+    my ($usergame) = grep { $_->rel_user->id == $user->id } @active_usergames;
+    my ($tsar)     = grep { 1 == $_->is_tsar } @active_usergames;
+
+    if ($tsar->rel_user->nick eq $who) {
+        # They're the Card Tsar.
+        $irc->msg($who, "You're the current Card Tsar!");
+    } else {
+        $self->_irc->msg($who,
+            sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
+
+        # Are they in a position to play a move?
+        if (defined $usergame) {
+            $irc->msg($who, "Use the \"Play\" command to make your play!");
+        }
     }
 
 }
