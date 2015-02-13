@@ -73,6 +73,14 @@ __PACKAGE__->add_columns(
         default_value => 'cah_uk',
     },
 
+    # The index of the current Black Card for this Game.
+    bcardidx => {
+        data_type    => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -99,13 +107,13 @@ __PACKAGE__->has_many(
     { where => { 'active' => 1 } }
 );
 
-# A Game has zero or more BCards.
+# A Game has zero or more BCards (the deck).
 __PACKAGE__->has_many(
     rel_bcards => 'PAH::Schema::Result::BCard',
     { 'foreign.game' => 'self.id' }
 );
 
-# A Game has zero or more WCards.
+# A Game has zero or more WCards (the deck).
 __PACKAGE__->has_many(
     rel_wcards => 'PAH::Schema::Result::WCard',
     { 'foreign.game' => 'self.id' }

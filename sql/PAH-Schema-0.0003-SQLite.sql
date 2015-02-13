@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Thu Feb 12 13:13:14 2015
+-- Created on Fri Feb 13 10:45:11 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -47,6 +47,7 @@ CREATE TABLE games (
   activity_time integer NOT NULL,
   status integer NOT NULL,
   deck varchar NOT NULL DEFAULT 'cah_uk',
+  bcardidx integer NOT NULL DEFAULT 0,
   FOREIGN KEY (channel) REFERENCES channels(id) ON DELETE CASCADE
 );
 
@@ -99,13 +100,9 @@ CREATE TABLE users_games (
   is_tsar integer NOT NULL DEFAULT 0,
   wait_since integer NOT NULL DEFAULT 0,
   active integer NOT NULL DEFAULT 1,
-  bcard integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (bcard) REFERENCES bcards(id),
   FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (user) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-CREATE INDEX users_games_idx_bcard ON users_games (bcard);
 
 CREATE INDEX users_games_idx_game ON users_games (game);
 
