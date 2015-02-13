@@ -74,7 +74,11 @@ sub connect {
 
 }
 
-# Enqueue an IRC message onto the end of the send queue.
+# Don't send the IRC PRIVMSG right away, as this game is quite wordy and can
+# easily lead to excess flood kills from the IRC server.
+#
+# Instead use an incredibly dumb throttling mechanism: a simple list to which
+# messages are appended and consumed from the back once per second.
 sub msg {
     my ($self, $who, $text) = @_;
 
@@ -86,9 +90,6 @@ sub msg {
     };
 
     push @{ $queue }, $item;
-
-    debug("Enqueued IRC message for %s", $who);
-#    $self->send_srv(PRIVMSG => $who, $text);
 }
 
 sub notice {
@@ -115,6 +116,12 @@ sub on_registered {
 }
 
 # If there are IRC messages in the send queue, take the oldest one and send it.
+#
+# This is very dumb and operates on a fixed interval of 1 per second.
+#
+# TODO: Make it smarter, e.g. allowing for bursts, use token bucket filter, etc.
+# TODO: Experiment with what is actually a safe interval. 1/sec is quite slow.
+# TODO: Consider using the send queue for more than just PRIVMSG?
 sub process_msg_queue {
     my ($self) = @_;
 
@@ -122,7 +129,7 @@ sub process_msg_queue {
 
     if (scalar @{ $queue }) {
         my $first = shift @{ $queue };
-        debug("Dequeued IRC message");
+
         $self->send_srv(PRIVMSG => $first->{who}, $first->{text});
     }
 }
