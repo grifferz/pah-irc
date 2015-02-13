@@ -228,11 +228,12 @@ sub joined {
 
         if ($num_players < 4) {
             $game->status(1); # Waiting for players.
-            debug("Game for %s only had %u player(s) so I set it as waiting",
-                $chan, $num_players);
+            debug("Game for %s only had %u player(s) so I set it as"
+               . " waiting", $chan, $num_players);
         } else {
             $game->status(2); # We're on.
-            debug("Game for %s has enough players so it's now active", $chan);
+            debug("Game for %s has enough players so it's now active",
+                $chan);
         }
 
         $game->update;
@@ -553,14 +554,19 @@ sub do_pub_status {
         $self->_irc->msg($chan,
             "Just type \"$my_nick: start\" and find at least 3 friends.");
     } elsif (2 == $game->status) {
+        my @active_usergames = $game->rel_active_usergames;
+
+        my ($tsar) = grep { 1 == $_->is_tsar } @active_usergames;
+
         $self->_irc->msg($chan,
             "$who: A game is active! We're currently waiting on NOT"
            . " IMPLEMENTED to NOT IMPLEMENTED.");
-        $self->_irc->msg($chan, "The current Card Tsar is NOT IMPLEMENTED.");
+        $self->_irc->msg($chan,
+            sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
 
-        my @active_usergames = sort {
+        @active_usergames = sort {
             $b->wins <=> $a->wins
-        } $game->rel_active_usergames;
+        } @active_usergames;
 
         my $winstring = join(' ',
             map { $_->rel_user->nick . '(' . $_->wins . ')' }
@@ -584,7 +590,7 @@ sub do_pub_status {
 
         $self->_irc->msg($chan, "Top 3 all time: $winstring");
         $self->_irc->msg($chan, "Current Black Card:");
-        $self->_irc->msg($chan, "NOT IMPLEMENTED.");
+        $self->notify_bcard($game);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
@@ -811,13 +817,15 @@ sub do_pub_dealin {
     if ($num_players >= 4 and 1 == $game->status) {
         $game->status(2);
         $game->update;
-        $self->_irc->msg($chan, "The game begins!");
+        $self->_irc->msg($chan,
+            "The game begins! Give me a minute or two to tell everyone their hands"
+           . " without flooding myself off, please.");
         # Get a chat window open with all the players.
         $self->brief_players($game);
         # Top everyone's White Card hands up to 10 cards.
         $self->topup_hands($game);
         # And deal out a Black Card to the Tsar.
-#        $self->deal_to_tsar($game);
+        $self->deal_to_tsar($game);
     } else {
         $self->_irc->msg($chan,
             "We've now got $num_players of minimum 4. Anyone else?");
@@ -1245,6 +1253,77 @@ sub notify_wcards {
 
         $self->_irc->msg($who, sprintf("%2u. %s", $i, $text));
     }
+}
+
+# Deal a new Black Card to the Card Tsar and tell the channel about it. This
+# marks the start of a new hand.
+#
+# Arguments:
+#
+# - The Game Schema object for this game.
+#
+# Returns:
+#
+# Nothing.
+sub deal_to_tsar {
+    my ($self, $game) = @_;
+
+    my $schema    = $self->_schema;
+    my $chan      = $game->rel_channel->disp_name;
+    my @usergames = $game->rel_active_usergames;
+
+    # First match only.
+    my ($tsar) = grep { 1 == $_->is_tsar } @usergames;
+
+    # Grab the top Black Card off this game's deck…
+    my $new = $schema->resultset('BCard')->find(
+        {
+            game => $game->id,
+        },
+        {
+            order_by => { '-asc' => 'id' },
+            rows     => 1,
+        },
+    );
+
+    # Update the Game with the index of the current black card.
+    $game->bcardidx($new->cardidx);
+    $game->activity_time(time());
+    $game->update;
+
+    # Discard the Black Card off the deck (because it's now part of the Game round).
+    $schema->resultset('BCard')->find({ id => $new->id })->delete;
+
+    # Notify the channel about the new Black Card.
+    $self->_irc->msg($chan, "Time for the next Black Card:");
+    $self->notify_bcard($game);
+    $self->_irc->msg($chan, "Now message me your answers please!");
+}
+
+# Tell a channel about the Black Card that has just been dealt.
+#
+# Arguments:
+#
+# - The Game Schema object for this game.
+#
+# Returns:
+#
+# Nothing.
+sub notify_bcard {
+    my ($self, $game) = @_;
+
+    my $channel = $game->rel_channel;
+    my $chan    = $channel->disp_name;
+    my $deck    = $self->_deck->{$game->deck};
+    my $text    = $deck->{Black}->[$game->bcardidx];
+
+    foreach my $line (split(/\n/, $text)) {
+        # Sometimes YAML leaves us with a trailing newline in the text.
+        next if ($line =~ /^\s*$/);
+
+        $self->_irc->msg($chan, "→ $line");
+    }
+
 }
 
 1;
