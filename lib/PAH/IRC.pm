@@ -17,6 +17,7 @@ PAH::IRC - Lame wrapper around AnyEvent::IRC::Client for pah-irc
 use base "AnyEvent::IRC::Client";
 use AnyEvent::IRC::Util qw(prefix_nick);
 use JSON::MaybeXS qw(to_json);
+use Encode;
 use PAH::Log;
 use Data::Dumper;
 
@@ -131,7 +132,7 @@ sub process_msg_queue {
     if (scalar @{ $queue }) {
         my $first = shift @{ $queue };
 
-        $self->send_srv(PRIVMSG => $first->{who}, $first->{text});
+        $self->send_srv(PRIVMSG => $first->{who}, encode('utf-8', $first->{text}));
     }
 }
 
