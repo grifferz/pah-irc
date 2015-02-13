@@ -56,6 +56,7 @@ sub connect {
       irc_invite
       kick
       publicmsg
+      privatemsg
       irc_318
       irc_330
       )
@@ -246,6 +247,23 @@ sub on_publicmsg {
     debug("<%s:%s> %s", $from, $channel, $content);
 
     $self->{parent}->process_chan_command($from, $channel, $for_us);
+}
+
+sub on_privatemsg {
+    my ($self, $me, $ircmsg) = @_;
+
+    my $from    = (split(/!/, $ircmsg->{prefix}))[0];
+    my $content = $ircmsg->{params}->[1];
+
+    # Ignore stuff that isn't a normal message.
+    if ($ircmsg->{command} !~ /^PRIVMSG$/i) {
+        debug("Ignoring a private NOTICE");
+        return;
+    }
+
+    debug("<%s> %s", $from, $content);
+
+    $self->{parent}->process_priv_command($from, $content);
 }
 
 # This is the "is logged in as" WHOIS reply. If we get it then it tells us

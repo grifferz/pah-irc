@@ -121,6 +121,13 @@ sub BUILD {
       },
   };
 
+  $self->{_priv_dispatch} = {
+      'hand' => {
+          sub        => \&do_priv_hand,
+          privileged => 1,
+      },
+  };
+
   $self->{_whois_queue} = {};
 
   my $default_deck = 'cah_uk';
@@ -322,6 +329,69 @@ sub join_welcoming_channels {
     }
 }
 
+# Deal with a possible command directed at us in private message.
+sub process_priv_command {
+    my ($self, $sender, $cmd) = @_;
+
+    # Downcase everything, even the command, as there currently aren't any
+    # private commands that could use mixed case.
+    $sender = lc($sender);
+    $cmd    = lc($cmd);
+
+    my $chan = undef;
+
+    my $disp = $self->_priv_dispatch;
+
+    # Does the command have a channel specified?
+    #
+    # Private commands look like this:
+    #
+    # some_command
+    # #foo some_command
+    #
+    # The first asks to perform "some_command" in the single game that the user
+    # is active in. This will be an error if the user is active in multiple
+    # games.
+    #
+    # The second specifies that the command relates to the game being carried
+    # out in channel #foo, which removes the ambiguity.
+    if ($cmd =~ /^([#\&]\S+)\s+(.*)$/) {
+        $chan = $1;
+        $cmd  = $2;
+    }
+
+    my $args = {
+        nick   => $sender,
+        chan   => $chan,
+        public => 0,
+    };
+
+    if (exists $disp->{$cmd}) {
+        if (0 == $disp->{$cmd}->{privileged}) {
+            # This is an unprivileged command that anyone may use, so just
+            # dispatch it.
+            $disp->{$cmd}->{sub}->($self, $args);
+        } else {
+            # This command requires the user to be identified to a registered
+            # nickname. We'll ensure this by:
+            #
+            # 1. Storing the details onto a queue.
+            # 2. Issuing a WHOIS for the user.
+            # 3. Checking the queue when we receive a WHOIS reply, later.
+            # 4. Executing the callback at that time if appropriate.
+            queue_whois_callback($self,
+                {
+                    target   => $args->{nick},
+                    callback => $disp->{$cmd},
+                    cb_args  => $args,
+                }
+            );
+        }
+    } else {
+        do_unknown($self, $args);
+    }
+}
+
 # Deal with a public command directed at us in a channel.
 sub process_chan_command {
     my ($self, $sender, $chan, $cmd) = @_;
@@ -334,8 +404,9 @@ sub process_chan_command {
 
     my $disp = $self->_pub_dispatch;
     my $args = {
-        nick => $sender,
-        chan => $chan,
+        nick   => $sender,
+        chan   => $chan,
+        public => 1,
     };
 
     if (exists $disp->{$cmd}) {
@@ -361,7 +432,7 @@ sub process_chan_command {
             );
         }
     } else {
-        do_pub_unknown($self, $args);
+        do_unknown($self, $args);
     }
 }
 
@@ -426,15 +497,31 @@ sub denied_whois_callback {
 }
 
 # Didn't match any known command.
-sub do_pub_unknown {
+sub do_unknown {
     my ($self, $args) = @_;
 
     my $chan = $args->{chan};
     my $who  = $args->{nick};
 
-    $self->_irc->msg($chan,
-        "$who: Sorry, that's not a command I recognise. See"
-       . " https://github.com/grifferz/pah-irc#usage for more info.");
+    my $target;
+
+    # Errors to go to the channel if the command came from the channel,
+    # otherwise in private to the sender.
+    if (1 == $args->{public}) {
+        $target = $chan;
+    } else {
+        $target = $who;
+    }
+
+    if (defined $chan) {
+        $self->_irc->msg($target,
+            "$who: Sorry, that's not a command I recognise. See"
+            . " https://github.com/grifferz/pah-irc#usage for more info.");
+    } else {
+        $self->_irc->msg($target,
+            "Sorry, that's not a command I recognise. See"
+           . " https://github.com/grifferz/pah-irc#usage for more info.");
+    }
 }
 
 sub do_pub_status {
@@ -606,9 +693,7 @@ sub do_pub_start {
     # restarts.
     $self->db_populate_cards($game);
 
-    my $user = $schema->resultset('User')->find_or_create(
-        { nick => $who },
-    );
+    my $user = $self->db_get_user($who);
 
     # "Let the User see the Game!" Ahem. Add the User to the Game.
     # In the absence of not being able to know who pooped last, the starting
@@ -732,7 +817,7 @@ sub do_pub_dealin {
         # Top everyone's White Card hands up to 10 cards.
         $self->topup_hands($game);
         # And deal out a Black Card to the Tsar.
-        $self->deal_to_tsar($game);
+#        $self->deal_to_tsar($game);
     } else {
         $self->_irc->msg($chan,
             "We've now got $num_players of minimum 4. Anyone else?");
@@ -828,6 +913,103 @@ sub do_pub_resign {
 
    # TODO: all the card handling.
 }
+
+# Someone is asking for their current hand (of White Cards) to be displayed.
+#
+# First assume that they are only in one game so the channel will be implicit.
+# If this proves to not be the case then ask them to try again with the channel
+# specified.
+sub do_priv_hand {
+    my ($self, $args) = @_;
+
+    my $who     = $args->{nick};
+    my $user    = $self->db_get_user($who);
+    my $my_nick = $self->_irc->nick();
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    # Only players active in at least one game will have a hand at all, so
+    # check that first.
+    my @active_usergames = $user->rel_active_usergames;
+
+    # Did they specify a channel? If so then discard any active games that are
+    # not for that channel.
+    if (defined $chan) {
+        @active_usergames = grep {
+            $_->rel_game->rel_channel->name eq $chan
+        } @active_usergames;
+    }
+
+    my $game_count = scalar @active_usergames;
+
+    if (1 == $game_count) {
+        my $ug    = $active_usergames[0];
+        my @cards = $ug->rel_usergamehands;
+
+        # Sort them by "wcardidx".
+        @cards = sort { $a->wcardidx <=> $b->wcardidx } @cards;
+
+        $self->_irc->msg($who,
+            "Your White Cards in " . $ug->rel_game->rel_channel->disp_name
+            . ":");
+        $self->notify_wcards($ug, \@cards);
+    } elsif (0 == $game_count) {
+        if (defined $chan) {
+            $self->_irc->msg($who,
+                "Sorry, you don't appear to be active in a game in $chan yet.");
+        } else {
+            $self->_irc->msg($who,
+                "Sorry, you don't appear to be active in any games yet.");
+        }
+
+        $self->_irc->msg($who,
+            "If you'd like to start one then type \"$my_nick: start\" in the"
+           . " channel you'd like to play in.");
+        $self->_irc->msg($who,
+            "Or you can join a running game with \"$my_nick: deal me in\".");
+    } else {
+        # Can only get here if they did not specify a channel. If they *had*
+        # specified a channel then there would only have been one item in
+        # @active_usergames. So we need to ask them to specify.
+        my @channels = map {
+            $_->rel_game->rel_channel->name
+        } @active_usergames;
+
+        my $last            = pop @channels;
+        my $channels_string = join(', ', @channels) . ", and $last";
+
+        $self->_irc->msg($who,
+            "Sorry, you appear to be active in games in $channels_string.");
+        $self->_irc->msg($who,
+            "You're going to have to be more specific! Type \"$last hand\" for"
+           . " example.");
+    }
+
+}
+
+# Get the user row from the database that corresponds to the user nick as
+# a string.
+#
+# If there is no such user in the database then create it and return that.
+#
+# Arguments:
+#
+# - user nick
+#
+# Returns:
+#
+# PAH::Schema::Result::User object
+sub db_get_user {
+    my ($self, $nick) = @_;
+
+    my $schema = $self->_schema;
+
+    return $schema->resultset('User')->find_or_create(
+        { 'nick' => $nick },
+    );
+}
+
 
 # Get the channel row from the database that corresponds to the channel name as
 # a string.
@@ -979,6 +1161,9 @@ sub topup_hands {
             }
         )->delete;
 
+        # Sort them by "cardidx".
+        @new = sort { $a->cardidx <=> $b->cardidx } @new;
+
         $self->notify_new_wcards($ug, \@new);
     }
 }
@@ -1005,16 +1190,60 @@ sub notify_new_wcards {
         "$num_added new White Card" . (1 == $num_added ? '' :  's')
         . " have been dealt to you:");
 
-    my $i = 0;
-
-    foreach my $wcard (@{ $new }) {
-        $i++;
-        $self->_irc->msg($who,
-            sprintf(" %2u ", $i) . $deck->{White}->[$wcard->cardidx]);
-    }
+    $self->notify_wcards($ug, $new);
 
     if ($num_added < 10) {
         $self->_irc->msg($who, "To see your full hand, say \"hand\".");
+    }
+}
+
+# List off a set of White Cards to a user.
+#
+# Arguments:
+#
+# - The UserGame Schema object for this User/Game.
+# - An arrayref of Schema objects representing the cards. This can be either
+#   ::WCard or ::UserGameHand, which represent either a White Card in the deck
+#   or a White Card in the hand, respectively.
+#
+#   If the object is a ::WCard then the accessor for the card index will be
+#   "cardidx", otherwise it will be "wcardidx".
+#
+# Returns:
+#
+# Nothing.
+sub notify_wcards {
+    my ($self, $ug, $cards) = @_;
+
+    my $who  = $ug->rel_user->nick;
+    my $deck = $self->_deck->{$ug->rel_game->deck};
+
+    my $i = 0;
+
+    foreach my $wcard (@{ $cards }) {
+        $i++;
+
+        my $index;
+
+        if ($wcard->has_column('wcardidx')) {
+            # This is a ::UserGameHand.
+            $index = $wcard->wcardidx;
+        } else {
+            # This is a ::WCard.
+            $index = $wcard->cardidx;
+        }
+
+        my $text = $deck->{White}->[$index];
+
+        # Upcase the first character and add a period on the end unless it
+        # already has some punctuation.
+        $text = ucfirst($text);
+
+        if ($text !~ /[\.\?\!]$/) {
+            $text .= '.';
+        }
+
+        $self->_irc->msg($who, sprintf("%2u. %s", $i, $text));
     }
 }
 
