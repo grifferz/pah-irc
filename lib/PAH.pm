@@ -130,6 +130,10 @@ sub BUILD {
           sub        => \&do_priv_black,
           privileged => 0,
       },
+      'play' => {
+          sub        => \&do_priv_play,
+          privileged => 1,
+      },
   };
 
   $self->{_whois_queue} = {};
@@ -344,6 +348,7 @@ sub process_priv_command {
     $cmd    = lc($cmd);
 
     my $chan = undef;
+    my $rest = undef;
 
     my $disp = $self->_priv_dispatch;
 
@@ -352,7 +357,10 @@ sub process_priv_command {
     # Private commands look like this:
     #
     # some_command
+    # some_command and some arguments
     # #foo some_command
+    # #foo some_command and some arguments
+    #
     #
     # The first asks to perform "some_command" in the single game that the user
     # is active in. This will be an error if the user is active in multiple
@@ -360,15 +368,26 @@ sub process_priv_command {
     #
     # The second specifies that the command relates to the game being carried
     # out in channel #foo, which removes the ambiguity.
-    if ($cmd =~ /^([#\&]\S+)\s+(.*)$/) {
+    if ($cmd =~ /^([#\&]\S+)\s+(\S+)(.*)?$/) {
         $chan = $1;
         $cmd  = $2;
+        $rest = $3;
+    } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
+        $cmd  = $1;
+        $rest = $2;
     }
+
+    # Strip off any leading/trailing whitespace.
+    if (defined $rest) {
+        $rest =~ s/^\s+//;
+        $rest =~ s/\s+$//;
+    };
 
     my $args = {
         nick   => $sender,
         chan   => $chan,
         public => 0,
+        params => $rest,
     };
 
     if (exists $disp->{$cmd}) {
@@ -1429,6 +1448,256 @@ sub do_priv_black {
         }
     }
 
+}
+
+# A user wants to make a play from their hand of White Cards. After sanity
+# checks we'll take the play and then repeat it back to them so they can
+# appreciate the full impact of their choice.
+#
+# They can make another play at any time up until when the Card Tsar views the
+# cards.
+sub do_priv_play {
+    my ($self, $args) = @_;
+
+    my $who     = $args->{nick};
+    my $params  = $args->{params};
+    my $user    = $self->db_get_user($who);
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    # Only players active in at least one game will have a hand at all, so
+    # check that first.
+    my @active_usergames = $user->rel_active_usergames;
+
+    # Did they specify a channel? If so then discard any active games that are
+    # not for that channel.
+    if (defined $chan) {
+        @active_usergames = grep {
+            $_->rel_game->rel_channel->name eq $chan
+        } @active_usergames;
+    }
+
+    my $game_count = scalar @active_usergames;
+
+    if (0 == $game_count) {
+        $irc->msg($who, "You aren't currently playing a game with me!");
+        $irc->msg($who,
+            sprintf("You probably want to be typing \"%s: start\" "
+                    . "or \"%s: deal me in\" in a channel."), $my_nick, $my_nick);
+        return;
+    } elsif ($game_count > 1) {
+        # Can only get here when the channel is not specified.
+        # Since they're in multiple active games we need to ask them to specify
+        # which game they intend to make a play for.
+        $irc->msg($who,
+            "Sorry, you're in multiple active games right now so I need you to"
+           . " specify which channel you mean.");
+        $irc->msg($who,
+            "You can do that by typing \"/msg $my_nick #channel play …\"");
+        return;
+    }
+
+    # Finally we've got the specific UserGame for this player and channel.
+    my $ug      = $active_usergames[0];
+    my $game    = $ug->rel_game;
+    my $channel = $game->rel_channel;
+
+    # Are they the Card Tsar? The Tsar doesn't get to play!
+    if (1 == $ug->is_tsar) {
+        $irc->msg($who,
+            sprintf("You're currently the Card Tsar for %s; you don't get to play"
+               . " any White Cards yet!", $channel->disp_name));
+       return;
+    }
+
+    # Does their play even make sense?
+    my ($first, $second);
+
+    my $bcardidx     = $game->bcardidx;
+    my $cards_needed = $self->how_many_blanks($game, $bcardidx);
+
+    if (not defined $params or 0 == length($params)) {
+        if (1 == $cards_needed) {
+            $irc->msg($who,
+                qq{I need one answer and you've given me none! Try}
+               . qq{ "/msg $my_nick play 1" where "1" is the White Card}
+               . qq{ number from your hand.});
+        } else {
+            $irc->msg($who,
+                qq{I need two answers and you've given me none! Try}
+               . qq{ "/msg $my_nick play 1 2" where "1" and "2" are the White Card}
+               . qq{ numbers from your hand.});
+        }
+        return;
+    }
+
+    if (1 == $cards_needed) {
+        if ($params =~ /^\s*(\d+)\s*$/ and $1 > 0) {
+            $first = $1;
+        } else {
+            $irc->msg($who, "Sorry, this Black Card needs one White Card and"
+               . " \"$params\" doesn't look like a single, positive integer. Try"
+               . " again!");
+            return;
+        }
+    } elsif (2 == $cards_needed) {
+        if ($params =~ /^\s*(\d+)\s*(?:\s+|,|\&)\s*(\d+)\s*$/
+                and $1 > 0 and $2 > 0) {
+            $first  = $1;
+            $second = $2;
+        } else {
+            $irc->msg($who,
+                "Sorry, this Black Card needs two White Cards. Do it like this:");
+            $irc->msg($who, qq{/msg $my_nick play 1 2});
+            return;
+        }
+    } else {
+        debug("Black Card with index %u appears to need %u answers, which is weird.",
+            $bcardidx, $cards_needed);
+        return;
+    }
+
+    $irc->msg($who, "Thanks. So this is your play:");
+
+    my $play;
+
+    if (1 == $cards_needed) {
+        my $first_ugh = $self->db_get_nth_wcard($ug, $first);
+
+        $play = $self->build_play($ug, $bcardidx, [ $first_ugh ]);
+    } else {
+        my $first_ugh  = $self->db_get_nth_wcard($ug, $first);
+        my $second_ugh = $self->db_get_nth_wcard($ug, $second);
+
+        $play = $self->build_play($ug, $bcardidx, [ $first_ugh, $second_ugh ]);
+    }
+
+    foreach my $line (split(/\n/, $play)) {
+        # Sometimes YAML leaves us with a trailing newline in the text.
+        next if ($line =~ /^\s*$/);
+
+        $irc->msg($who, "→ $line");
+    }
+}
+
+# Assemble a play from the current Black Card and some White Cards.
+#
+# Arguments:
+#
+# - The UserGame Schema object.
+#
+# - A scalar representing the index into the Black Card deck for the current
+#   Black Card.
+#
+# - An arrayref of the UserGameHands for the White Cards played, in order.
+#   There should be either one or two of them.
+#
+# Returns:
+#
+# - The formatted play.
+sub build_play {
+    my ($self, $ug, $bcardidx, $ughs) = @_;
+
+    my $game     = $ug->rel_game;
+    my $deckname = $game->deck;
+    my $deck     = $self->_deck->{$deckname};
+    my $btext    = $deck->{Black}->[$bcardidx];
+
+    if ($btext !~ /_{5,}/s) {
+        # There's no blanks in this Black Card text so this will be a 1-card
+        # answer, tacked on the end.
+        $btext = sprintf("%s %s.",
+            $btext, ucfirst($deck->{White}->[$ughs->[0]->wcardidx]));
+        return $btext;
+    }
+
+    my $ugh   = shift @{ $ughs };
+    my $wtext = $deck->{White}->[$ugh->wcardidx];
+
+    $btext =~ s/_{5,}/$wtext/s;
+
+    # If there's still a UserGameHand left, do it again.
+    if (scalar @{ $ughs }) {
+        $ugh   = shift @{ $ughs };
+        $wtext = $deck->{White}->[$ugh->wcardidx];
+
+        $btext =~ s/_{5,}/$wtext/s;
+    }
+
+    # Upper-case things we put at the start.
+    $btext =~ s/^(\S)/uc($1)/e;
+
+    # Upper-case things we put after ".!?".
+    $btext =~ s/([\.\?\!] \S)/uc($1)/gse;
+
+    return $btext;
+}
+
+# Return the UserGameHand row corresponding to the n'th card for a given
+# UserGame, ordered by wcardix.
+#
+# Arguments:
+#
+# - The UserGame Schema object.
+# - The index (1-based, so "2" would be the second card).
+#
+# Returns:
+#
+# A UserGameHand Schema object or undef.
+sub db_get_nth_wcard {
+    my ($self, $ug, $idx) = @_;
+
+    my $schema = $self->_schema;
+
+    return $schema->resultset('UserGameHand')->find(
+        {
+            user_game => $ug->id,
+        },
+        {
+            order_by => { '-asc' => 'wcardidx' },
+            rows     => 1,
+            offset   => $idx - 1,
+        },
+    );
+}
+
+# Work out how many blanks (spaces for an answer) a particular Black Card has.
+#
+# A blank is defined as 5 or more underscores in a row.
+#
+# A Black Card with no such sequences of underscores has one implicit blank, at
+# the end.
+#
+# Other possible numbers are 1 and 2.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# - A scalar representing the index into the Black Card deck for the current
+#   Black Card.
+#
+# Returns:
+#
+# - How many blanks.
+sub how_many_blanks {
+    my ($self, $game, $idx) = @_;
+
+    my $deckname = $game->deck;
+    my $deck     = $self->_deck->{$deckname};
+    my $text     = $deck->{Black}->[$idx];
+
+    if ($text !~ /_____/s) {
+        # no blanks at all, so that's 1.
+        return 1;
+    }
+
+    my @count = $text =~ m/_{5,}/gs;
+
+    return scalar @count;
 }
 
 1;
