@@ -74,9 +74,21 @@ sub connect {
 
 }
 
+# Enqueue an IRC message onto the end of the send queue.
 sub msg {
     my ($self, $who, $text) = @_;
-    $self->send_srv(PRIVMSG => $who, $text);
+
+    my $queue = $self->{_msg_queue};
+
+    my $item = {
+        who  => $who,
+        text => $text,
+    };
+
+    push @{ $queue }, $item;
+
+    debug("Enqueued IRC message for %s", $who);
+#    $self->send_srv(PRIVMSG => $who, $text);
 }
 
 sub notice {
@@ -88,7 +100,31 @@ sub on_registered {
     my ($self) = @_;
 
     $self->enable_ping(90);
+
+    $self->{_msg_queue} = [ ];
+
+    $self->{msg_timer} = AnyEvent->timer(
+        after => 0,
+        interval => 1,
+        cb => sub {
+            $self->process_msg_queue();
+        },
+    );
+
     $self->{parent}->join_welcoming_channels;
+}
+
+# If there are IRC messages in the send queue, take the oldest one and send it.
+sub process_msg_queue {
+    my ($self) = @_;
+
+    my $queue = $self->{_msg_queue};
+
+    if (scalar @{ $queue }) {
+        my $first = shift @{ $queue };
+        debug("Dequeued IRC message");
+        $self->send_srv(PRIVMSG => $first->{who}, $first->{text});
+    }
 }
 
 sub on_connect {
