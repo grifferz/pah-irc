@@ -696,8 +696,8 @@ sub do_pub_start {
     my $user = $self->db_get_user($who);
 
     # "Let the User see the Game!" Ahem. Add the User to the Game.
-    # In the absence of not being able to know who pooped last, the starting
-    # user will be the first Card Tsar.
+    # In the absence of being able to know who pooped last, the starting user
+    # will be the first Card Tsar.
     my $usergame = $schema->resultset('UserGame')->create(
         {
             user      => $user->id,
