@@ -587,7 +587,7 @@ sub do_pub_status {
     } elsif (2 == $game->status) {
         my @active_usergames = $game->rel_active_usergames;
 
-        my ($tsar) = grep { 1 == $_->is_tsar } @active_usergames;
+        my $tsar = $game->rel_tsar_usergame;
 
         $irc->msg($chan,
             "$who: A game is active! We're currently waiting on NOT"
