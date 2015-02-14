@@ -1623,7 +1623,18 @@ sub do_priv_play {
     if ($num_plays == ($num_players - 1)) {
         $irc->msg($channel->name, "All plays are in. No more changes!");
 
-        # TODO: list off the plays.
+        # Assign random sequence order to the plays just in case Perl's
+        # ordering of hash keys is predictable.
+        my @sequence = shuffle (1 .. ($num_players - 1));
+        my $i = 0;
+
+        foreach my $uid (keys %{ $self->_plays->{$game->id} }) {
+            $self->_plays->{$game->id}->{$uid}->{seq} = $sequence[$i];
+            $i++;
+        }
+
+        # Tell the channel about the collection of plays.
+        $self->list_plays($game);
 
         # TODO: poke Card Tsar into action.
     } elsif ($is_new) {
@@ -1757,7 +1768,7 @@ sub how_many_blanks {
 #
 # Arguments:
 #
-# - The Game Schmea object.
+# - The Game Schema object.
 #
 # Returns:
 #
@@ -1769,6 +1780,50 @@ sub num_plays {
         return scalar keys %{ $self->_plays->{$game->id} };
     } else {
         return 0;
+    }
+}
+
+# Inform the channel about the (completed) set of plays.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub list_plays {
+    my ($self, $game) = @_;
+
+    my $irc     = $self->_irc;
+    my $channel = $game->rel_channel;
+
+    # Hash ref of User ids.
+    my $plays = $self->_plays->{$game->id};
+
+    # Go through the plays in the specified sequence order just in case Perl's
+    # hash ordering is predictable.
+    foreach my $uid (
+        sort { $plays->{$a}->{seq} <=> $plays->{$b}->{seq} }
+        keys %{ $plays }) {
+
+        my $seq  = $plays->{$uid}->{seq};
+        my $text = $plays->{$uid}->{play};
+
+        if (1 == $seq) {
+            $irc->msg($channel->name,
+                sprintf("%s: Which is the best play?",
+                    $game->rel_tsar_usergame->rel_user->nick));
+        } else {
+            $irc->msg($channel->name, "…or…");
+        }
+
+        foreach my $line (split(/\n/, $text)) {
+            # Sometimes YAML leaves us with a trailing newline in the text.
+            next if ($line =~ /^\s*$/);
+
+            $irc->msg($channel->name, "$seq → $line");
+        }
     }
 }
 
