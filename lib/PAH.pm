@@ -869,7 +869,7 @@ sub do_pub_dealin {
         $self->topup_hands($game);
         # And deal out a Black Card to the Tsar.
         $self->deal_to_tsar($game);
-    } else {
+    } elsif (1 == $game->status) {
         $self->_irc->msg($chan,
             "We've now got $num_players of minimum 4. Anyone else?");
         $self->_irc->msg($chan,
