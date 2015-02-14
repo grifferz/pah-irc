@@ -82,6 +82,10 @@ has _deck => (
     is => 'ro',
 );
 
+has _plays => (
+    is => 'ro',
+);
+
 sub BUILD {
   my ($self) = @_;
 
@@ -147,6 +151,8 @@ sub BUILD {
   debug("Loaded deck: %s", $deck->{Description});
   debug("Deck has %u Black Cards, %u White Cards",
       scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
+
+  $self->{_plays} = {};
 }
 
 # The "main"
@@ -1563,23 +1569,53 @@ sub do_priv_play {
     $irc->msg($who, "Thanks. So this is your play:");
 
     my $play;
+    my $cards;
 
     if (1 == $cards_needed) {
         my $first_ugh = $self->db_get_nth_wcard($ug, $first);
 
-        $play = $self->build_play($ug, $bcardidx, [ $first_ugh ]);
+        $cards = [ $first_ugh ];
     } else {
         my $first_ugh  = $self->db_get_nth_wcard($ug, $first);
         my $second_ugh = $self->db_get_nth_wcard($ug, $second);
 
-        $play = $self->build_play($ug, $bcardidx, [ $first_ugh, $second_ugh ]);
+        $cards = [ $first_ugh, $second_ugh ];
     }
+
+    $play = $self->build_play($ug, $bcardidx, $cards);
 
     foreach my $line (split(/\n/, $play)) {
         # Sometimes YAML leaves us with a trailing newline in the text.
         next if ($line =~ /^\s*$/);
 
         $irc->msg($who, "→ $line");
+    }
+
+    # Record the play in this game's tally.
+    my $is_new = 1;
+
+    if (defined $self->_plays and defined $self->_plays->{$game->id}
+            and defined $self->_plays->{$game->id}->{$user->id}) {
+        $is_new = 0;
+    }
+
+    $self->_plays->{$game->id}->{$user->id} = {
+        cards => $cards,
+        play  => $play,
+    };
+
+    my $num_players = scalar $game->rel_active_usergames;
+    my $num_plays   = scalar keys %{ $self->_plays->{$game->id} };
+
+    # Tell the channel that the user has made their play.
+    if ($num_players == $num_plays) {
+        # Waiting on Card Tsar.
+    } else {
+        # Only bother to tell the channel if this is a new play.
+        # User can then keep changing their play without spamming the channel.
+        $irc->msg($channel->name,
+            sprintf("%s has made their play! We're waiting on %u more plays.",
+                $who, $num_players - $num_plays)) if (1 == $is_new);
     }
 }
 
