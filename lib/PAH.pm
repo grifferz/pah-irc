@@ -767,6 +767,7 @@ sub do_pub_start {
 sub do_pub_dealin {
     my ($self, $args) = @_;
 
+    my $irc     = $self->_irc;
     my $chan    = $args->{chan};
     my $who     = $args->{nick};
     my $schema  = $self->_schema;
@@ -799,6 +800,19 @@ sub do_pub_dealin {
            . " one?");
        $self->_irc->msg($chan,
             "$who: If so, type \"$my_nick: start\"");
+        return;
+    }
+
+    # Is the game's current hand complete (waiting on Card Tsar)? If so then no
+    # new players can join, because then everyone would know who the extra play
+    # was from. Tell them to try again after the current hand.
+    if ($self->hand_is_complete($game)) {
+        # TODO: Maybe keep track that they wanted to play, and deal them in as
+        # soon as the current hand finishes?
+        $irc->msg($chan,
+            sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
+               . " to pick the winner. Please try again later.", $who,
+               $game->rel_tsar_usergame->rel_user->nick));
         return;
     }
 
@@ -1781,6 +1795,26 @@ sub num_plays {
     } else {
         return 0;
     }
+}
+
+# Is a game's hand currently complete? A hand is complete when we have a play
+# from every active user except the Card Tsar.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# - 0: Not yet complete.
+#   1: Complete.
+sub hand_is_complete {
+    my ($self, $game) = @_;
+
+    my $num_plays   = $self->num_plays($game);
+    my $num_players = scalar $game->rel_active_usergames;
+
+    return ($num_plays == ($num_players - 1));
 }
 
 # Inform the channel about the (completed) set of plays.
