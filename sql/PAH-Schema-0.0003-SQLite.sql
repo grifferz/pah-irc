@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Sat Feb 14 14:15:26 2015
+-- Created on Sat Feb 14 15:04:13 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -111,7 +111,7 @@ CREATE TABLE users_games_discards (
 
 CREATE INDEX users_games_discards_idx_user_game ON users_games_discards (user_game);
 
-CREATE UNIQUE INDEX users_games_hands_user_game_wcardidx_idx ON users_games_discards (user_game, wcardidx);
+CREATE UNIQUE INDEX users_games_discards_user_game_wcardidx_idx ON users_games_discards (user_game, wcardidx);
 
 --
 -- Table: users_games_hands
@@ -127,7 +127,7 @@ CREATE TABLE users_games_hands (
 
 CREATE INDEX users_games_hands_idx_user_game ON users_games_hands (user_game);
 
-CREATE UNIQUE INDEX users_games_hands_user_game00 ON users_games_hands (user_game, wcardidx);
+CREATE UNIQUE INDEX users_games_hands_user_game_wcardidx_idx ON users_games_hands (user_game, wcardidx);
 
 --
 -- Table: wcards

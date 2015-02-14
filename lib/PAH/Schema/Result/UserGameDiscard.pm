@@ -51,7 +51,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint(
-    'users_games_hands_user_game_wcardidx_idx' => [
+    'users_games_discards_user_game_wcardidx_idx' => [
         'user_game',
         'wcardidx',
     ]
