@@ -1507,9 +1507,22 @@ sub do_priv_play {
     }
 
     # Finally we've got the specific UserGame for this player and channel.
-    my $ug      = $active_usergames[0];
-    my $game    = $ug->rel_game;
-    my $channel = $game->rel_channel;
+    my $ug        = $active_usergames[0];
+    my $game      = $ug->rel_game;
+    my $channel   = $game->rel_channel;
+    my $num_plays = $self->num_plays($game);
+
+    # Is there already a full set of plays for this game? If so then no more
+    # changes are allowed.
+    my $num_players = scalar $game->rel_active_usergames;
+
+    if ($num_plays == ($num_players - 1)) {
+        $irc->msg($who,
+            sprintf("All plays have already been made for this game, so no changes"
+               . " now! We're now waiting on the Card Tsar (%s).",
+               $game->rel_tsar_usergame->rel_user->nick));
+        return;
+    }
 
     # Are they the Card Tsar? The Tsar doesn't get to play!
     if (1 == $ug->is_tsar) {
@@ -1604,18 +1617,22 @@ sub do_priv_play {
         play  => $play,
     };
 
-    my $num_players = scalar $game->rel_active_usergames;
-    my $num_plays   = scalar keys %{ $self->_plays->{$game->id} };
+    $num_plays++;
 
     # Tell the channel that the user has made their play.
-    if ($num_players == $num_plays) {
-        # Waiting on Card Tsar.
-    } else {
+    if ($num_plays == ($num_players - 1)) {
+        $irc->msg($channel->name, "All plays are in. No more changes!");
+
+        # TODO: list off the plays.
+
+        # TODO: poke Card Tsar into action.
+    } elsif ($is_new) {
+        my $waiting_on = $num_players - $num_plays - 1;
         # Only bother to tell the channel if this is a new play.
         # User can then keep changing their play without spamming the channel.
         $irc->msg($channel->name,
-            sprintf("%s has made their play! We're waiting on %u more plays.",
-                $who, $num_players - $num_plays)) if (1 == $is_new);
+            sprintf("%s has made their play! We're waiting on %u more play%s.",
+                $who, $waiting_on, $waiting_on == 1 ? '' : 's'));
     }
 }
 
@@ -1734,6 +1751,25 @@ sub how_many_blanks {
     my @count = $text =~ m/_{5,}/gs;
 
     return scalar @count;
+}
+
+# Return the number of plays that have been made in this game so far.
+#
+# Arguments:
+#
+# - The Game Schmea object.
+#
+# Returns:
+#
+# - The number of plays made so far.
+sub num_plays {
+    my ($self, $game) = @_;
+
+    if (defined $self->_plays and defined $self->_plays->{$game->id}) {
+        return scalar keys %{ $self->_plays->{$game->id} };
+    } else {
+        return 0;
+    }
 }
 
 1;

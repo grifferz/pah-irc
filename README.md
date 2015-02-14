@@ -157,8 +157,9 @@ time that can be left off and the bot will work it out.
     The bot will repeat back to you the current Black Card and your proposed
     answer.
 
-    The Card Tsar will not see any of the plays until all players have made
-    their play; you may alter your play at any time up until then.
+    You may alter your play as many times as you like until every active player
+    has made their play, at which point the plays will be revealed to the
+    channel and may not be changed.
 
 ### Security
 
