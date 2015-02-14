@@ -875,6 +875,9 @@ sub do_pub_dealin {
         $self->_irc->msg($chan,
             "Type \"$my_nick: me\" if you'd like to play too.");
     }
+
+    # Did they join an already-running game? If so they need a hand of White Cards.
+    $self->topup_hand($usergame);
 }
 
 # A user wants to resign from the game. If they are the current round's Card
@@ -1149,6 +1152,73 @@ sub brief_players {
     }
 }
 
+# A single player needs their hand topping up to 10 White Cards.
+#
+# Arguments:
+#
+# - UserGame Schema object.
+#
+# Returns:
+#
+# - Nothing.
+sub topup_hand {
+    my ($self, $ug) = @_;
+
+    my $schema     = $self->_schema;
+    my $user       = $ug->rel_user;
+    my $game       = $ug->rel_game;
+    my $num_wcards = scalar $ug->rel_usergamehands;
+    my $channel    = $game->rel_channel;
+
+    debug("%s currently has %u White Cards in %s game",
+        $user->nick, $num_wcards, $channel->disp_name);
+
+    my $needed = 10 - $num_wcards;
+
+    if ($needed < 1) {
+        debug("%s doesn't need any more White Cards in %s game", $user->nick,
+            $channel->disp_name);
+        return;
+    }
+
+    debug("Dealing %u White Cards off the top for %s", $needed, $user->nick);
+
+    # Grab the top $needed cards off this game's White deck…
+    my @new = $schema->resultset('WCard')->search(
+        {
+            game => $game->id,
+        },
+        {
+            order_by => { '-asc' => 'id' },
+            rows     => $needed,
+        },
+    );
+
+    # Construct an array of hashrefs representing the insert into the hand…
+    my @to_insert = map {
+        { user_game => $ug->id, wcardidx => $_->cardidx }
+    } @new;
+
+    # Actually do the insert…
+    $schema->resultset('UserGameHand')->populate(\@to_insert);
+
+    my @to_delete = map { $_->id } @new;
+
+    # Now delete those cards from the White deck (because they now reside
+    # in the user's hand.
+    $schema->resultset('WCard')->search(
+        {
+            game => $game->id,
+            id   => { '-in' => \@to_delete },
+        }
+    )->delete;
+
+    # Sort them by "cardidx".
+    @new = sort { $a->cardidx <=> $b->cardidx } @new;
+
+    $self->notify_new_wcards($ug, \@new);
+}
+
 # A round has just started so each player will need their hand topping back up
 # to 10 White Cards.
 #
@@ -1168,54 +1238,7 @@ sub topup_hands {
     my @active_usergames = $game->rel_active_usergames;
 
     foreach my $ug (@active_usergames) {
-        my $user       = $ug->rel_user;
-        my $num_wcards = scalar $ug->rel_usergamehands;
-
-        debug("%s currently has %u White Cards in %s game",
-            $user->nick, $num_wcards, $channel->disp_name);
-
-        my $needed = 10 - $num_wcards;
-
-        $needed = 0  if ($needed < 0);
-        $needed = 10 if ($needed > 10);
-
-        debug("Dealing %u White Cards off the top for %s",
-            $needed, $user->nick);
-
-        # Grab the top $needed cards off this game's White deck…
-        my @new = $schema->resultset('WCard')->search(
-            {
-                game => $game->id,
-            },
-            {
-                order_by => { '-asc' => 'id' },
-                rows     => $needed,
-            },
-        );
-
-        # Construct an array of hashrefs representing the insert into the hand…
-        my @to_insert = map {
-            { user_game => $ug->id, wcardidx => $_->cardidx }
-        } @new;
-
-        # Actually do the insert…
-        $schema->resultset('UserGameHand')->populate(\@to_insert);
-
-        my @to_delete = map { $_->id } @new;
-
-        # Now delete those cards from the White deck (because they now reside
-        # in the user's hand.
-        $schema->resultset('WCard')->search(
-            {
-                game => $game->id,
-                id   => { '-in' => \@to_delete },
-            }
-        )->delete;
-
-        # Sort them by "cardidx".
-        @new = sort { $a->cardidx <=> $b->cardidx } @new;
-
-        $self->notify_new_wcards($ug, \@new);
+        $self->topup_hand($ug);
     }
 }
 
