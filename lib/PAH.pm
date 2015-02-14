@@ -803,19 +803,6 @@ sub do_pub_dealin {
         return;
     }
 
-    # Is the game's current hand complete (waiting on Card Tsar)? If so then no
-    # new players can join, because then everyone would know who the extra play
-    # was from. Tell them to try again after the current hand.
-    if ($self->hand_is_complete($game)) {
-        # TODO: Maybe keep track that they wanted to play, and deal them in as
-        # soon as the current hand finishes?
-        $irc->msg($chan,
-            sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
-               . " to pick the winner. Please try again later.", $who,
-               $game->rel_tsar_usergame->rel_user->nick));
-        return;
-    }
-
     my $user = $schema->resultset('User')->find_or_create(
         { nick => $who },
     );
@@ -826,6 +813,19 @@ sub do_pub_dealin {
     if (defined $game->rel_active_usergames
             and grep $_->id == $user->id, @active_usergames) {
         $self->_irc->msg($chan, "$who: Heyyy, you're already playing!");
+        return;
+    }
+
+    # Is the game's current hand complete (waiting on Card Tsar)? If so then no
+    # new players can join, because then everyone would know who the extra play
+    # was from. Tell them to try again after the current hand.
+    if ($self->hand_is_complete($game)) {
+        # TODO: Maybe keep track that they wanted to play, and deal them in as
+        # soon as the current hand finishes?
+        $irc->msg($chan,
+            sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
+               . " to pick the winner. Please try again later.", $who,
+               $game->rel_tsar_usergame->rel_user->nick));
         return;
     }
 
