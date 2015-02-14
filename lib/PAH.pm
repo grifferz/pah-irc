@@ -1241,6 +1241,25 @@ sub topup_hand {
         return;
     }
 
+    # How many White Cards are actually available?
+    my $available_cards = $schema->resultset('WCard')->search(
+        {
+            game => $game->id,
+        }
+    )->count;
+
+    if ($available_cards < $needed) {
+        # There aren't enough White Cards left to populate this user's hand, so
+        # populate the deck first.
+        debug("White deck for game in %s is exhausted; reshuffling",
+            $channel->disp_name);
+
+        # Delete what is there first though, just to avoid any duplicate card
+        # issues.
+        $schema->resultset('WCard')->search({ game => $game->id })->delete;
+        $self->db_populate_cards($game, 'White');
+    }
+
     debug("Dealing %u White Cards off the top for %s", $needed, $user->nick);
 
     # Grab the top $needed cards off this game's White deck…
