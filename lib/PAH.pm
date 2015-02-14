@@ -940,7 +940,7 @@ sub do_pub_resign {
         $irc->msg($chan, "$who: You're the Card Tsar, you can't resign!");
         $irc->msg($chan,
             "$who: Just pick a winner for this round first, then you can"
-           . " resign.");
+            . " resign.");
         return;
     }
 
@@ -950,8 +950,8 @@ sub do_pub_resign {
 
     $irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
     $irc->msg($chan,
-        "$who: If you want to join in again later then type \"$my_nick: deal"
-       . " me in\"");
+        qq{$who: If you want to join in again later then type}
+       . qq{ "$my_nick: deal me in"});
 
    # Has this taken the number of players too low for the game to continue?
    my $player_count = scalar $game->rel_active_usergames;
@@ -961,11 +961,10 @@ sub do_pub_resign {
        $game->update;
 
        $irc->msg($chan,
-           "That's taken us down to $player_count player"
-          . (1 == $player_count ? '' : 's') . ". Game paused until we get back"
-          . " up to 4.");
+           sprintf("That's taken us down to %u player%s. Game paused until we get"
+              . " back up to 4.", $player_count, 1 == $player_count ? '' : 's'));
       $irc->msg($chan,
-          "Would anyone else would like to play? If so type \"$my_nick: me\"");
+          q{{Would anyone else would like to play? If so type "$my_nick: me"});
    }
 
    # TODO: all the card handling.
