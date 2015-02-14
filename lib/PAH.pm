@@ -589,9 +589,10 @@ sub do_pub_status {
 
         my $tsar = $game->rel_tsar_usergame;
 
+        my $waitstring = $self->build_waitstring($game);
+
         $irc->msg($chan,
-            "$who: A game is active! We're currently waiting on NOT"
-           . " IMPLEMENTED to NOT IMPLEMENTED.");
+            "$who: A game is active! $waitstring");
         $irc->msg($chan,
             sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
 
@@ -1884,6 +1885,63 @@ sub list_plays {
             $irc->msg($channel->name, "$seq → $line");
         }
     }
+}
+
+# Build a string describing who or what the game is waiting on for progress.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Scalar string or undef if there was some problem.
+sub build_waitstring {
+    my ($self, $game) = @_;
+
+    if ($game->status != 2) {
+        # This should not be called on an inactive game.
+        debug("Can't build a waitstring for an inactive game.");
+        return;
+    }
+
+    my $waitstring = "We're currently waiting on ";
+
+    my $tsar = $game->rel_tsar_usergame;
+
+    if ($self->hand_is_complete($game)) {
+        # If the hand is complete then we must be waiting on the Card Tsar.
+        $waitstring .= sprintf("the Card Tsar (%s) to pick a winner.",
+            $tsar->rel_user->nick);
+    } else {
+        # Some number of players have not yet made their play.
+
+        my $tally       = $self->_plays->{$game->id};
+        my $num_players = scalar $game->rel_active_usergames;
+        my $num_plays   = $self->num_plays($game);
+        my $waiting_num = $num_players - 1 - $num_plays;
+
+        my @usergames = $game->rel_active_usergames;
+
+        # Go through @usergames and build an array of UserGames that *haven't*
+        # made their play yet. Skip the Card Tsar.
+        my @to_play = grep {
+            not exists $tally->{$_->user} and 0 == $_->is_tsar
+        } @usergames;
+
+        if (1 == scalar @to_play) {
+            $waitstring = sprintf("We're just waiting on %s to make their"
+               . " play.", $to_play[0]->rel_user->nick);
+        } else {
+            my @to_play_nicks = map { "" . $_->rel_user->nick . "" } @to_play;
+            my $last          = pop @to_play_nicks;
+
+            $waitstring .= sprintf("plays from %u people: %s and %s.",
+                scalar @to_play, join(', ', @to_play_nicks), $last);
+        }
+    }
+
+    return $waitstring;
 }
 
 1;
