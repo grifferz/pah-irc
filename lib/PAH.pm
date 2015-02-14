@@ -819,7 +819,7 @@ sub do_pub_dealin {
     # Is the game's current hand complete (waiting on Card Tsar)? If so then no
     # new players can join, because then everyone would know who the extra play
     # was from. Tell them to try again after the current hand.
-    if ($self->hand_is_complete($game)) {
+    if (2 == $game->status and $self->hand_is_complete($game)) {
         # TODO: Maybe keep track that they wanted to play, and deal them in as
         # soon as the current hand finishes?
         $irc->msg($chan,
