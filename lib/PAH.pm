@@ -729,7 +729,8 @@ sub do_pub_start {
     # Stuff the cards from memory structure into the database so that this game
     # has its own unique deck to work through, that will persist across process
     # restarts.
-    $self->db_populate_cards($game);
+    $self->db_populate_cards($game, 'Black');
+    $self->db_populate_cards($game, 'White');
 
     my $user = $self->db_get_user($who);
 
@@ -1100,8 +1101,8 @@ sub db_get_channel {
     );
 }
 
-# Create a Black Card deck and a White Card deck in the database, unique to a
-# specific game, referencing indices into our arrays of cards.
+# Create a card deck of the correct color in the database, unique to a specific
+# game, referencing indices into our arrays of cards.
 #
 # The indices of the cards will be inserted in random order. Therefore we can
 # iterate through a random deck by selecting increasing row ID numbers.
@@ -1114,24 +1115,36 @@ sub db_get_channel {
 #
 # - Game Schema object
 #
+# - The color of the deck to populate as a scalar string. Should be either:
+#   - Black
+#   - White
+#
 # Returns:
 #
 # Nothing.
 sub db_populate_cards {
-    my ($self, $game) = @_;
+    my ($self, $game, $color) = @_;
+
+    if ($color ne 'Black' and $color ne 'White') {
+        die "color must be either 'Black' or 'White'";
+    }
 
     my $schema   = $self->_schema;
     my $deckname = $game->deck;
     my $deck     = $self->_deck->{$deckname};
 
-    my @bcard_indices = shuffle (0 .. (scalar @{ $deck->{Black} } - 1));
-    my @wcard_indices = shuffle (0 .. (scalar @{ $deck->{White} } - 1));
+    my $num_cards = scalar @{ $deck->{$color} };
 
-    my @bcards = map { { game => $game->id, cardidx => $_ } } @bcard_indices;
-    my @wcards = map { { game => $game->id, cardidx => $_ } } @wcard_indices;
+    debug("Shuffling deck of %u %s Cards from the %s set, for game at %s",
+        $num_cards, $color, $deckname, $game->rel_channel->disp_name);
 
-    $schema->resultset('BCard')->populate(\@bcards);
-    $schema->resultset('WCard')->populate(\@wcards);
+    my @card_indices = shuffle (0 .. ($num_cards - 1));
+
+    my @cards = map { { game => $game->id, cardidx => $_ } } @card_indices;
+
+    my $table = ($color eq 'Black'? 'BCard' : 'WCard');
+
+    $schema->resultset($table)->populate(\@cards);
 }
 
 # A game has just started so give a brief private introduction to each player.
