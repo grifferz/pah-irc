@@ -890,7 +890,7 @@ sub do_pub_dealin {
 #
 # If this brings the number of players below 4 then the game will be paused.
 #
-# The player can rejoin ther game at a later time.
+# The player can rejoin the game at a later time.
 sub do_pub_resign {
     my ($self, $args) = @_;
 
@@ -898,13 +898,14 @@ sub do_pub_resign {
     my $who     = $args->{nick};
     my $schema  = $self->_schema;
     my $my_nick = $self->_irc->nick();
+    my $irc     = $self->_irc;
 
     my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
-        $self->_irc->msg($chan,
-            "$who: I can't seem to find a Channel object for this channel."
-            . " That's weird and shouldn't happen. Report this!");
+        $irc->msg($chan,
+            "$who: I can't seem to find a Channel object for this channel. That's"
+           . " weird and shouldn't happen. Report this!");
         return;
     }
 
@@ -912,8 +913,7 @@ sub do_pub_resign {
 
     # Is there a game actually running?
     if (not defined $game) {
-        $self->_irc->msg($chan,
-            "$who: There isn't a game running at the moment.");
+        $irc->msg($chan, "$who: There isn't a game running at the moment.");
         return;
     }
 
@@ -931,14 +931,14 @@ sub do_pub_resign {
     # Is the user active in the game?
     if (not defined $usergame or 0 == $usergame->active) {
         # No.
-        $self->_irc->msg($chan, "$who: You're not playing!");
+        $irc->msg($chan, "$who: You're not playing!");
         return;
     }
 
     # Are they the Card Tsar? If so then they can't resign!
     if (1 == $usergame->is_tsar) {
-        $self->_irc->msg($chan, "$who: You're the Card Tsar, you can't resign!");
-        $self->_irc->msg($chan,
+        $irc->msg($chan, "$who: You're the Card Tsar, you can't resign!");
+        $irc->msg($chan,
             "$who: Just pick a winner for this round first, then you can"
            . " resign.");
         return;
@@ -948,8 +948,8 @@ sub do_pub_resign {
     $usergame->active(0);
     $usergame->update;
 
-    $self->_irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
-    $self->_irc->msg($chan,
+    $irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
+    $irc->msg($chan,
         "$who: If you want to join in again later then type \"$my_nick: deal"
        . " me in\"");
 
@@ -960,11 +960,11 @@ sub do_pub_resign {
        $game->status(1);
        $game->update;
 
-       $self->_irc->msg($chan,
+       $irc->msg($chan,
            "That's taken us down to $player_count player"
           . (1 == $player_count ? '' : 's') . ". Game paused until we get back"
           . " up to 4.");
-      $self->_irc->msg($chan,
+      $irc->msg($chan,
           "Would anyone else would like to play? If so type \"$my_nick: me\"");
    }
 
