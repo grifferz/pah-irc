@@ -557,21 +557,22 @@ sub do_unknown {
 sub do_pub_status {
     my ($self, $args) = @_;
 
-    my $chan   = $args->{chan};
-    my $who    = $args->{nick};
-    my $schema = $self->_schema;
-    my $irc    = $self->_irc;
+    my $chan    = $args->{chan};
+    my $who     = $args->{nick};
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
 
     my $channel = $self->db_get_channel($chan);
 
+    # It shouldn't be possible to not have a Channel row, because we wouldn't
+    # be inside the channel if we didn't know about it.
     if (not defined $channel) {
         $irc->msg($chan,
             "$who: Sorry, I don't seem to have $chan in my database, which is"
            . " a weird error that needs to be reported!");
        return;
     }
-
-    my $my_nick = $irc->nick();
 
     my $game = $channel->rel_game;
 
@@ -582,7 +583,7 @@ sub do_pub_status {
         $irc->msg($chan,
             "Want to start one? Anyone with a registered nickname can do so.");
         $irc->msg($chan,
-            "Just type \"$my_nick: start\" and find at least 3 friends.");
+            qq{Just type "$my_nick: start" and find at least 3 friends.});
     } elsif (2 == $game->status) {
         my @active_usergames = $game->rel_active_usergames;
 
@@ -625,11 +626,11 @@ sub do_pub_status {
         my $num_players = scalar $game->rel_active_usergames;
 
         $irc->msg($chan,
-            "$who: A game exists but we only have $num_players player"
-            . (1 == $num_players ? '' : 's') . ". Find me "
-            . (4 - $num_players) . " more and we're on.");
+            sprintf("%s: A game exists but we only have %u player%s. Find me %u"
+               . " more and we're on.", $who, $num_players,
+               1 == $num_players ? '' : 's', 4 - $num_players));
         $irc->msg($chan,
-            "Any takers? Just type \"$my_nick: me\" and you're in.");
+            qq{Any takers? Just type "$my_nick: me" and you're in.});
     } elsif (0 == $game->status) {
         $irc->msg($chan,
             "$who: The game is paused but I don't know why! Report this!");
