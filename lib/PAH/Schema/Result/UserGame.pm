@@ -132,4 +132,10 @@ __PACKAGE__->has_many(
     { 'foreign.user_game' => 'self.id' }
 );
 
+# A UserGame has zero or more UserGameDiscards.
+__PACKAGE__->has_many(
+    rel_usergamediscards => 'PAH::Schema::Result::UserGameDiscard',
+    { 'foreign.user_game' => 'self.id' }
+);
+
 1;

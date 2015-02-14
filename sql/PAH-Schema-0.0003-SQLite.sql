@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Sat Feb 14 05:41:56 2015
+-- Created on Sat Feb 14 14:15:26 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -98,6 +98,22 @@ CREATE TABLE bcards (
 CREATE INDEX bcards_idx_game ON bcards (game);
 
 --
+-- Table: users_games_discards
+--
+DROP TABLE users_games_discards;
+
+CREATE TABLE users_games_discards (
+  id INTEGER PRIMARY KEY NOT NULL,
+  user_game integer NOT NULL,
+  wcardidx integer NOT NULL,
+  FOREIGN KEY (user_game) REFERENCES users_games(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX users_games_discards_idx_user_game ON users_games_discards (user_game);
+
+CREATE UNIQUE INDEX users_games_hands_user_game_wcardidx_idx ON users_games_discards (user_game, wcardidx);
+
+--
 -- Table: users_games_hands
 --
 DROP TABLE users_games_hands;
@@ -111,7 +127,7 @@ CREATE TABLE users_games_hands (
 
 CREATE INDEX users_games_hands_idx_user_game ON users_games_hands (user_game);
 
-CREATE UNIQUE INDEX users_games_hands_user_game_wcardidx_idx ON users_games_hands (user_game, wcardidx);
+CREATE UNIQUE INDEX users_games_hands_user_game00 ON users_games_hands (user_game, wcardidx);
 
 --
 -- Table: wcards
