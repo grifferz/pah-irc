@@ -948,26 +948,39 @@ sub do_pub_resign {
     $usergame->active(0);
     $usergame->update;
 
+    # Trash any plays this user may have made.
+    $self->discard_plays($usergame);
+
+    # And discard their hand of White Cards.
+    $self->discard_hand($usergame);
+
     $irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
     $irc->msg($chan,
         qq{$who: If you want to join in again later then type}
-       . qq{ "$my_nick: deal me in"});
+        . qq{ "$my_nick: deal me in"});
 
-   # Has this taken the number of players too low for the game to continue?
-   my $player_count = scalar $game->rel_active_usergames;
+    # Has this taken the number of players too low for the game to continue?
+    my $player_count = scalar $game->rel_active_usergames;
 
-   if ($player_count < 4) {
-       $game->status(1);
-       $game->update;
+    if ($player_count < 4) {
+        $game->status(1);
+        $game->update;
 
-       $irc->msg($chan,
-           sprintf("That's taken us down to %u player%s. Game paused until we get"
-              . " back up to 4.", $player_count, 1 == $player_count ? '' : 's'));
-      $irc->msg($chan,
-          q{{Would anyone else would like to play? If so type "$my_nick: me"});
-   }
+        $irc->msg($chan,
+            sprintf("That's taken us down to %u player%s. Game paused until we get"
+                . " back up to 4.", $player_count, 1 == $player_count ? '' : 's'));
+        $irc->msg($chan,
+            qq{Would anyone else would like to play? If so type "$my_nick: me"});
+    }
 
-   # TODO: all the card handling.
+    # Has this actually completed the hand (i.e. we were waiting on the user who
+    # just resigned)?
+    if (2 == $game->status and $self->hand_is_complete($game)) {
+        $irc->msg($chan,
+            "Now that $who quit, all the plays are in. No more changes!");
+        $self->prep_plays($game);
+        $self->list_plays($game);
+    }
 }
 
 # Someone is asking for their current hand (of White Cards) to be displayed.
@@ -1659,25 +1672,17 @@ sub do_priv_play {
     $num_plays++;
 
     # Tell the channel that the user has made their play.
-    if ($num_plays == ($num_players - 1)) {
+    if ($self->hand_is_complete($game)) {
         $irc->msg($channel->name, "All plays are in. No more changes!");
 
-        # Assign random sequence order to the plays just in case Perl's
-        # ordering of hash keys is predictable.
-        my @sequence = shuffle (1 .. ($num_players - 1));
-        my $i = 0;
-
-        foreach my $uid (keys %{ $self->_plays->{$game->id} }) {
-            $self->_plays->{$game->id}->{$uid}->{seq} = $sequence[$i];
-            $i++;
-        }
+        $self->prep_plays($game);
 
         # Tell the channel about the collection of plays.
         $self->list_plays($game);
 
-        # TODO: poke Card Tsar into action.
     } elsif ($is_new) {
         my $waiting_on = $num_players - $num_plays - 1;
+
         # Only bother to tell the channel if this is a new play.
         # User can then keep changing their play without spamming the channel.
         $irc->msg($channel->name,
@@ -1941,6 +1946,74 @@ sub build_waitstring {
     }
 
     return $waitstring;
+}
+
+# Discard any plays this user may have made in this game.
+#
+# Arguments:
+#
+# - The UserGame Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub discard_plays {
+    my ($self, $ug) = @_;
+
+    my $tally = $self->_plays->{$ug->game};
+
+    delete $tally->{$ug->user} if (exists $tally->{$ug->user});
+}
+
+# Discard the user's current hand of White Cards.
+#
+# Arguments:
+#
+# - The UserGame Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub discard_hand {
+    my ($self, $ug) = @_;
+
+    my $schema = $self->_schema;
+
+    $schema->resultset('UserGameHand')->search(
+        {
+            user_game => $ug->id,
+        }
+    )->delete;
+}
+
+# The Game now has a full set of plays, so apply a random sequence number to them.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub prep_plays {
+    my ($self, $game) = @_;
+
+    my $tally = $self->_plays->{$game->id};
+
+    my $num_players = scalar $game->rel_active_usergames;
+
+    # Assign random sequence order to the plays just in case Perl's
+    # ordering of hash keys is predictable.
+    my @sequence = shuffle (1 .. ($num_players - 1));
+
+    my $i = 0;
+
+    foreach my $uid (keys %{ $tally }) {
+        $tally->{$uid}->{seq} = $sequence[$i];
+        $i++;
+    }
+
+    return;
 }
 
 1;
