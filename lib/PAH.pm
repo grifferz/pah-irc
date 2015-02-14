@@ -560,37 +560,38 @@ sub do_pub_status {
     my $chan   = $args->{chan};
     my $who    = $args->{nick};
     my $schema = $self->_schema;
+    my $irc    = $self->_irc;
 
     my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: Sorry, I don't seem to have $chan in my database, which is"
            . " a weird error that needs to be reported!");
        return;
     }
 
-    my $my_nick = $self->_irc->nick();
+    my $my_nick = $irc->nick();
 
     my $game = $channel->rel_game;
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: There's no game of Perpetually Against Humanity in here.");
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "Want to start one? Anyone with a registered nickname can do so.");
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "Just type \"$my_nick: start\" and find at least 3 friends.");
     } elsif (2 == $game->status) {
         my @active_usergames = $game->rel_active_usergames;
 
         my ($tsar) = grep { 1 == $_->is_tsar } @active_usergames;
 
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: A game is active! We're currently waiting on NOT"
            . " IMPLEMENTED to NOT IMPLEMENTED.");
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
 
         @active_usergames = sort {
@@ -601,7 +602,7 @@ sub do_pub_status {
             map { $_->rel_user->nick . '(' . $_->wins . ')' }
             @active_usergames);
 
-        $self->_irc->msg($chan, "Active Players: $winstring");
+        $irc->msg($chan, "Active Players: $winstring");
 
         my @top3 = $schema->resultset('UserGame')->search(
             {},
@@ -617,25 +618,25 @@ sub do_pub_status {
             map { $_->rel_user->nick . '(' . $_->wins . ')' }
             @top3);
 
-        $self->_irc->msg($chan, "Top 3 all time: $winstring");
-        $self->_irc->msg($chan, "Current Black Card:");
+        $irc->msg($chan, "Top 3 all time: $winstring");
+        $irc->msg($chan, "Current Black Card:");
         $self->notify_bcard($chan, $game);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: A game exists but we only have $num_players player"
             . (1 == $num_players ? '' : 's') . ". Find me "
             . (4 - $num_players) . " more and we're on.");
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "Any takers? Just type \"$my_nick: me\" and you're in.");
     } elsif (0 == $game->status) {
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: The game is paused but I don't know why! Report this!");
     } else {
         debug("Game for %s has an unexpected status (%u)", $chan,
             $game->status);
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: I'm confused about the state of the game, sorry. Report"
            . " this!");
     }
