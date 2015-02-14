@@ -119,6 +119,13 @@ __PACKAGE__->has_many(
     { 'foreign.game' => 'self.id' }
 );
 
+# A Game always has one Card Tsar UserGame.
+__PACKAGE__->belongs_to(
+    rel_tsar_usergame => 'PAH::Schema::Result::UserGame',
+    { 'foreign.game' => 'self.id' },
+    { where => { 'is_tsar' => 1 } }
+);
+
 # On deploy add some indexes.
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

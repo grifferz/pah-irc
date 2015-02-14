@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Fri Feb 13 10:45:11 2015
+-- Created on Sat Feb 14 05:41:56 2015
 -- 
 
 BEGIN TRANSACTION;
@@ -48,7 +48,8 @@ CREATE TABLE games (
   status integer NOT NULL,
   deck varchar NOT NULL DEFAULT 'cah_uk',
   bcardidx integer NOT NULL DEFAULT 0,
-  FOREIGN KEY (channel) REFERENCES channels(id) ON DELETE CASCADE
+  FOREIGN KEY (channel) REFERENCES channels(id) ON DELETE CASCADE,
+  FOREIGN KEY (id) REFERENCES users_games(game)
 );
 
 CREATE INDEX games_idx_channel ON games (channel);
@@ -56,34 +57,6 @@ CREATE INDEX games_idx_channel ON games (channel);
 CREATE INDEX games_status_idx ON games (status);
 
 CREATE UNIQUE INDEX games_channel_idx ON games (channel);
-
---
--- Table: bcards
---
-DROP TABLE bcards;
-
-CREATE TABLE bcards (
-  id INTEGER PRIMARY KEY NOT NULL,
-  game integer NOT NULL,
-  cardidx integer NOT NULL,
-  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE INDEX bcards_idx_game ON bcards (game);
-
---
--- Table: wcards
---
-DROP TABLE wcards;
-
-CREATE TABLE wcards (
-  id INTEGER PRIMARY KEY NOT NULL,
-  game integer NOT NULL,
-  cardidx integer NOT NULL,
-  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE INDEX wcards_idx_game ON wcards (game);
 
 --
 -- Table: users_games
@@ -111,6 +84,20 @@ CREATE INDEX users_games_idx_user ON users_games (user);
 CREATE UNIQUE INDEX users_games_user_game_idx ON users_games (user, game);
 
 --
+-- Table: bcards
+--
+DROP TABLE bcards;
+
+CREATE TABLE bcards (
+  id INTEGER PRIMARY KEY NOT NULL,
+  game integer NOT NULL,
+  cardidx integer NOT NULL,
+  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX bcards_idx_game ON bcards (game);
+
+--
 -- Table: users_games_hands
 --
 DROP TABLE users_games_hands;
@@ -125,5 +112,19 @@ CREATE TABLE users_games_hands (
 CREATE INDEX users_games_hands_idx_user_game ON users_games_hands (user_game);
 
 CREATE UNIQUE INDEX users_games_hands_user_game_wcardidx_idx ON users_games_hands (user_game, wcardidx);
+
+--
+-- Table: wcards
+--
+DROP TABLE wcards;
+
+CREATE TABLE wcards (
+  id INTEGER PRIMARY KEY NOT NULL,
+  game integer NOT NULL,
+  cardidx integer NOT NULL,
+  FOREIGN KEY (game) REFERENCES games(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX wcards_idx_game ON wcards (game);
 
 COMMIT;
