@@ -1196,6 +1196,38 @@ sub topup_hand {
         return;
     }
 
+    # Are there discarded cards for this UserGame?
+    my @discards = $ug->rel_usergamediscards;
+
+    if (scalar @discards) {
+        my $num_discards    = scalar @discards;
+        my $discards_needed = $num_discards > $needed ? $needed : $num_discards;
+
+        debug("There's %u cards on the discard pile for this user/game; taking %u"
+           . " from there", $num_discards, $discards_needed);
+
+        my @discard_insert = map {
+            { user_game => $ug->id, wcardidx => $_->wcardidx }
+        } @discards;
+
+        # Back into the hand they go…
+        $schema->resultset('UserGameHand')->populate(\@discard_insert);
+
+        # Delete them out of the u_g_discards table again.
+        my @discard_delete = map { $_->id } @discards;
+        $schema->resultset('UserGameDiscard')->search(
+            {
+                id => { '-in' => \@discard_delete },
+            }
+        )->delete;
+
+        $self->notify_new_wcards($ug, \@discards);
+
+        # Now run topup again to pick up any extra we might need.
+        $self->topup_hand($ug);
+        return;
+    }
+
     debug("Dealing %u White Cards off the top for %s", $needed, $user->nick);
 
     # Grab the top $needed cards off this game's White deck…
@@ -1257,12 +1289,16 @@ sub topup_hands {
     }
 }
 
-# Tell a user about the fact that some White Cards just got added to their hand.
+# Tell a user about the fact that some White Cards just got added to their
+# hand. These cards will have come either from the WCard pile or from the
+# UserGameDiscard pile.
 #
 # Arguments
 #
 # - The UserGame Schema object for this User/Game.
-# - An arrayref of WCard Schema objects representing the new cards.
+#
+# - An arrayref of WCard *or* UserGameDiscard Schema objects representing the
+#   new cards.
 #
 # Returns:
 #
@@ -1291,9 +1327,10 @@ sub notify_new_wcards {
 # Arguments:
 #
 # - The UserGame Schema object for this User/Game.
-# - An arrayref of Schema objects representing the cards. This can be either
-#   ::WCard or ::UserGameHand, which represent either a White Card in the deck
-#   or a White Card in the hand, respectively.
+# - An arrayref of Schema objects representing the cards. These can be either:
+#   - ::WCard, representing cards from the deck
+#   - ::UserGameHand, representing cards from the hand
+#   - ::UserGameDiscard, representing cards from the discard pile.
 #
 #   If the object is a ::WCard then the accessor for the card index will be
 #   "cardidx", otherwise it will be "wcardidx".
@@ -1315,7 +1352,7 @@ sub notify_wcards {
         my $index;
 
         if ($wcard->has_column('wcardidx')) {
-            # This is a ::UserGameHand.
+            # This is a ::UserGameHand or a ::UserGameDiscard.
             $index = $wcard->wcardidx;
         } else {
             # This is a ::WCard.
@@ -1967,6 +2004,9 @@ sub discard_plays {
 
 # Discard the user's current hand of White Cards.
 #
+# Firstly the cards must be inserted into the users_games_discards table, so
+# that if they ever deal in again they can get these same cards back.
+#
 # Arguments:
 #
 # - The UserGame Schema object.
@@ -1978,6 +2018,16 @@ sub discard_hand {
     my ($self, $ug) = @_;
 
     my $schema = $self->_schema;
+
+    my @wcards = $schema->resultset('UserGameHand')->search(
+        { user_game => $ug->id }
+    );
+
+    my @discards = map {
+        { user_game => $ug->id, wcardidx => $_->wcardidx }
+    } @wcards;
+
+    $schema->resultset('UserGameDiscard')->populate(\@discards);
 
     $schema->resultset('UserGameHand')->search(
         {
