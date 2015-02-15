@@ -34,21 +34,6 @@ them particularly played to IRC's strengths, those being:
     No reason why the bot can't be running games in multiple channels at once.
     Running extra copies is going to be a bit tedious.
 
-## Installation
-
-You can find the dependencies in the **cpanfile**, but you may find it simpler
-to install them all into a local directory with **cpanminus**:
-
-```
-$ cpanm --local-lib=./pah-libs --installdeps .
-```
-
-Or if you'd rather use CPAN modules for everything that's not core Perl:
-
-```
-$ cpanm --local-lib-contained=./pah-libs --installdeps .
-```
-
 ## Usage
 
 Quite a few interactions with the bot will be fairly natural language and depend on context, for example:
@@ -91,12 +76,14 @@ are all fine.
 
     *   The text of the current Black Card;
 
-    *   The top three points-scorers in that game.
+    *   Who's active in the game and what their scores are.
+
+    *   The top three all-time points-scorers.
 
 *   `start`
 
     Starts a new game of Perpetually Against Humanity. Players will need to be
-    gathered first.
+    gathered before it will actually proceed.
 
 *   `deal me in`
 
@@ -171,7 +158,22 @@ time that can be left off and the bot will work it out.
     has made their play, at which point the plays will be revealed to the
     channel and may not be changed.
 
-### Security
+## Installation
+
+You can find the dependencies in the **cpanfile**, but you may find it simpler
+to install them all into a local directory with **cpanminus**:
+
+```
+$ cpanm --local-lib=./pah-libs --installdeps .
+```
+
+Or if you'd rather use CPAN modules for everything that's not core Perl:
+
+```
+$ cpanm --local-lib-contained=./pah-libs --installdeps .
+```
+
+## Security
 
 This bot is relying on the IRC network having IRC services and an IRCd that
 exposes the identified status of the user in the WHOIS reply. Charybdis IRCd is
@@ -191,13 +193,24 @@ That may seem slow, but I took this approach in a previous bot (Enoch quote
 bot) and it seemed to be unnoticeable. I'm prepared to add caching later if it
 becomes a problem.
 
-### Speed of play, or lack of it
+## Restarting the bot
+
+Pretty much all game state is gept in the database so it should be safe to kill
+and restart the bot at any time.
+
+The plays that have currently been made are only stored in memory, so that just
+means that each player will need to make their play again once the bot is back.
+
+## Speed of play, or lack thereof
 
 If you haven't got the hint yet, the idea here is not to stress about games
-being stormingly fast. They can just kind of happen in their own time. There
+being very slow-moving. They can just kind of happen in their own time. There
 isn't any end.
 
 What happens when someone ignores their responsibility though?
+
+At the moment none of this enforced-resign stuff is implemented, so someone not
+taking their turn will stall the game forever. Ideally though:
 
 There's only two responsibilities in Perpetually Against Humanity:
 
@@ -229,8 +242,19 @@ aren't necessarily meant to be quick-fire anyway because *they are never going
 to end*. Players who know they need to stop playing (e.g. because they aren't
 going to be on IRC for a while) can be helpful by explicitly resigning.
 
-### Card packs
+## Card packs
 
 This will be initially supplied with the UK edition of Cards Against Humanity
 (because the first channels that will probably use it are UK-biased channels),
 but a later release should support additional packs.
+
+## Bugs
+
+Undoubtedly many.
+
+I don't really know what I am doing, programming-wise, but I know at least that
+having a single module file with 2,400 lines in it is not sane.
+
+So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
+
+Issues can be reported on github.
