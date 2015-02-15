@@ -1363,17 +1363,18 @@ sub notify_new_wcards {
 
     my $who  = $ug->rel_user->nick;
     my $deck = $self->_deck->{$ug->rel_game->deck};
+    my $irc  = $self->_irc;
 
     my $num_added = scalar @{ $new };
 
-    $self->_irc->msg($who,
-        "$num_added new White Card" . (1 == $num_added ? '' :  's')
-        . " have been dealt to you:");
+    $irc->msg($who,
+        sprintf("%u new White Card%s been dealt to you:", $num_added,
+            1 == $num_added ? ' has' : 's have'));
 
     $self->notify_wcards($ug, $new);
 
     if ($num_added < 10) {
-        $self->_irc->msg($who, "To see your full hand, say \"hand\".");
+        $irc->msg($who, qq{To see your full hand, type "hand".});
     }
 }
 
@@ -1398,8 +1399,13 @@ sub notify_wcards {
 
     my $who  = $ug->rel_user->nick;
     my $deck = $self->_deck->{$ug->rel_game->deck};
+    my $irc  = $self->_irc;
 
     my $i = 0;
+
+    # Don't number them unless this is a full hand, as the numbering would be
+    # incorrect.
+    my $numbering = scalar @{ $cards } >= 10 ? 1 : 0;
 
     foreach my $wcard (@{ $cards }) {
         $i++;
@@ -1424,7 +1430,11 @@ sub notify_wcards {
             $text .= '.';
         }
 
-        $self->_irc->msg($who, sprintf("%2u. %s", $i, $text));
+        if ($numbering) {
+            $irc->msg($who, sprintf("%2u. %s", $i, $text));
+        } else {
+            $irc->msg($who, "→ $text");
+        }
     }
 }
 
@@ -2231,6 +2241,7 @@ sub do_pub_winner {
             $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
             $self->announce_win($winuser, $game);
+            $self->topup_hands($game);
             $self->pick_new_tsar($game);
             return;
         }
@@ -2285,6 +2296,7 @@ sub end_round {
 }
 
 # The round has ended so the tally of plays for this game should be cleared out.
+# The cards played will be removed from each users' hand.
 #
 # Arguments:
 #
@@ -2296,6 +2308,27 @@ sub end_round {
 sub cleanup_plays {
     my ($self, $game) = @_;
 
+    my $tally  = $self->_plays->{$game->id};
+    my $schema = $self->_schema;
+
+    my @cards;
+
+    foreach my $uid (keys %{ $tally }) {
+        # 'cards' is an arrayref of UserGameHands for what was played.
+        push(@cards, @{ $tally->{$uid}->{cards} });
+    }
+
+    # Now @cards is an array of UserGameHands that need to be deleted, so build
+    # an array of just the ids.
+    my @to_delete = map { $_->id } @cards;
+
+    $schema->resultset('UserGameHand')->search(
+        {
+            id => { '-in' => \@to_delete },
+        }
+    )->delete;
+
+    # Finally delete the plays from the tally.
     delete $self->_plays->{$game->id};
 }
 
