@@ -438,15 +438,19 @@ sub process_chan_command {
 
     my $rest = undef;
 
-    if ($cmd =~ /^\s*(\S+)(.*)?$/) {
+    if ($cmd =~ /^(\d+)$/) {
+        # All they said was a single digit, so treat it as picking a winner.
+        $rest = $1;
+        $cmd  = "winner";
+    } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
         $cmd  = $1;
         $rest = $2;
-    }
 
-    # Strip off any leading/trailing whitespace.
-    if (defined $rest) {
-        $rest =~ s/^\s+//;
-        $rest =~ s/\s+$//;
+        # Strip off any leading/trailing whitespace.
+        if (defined $rest) {
+            $rest =~ s/^\s+//;
+            $rest =~ s/\s+$//;
+        }
     }
 
     my $disp = $self->_pub_dispatch;
@@ -2159,8 +2163,11 @@ sub do_pub_winner {
 
         # Maybe it needs more players.
         if (1 == $game->status) {
+            my $num_players = scalar $game->rel_active_usergames;
+
             $irc->msg($chan,
-                "We need some more players before we can continue playing.");
+                sprintf("We need %u more player%s before we can start playing.",
+                    4 - $num_players, (4 - $num_players) == 1 ? '' : 's'));
         }
 
         return;
@@ -2212,6 +2219,9 @@ sub end_round {
     my ($self, $user, $game) = @_;
 
     my $schema = $self->_schema;
+
+    $game->activity_time(time());
+    $game->update;
 
     my $ug = $schema->resultset('UserGame')->find(
         {
@@ -2278,7 +2288,7 @@ sub announce_win {
     );
 
     $irc->msg($chan,
-        sprintf("The winner is %s, who now has %u Awesome Point%s!",
+        sprintf("The winner is %s, who now has %u Awesome Point%s!",
             $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's'));
 }
 

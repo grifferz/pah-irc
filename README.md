@@ -124,6 +124,16 @@ are all fine.
     If you are the current round's Card Tsar then you aren't allowed to resign.
     Choose the winning play first!
 
+*   `winner <number>`
+
+    `<number>`
+
+    Used by the Card Tsar to indicate that the play numbered <number> is the
+    one they think is best.
+
+    This command can be simply abbreviated as a single digit, as it will be
+    obvious from the context what is meant.
+
 ### Private commands
 
 These commands can be given in private message to the bot. Again there are some
