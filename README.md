@@ -195,7 +195,7 @@ becomes a problem.
 
 ## Restarting the bot
 
-Pretty much all game state is gept in the database so it should be safe to kill
+Pretty much all game state is kept in the database so it should be safe to kill
 and restart the bot at any time.
 
 The plays that have currently been made are only stored in memory, so that just
