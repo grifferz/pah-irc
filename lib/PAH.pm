@@ -123,6 +123,10 @@ sub BUILD {
           sub        => \&do_pub_resign,
           privileged => 1,
       },
+      'winner'      => {
+          sub        => \&do_pub_winner,
+          privileged => 1,
+      },
   };
 
   $self->{_priv_dispatch} = {
@@ -432,11 +436,26 @@ sub process_chan_command {
     $chan   = lc($chan);
     $cmd    = lc($cmd);
 
+    my $rest = undef;
+
+    if ($cmd =~ /^\s*(\S+)(.*)?$/) {
+        $cmd  = $1;
+        $rest = $2;
+    }
+
+    # Strip off any leading/trailing whitespace.
+    if (defined $rest) {
+        $rest =~ s/^\s+//;
+        $rest =~ s/\s+$//;
+    }
+
     my $disp = $self->_pub_dispatch;
+
     my $args = {
         nick   => $sender,
         chan   => $chan,
         public => 1,
+        params => $rest,
     };
 
     if (exists $disp->{$cmd}) {
@@ -2096,6 +2115,171 @@ sub prep_plays {
     }
 
     return;
+}
+
+# User wants to pick a winning play.
+sub do_pub_winner {
+    my ($self, $args) = @_;
+
+    my $irc     = $self->_irc;
+    my $chan    = $args->{chan};
+    my $who     = $args->{nick};
+    my $winner  = $args->{params};
+    my $schema  = $self->_schema;
+    my $my_nick = $self->_irc->nick();
+
+    # winner needs to exist and be a single positive integer.
+    if (not defined $winner or $winner !~ /^\d+$/ or $winner < 1) {
+        $irc->msg($chan,
+            qq{$who: What? You need to give me a single number, e.g.}
+           . qq{ "$my_nick: winner 1"});
+       return;
+   }
+
+    my $channel = $self->db_get_channel($chan);
+
+    if (not defined $channel) {
+        $irc->msg($chan,
+            "$who: I can't seem to find a Channel object for this channel."
+            . " That's weird and shouldn't happen. Report this!");
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    # Is there even a game?
+    if (not defined $game) {
+        $irc->msg($chan, "$who: What? There's no game running here yet.");
+        return;
+    }
+
+    # Is the game active?
+    if ($game->status != 2) {
+        $irc->msg($chan, "$who: Sorry, the game isn't active right now.");
+
+        # Maybe it needs more players.
+        if (1 == $game->status) {
+            $irc->msg($chan,
+                "We need some more players before we can continue playing.");
+        }
+
+        return;
+    }
+
+    # Is the game's hand actually complete?
+    if (not $self->hand_is_complete($game)) {
+        $irc->msg($chan, "$who: Sorry, not everyone has played their hand yet!");
+        $irc->msg($chan, $self->build_waitstring($game));
+        return;
+    }
+
+    my $tally = $self->_plays->{$game->id};
+
+    foreach my $uid (keys %{ $tally }) {
+        if ($tally->{$uid}->{seq} == $winner) {
+            # Found the winning play.
+            my $winuser = $schema->resultset('User')->find(
+                {
+                    id => $uid,
+                }
+            );
+
+            $self->end_round($winuser, $game);
+            $self->cleanup_plays($game);
+            $self->announce_win($winuser, $game);
+            return;
+        }
+    }
+
+    # If we got here then they gave us a winner number that doesn't exist in
+    # the plays.
+    $irc->msg($chan,
+        "$who: Sorry, I don't seem to have a record of a play with that number.");
+}
+
+# The round has ended, we know the winner, so the scores need to be adjusted.
+#
+# Arguments:
+#
+# - The User Schema object representing the user who has just won.
+#
+# - The Game Schema object the win relates to.
+#
+# Returns:
+#
+# Nothing.
+sub end_round {
+    my ($self, $user, $game) = @_;
+
+    my $schema = $self->_schema;
+
+    my $ug = $schema->resultset('UserGame')->find(
+        {
+            user => $user->id,
+            game => $game->id,
+        }
+    );
+
+    # Increment the win count of the winner.
+    $ug->wins($ug->wins + 1);
+    $ug->update;
+
+    # Increment the hands count of everyone except the Card Tsar.
+    $schema->resultset('UserGame')->search(
+        {
+            game    => $game->id,
+            active  => 1,
+            is_tsar => 0,
+        }
+    )->update({ hands => \'hands + 1' });
+
+    # tsarcount / is_tsar is updated at the start of next round.
+}
+
+# The round has ended so the tally of plays for this game should be cleared out.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub cleanup_plays {
+    my ($self, $game) = @_;
+
+    delete $self->_plays->{$game->id};
+}
+
+# Announce the winner of a hand.
+#
+# Arguments:
+#
+# - The User Schema object representing the user who has just won.
+#
+# - The Game Schema object the win relates to.
+#
+# Returns:
+#
+# Nothing.
+sub announce_win {
+    my ($self, $user, $game) = @_;
+
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+    my $channel = $game->rel_channel;
+    my $chan    = $channel->disp_name;
+
+    my $ug = $schema->resultset('UserGame')->find(
+        {
+            user => $user->id,
+            game => $game->id,
+        }
+    );
+
+    $irc->msg($chan,
+        sprintf("The winner is %s, who now has %u Awesome Point%s!",
+            $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's'));
 }
 
 1;
