@@ -1754,20 +1754,20 @@ sub do_priv_play {
     $irc->msg($who, "Thanks. So this is your play:");
 
     my $play;
-    my $cards;
+    my @cards;
 
     if (1 == $cards_needed) {
         my $first_ugh = $self->db_get_nth_wcard($ug, $first);
 
-        $cards = [ $first_ugh ];
+        push(@cards, $first_ugh);
     } else {
         my $first_ugh  = $self->db_get_nth_wcard($ug, $first);
         my $second_ugh = $self->db_get_nth_wcard($ug, $second);
 
-        $cards = [ $first_ugh, $second_ugh ];
+        push(@cards, ($first_ugh, $second_ugh));
     }
 
-    $play = $self->build_play($ug, $bcardidx, $cards);
+    $play = $self->build_play($ug, $bcardidx, \@cards);
 
     foreach my $line (split(/\n/, $play)) {
         # Sometimes YAML leaves us with a trailing newline in the text.
@@ -1785,7 +1785,7 @@ sub do_priv_play {
     }
 
     $self->_plays->{$game->id}->{$user->id} = {
-        cards => $cards,
+        cards => \@cards,
         play  => $play,
     };
 
@@ -1842,14 +1842,16 @@ sub build_play {
         return $btext;
     }
 
-    my $ugh   = shift @{ $ughs };
-    my $wtext = $deck->{White}->[$ugh->wcardidx];
+    # Don't modify the passed-in $ughs.
+    my @build_ughs = @{ $ughs };
+    my $ugh        = shift @build_ughs;
+    my $wtext      = $deck->{White}->[$ugh->wcardidx];
 
     $btext =~ s/_{5,}/$wtext/s;
 
     # If there's still a UserGameHand left, do it again.
-    if (scalar @{ $ughs }) {
-        $ugh   = shift @{ $ughs };
+    if (scalar @build_ughs) {
+        $ugh   = shift @build_ughs;
         $wtext = $deck->{White}->[$ugh->wcardidx];
 
         $btext =~ s/_{5,}/$wtext/s;
@@ -2332,13 +2334,26 @@ sub cleanup_plays {
     my @cards;
 
     foreach my $uid (keys %{ $tally }) {
-        # 'cards' is an arrayref of UserGameHands for what was played.
-        push(@cards, @{ $tally->{$uid}->{cards} });
+        # 'cards' is an arrayref of arrayref of UserGameHands for what was played.
+        push(@cards, $tally->{$uid}->{cards});
     }
+
+    print STDERR Dumper(\@cards);
 
     # Now @cards is an array of UserGameHands that need to be deleted, so build
     # an array of just the ids.
-    my @to_delete = map { $_->id } @cards;
+    my @to_delete;
+    foreach my $hand (@cards) {
+        foreach my $ugh (@{ $hand }) {
+            my $white_deck = $self->_deck->{$game->deck}->{White};
+            my $idx = $ugh->wcardidx;
+
+            debug("Discarding played White Cards:");
+            debug("%s:  %s", $ugh->rel_user->nickname, $white_deck->[$idx]);
+
+            push(@to_delete, $ugh->id);
+        }
+    }
 
     $schema->resultset('UserGameHand')->search(
         {
