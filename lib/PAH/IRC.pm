@@ -240,7 +240,6 @@ sub on_publicmsg {
     # AgainstHumanity, status
     # AgainstHumanity: status
     if ($content !~ /^$nick\s*(?:[,;:]\s*)?(.*)$/i) {
-        debug("Ignoring irrelevant msg to %s…", $channel);
         return;
     }
 
