@@ -148,6 +148,10 @@ time that can be left off and the bot will work it out.
 
     `[#channel] play <number> & <number>`
 
+    `<number>`
+
+    `<number> <number>`
+
     Play the numbered White Card for this round. Some rounds require two White
     Cards, so they will be played in the order specified.
 
@@ -157,6 +161,9 @@ time that can be left off and the bot will work it out.
     You may alter your play as many times as you like until every active player
     has made their play, at which point the plays will be revealed to the
     channel and may not be changed.
+
+    Where a channel will not be required, just saying one or two numbers
+    (without the "play" prefix) is an acceptable shortcut.
 
 ## Installation
 
