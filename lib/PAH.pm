@@ -2349,7 +2349,8 @@ sub cleanup_plays {
             my $idx = $ugh->wcardidx;
 
             debug("Discarding played White Cards:");
-            debug("%s:  %s", $ugh->rel_user->nick, $white_deck->[$idx]);
+            debug("%s:  %s", $ugh->rel_usergame->rel_user->nick,
+                $white_deck->[$idx]);
 
             push(@to_delete, $ugh->id);
         }

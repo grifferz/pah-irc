@@ -61,7 +61,7 @@ __PACKAGE__->add_unique_constraint(
 
 # A UserGameHand always has a UserGame.
 __PACKAGE__->belongs_to(
-    rel_wcard => 'PAH::Schema::Result::UserGame',
+    rel_usergame => 'PAH::Schema::Result::UserGame',
     { 'foreign.id' => 'self.user_game' }
 );
 
