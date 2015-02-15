@@ -2194,6 +2194,7 @@ sub do_pub_winner {
             $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
             $self->announce_win($winuser, $game);
+            $self->pick_new_tsar($game);
             return;
         }
     }
@@ -2290,6 +2291,78 @@ sub announce_win {
     $irc->msg($chan,
         sprintf("The winner is %s, who now has %u Awesome Point%s!",
             $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's'));
+}
+
+# Make the next player the Card Tsar.
+#
+# This will be the active UserGame object with the next-highest id, as that is
+# based on the order in which the players joined the game. If there is no such
+# object then it should wrap around to the first object.
+#
+# Arguments:
+#
+# - The Game Schema object the win relates to.
+#
+# Returns:
+#
+# Nothing.
+sub pick_new_tsar {
+    my ($self, $game) = @_;
+
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+    my $channel = $game->rel_channel;
+    my $chan    = $channel->disp_name;
+
+    my $current_tsar = $game->rel_tsar_usergame;
+
+    my $new_tsar = $schema->resultset('UserGame')->find(
+        {
+            game   => $game->id,
+            active => 1,
+            id     => { '>' => $current_tsar->id },
+        },
+        {
+            order_by => 'id ASC',
+            rows     => 1,
+        }
+    );
+
+    if (not defined $new_tsar) {
+        # Wrap around to start of table.
+        $new_tsar = $schema->resultset('UserGame')->find(
+            {
+                game   => $game->id,
+                active => 1,
+            },
+            {
+                order_by => 'id ASC',
+                rows     => 1,
+            }
+        );
+     }
+
+     if (not defined $new_tsar) {
+         $game->status(0);
+         $game->update;
+
+         $irc->msg($chan,
+             "I couldn't work out who the next Card Tsar should be. This is"
+            . " probably a bug. Going to have to pause the game. Report this!");
+         return;
+     }
+
+     $current_tsar->is_tsar(0);
+     $current_tsar->update;
+
+     $new_tsar->is_tsar(1);
+     $new_tsar->tsarcount($new_tsar->tsarcount + 1);
+     $new_tsar->update;
+
+     $irc->msg($chan,
+         sprintf("The new Card Tsar is %s.", $new_tsar->rel_user->nick));
+
+     $self->deal_to_tsar($game);
 }
 
 1;
