@@ -1459,6 +1459,7 @@ sub deal_to_tsar {
     my ($self, $game) = @_;
 
     my $schema    = $self->_schema;
+    my $irc       = $self->_irc;
     my $chan      = $game->rel_channel->disp_name;
     my @usergames = $game->rel_active_usergames;
 
@@ -1484,10 +1485,20 @@ sub deal_to_tsar {
     # Discard the Black Card off the deck (because it's now part of the Game round).
     $schema->resultset('BCard')->find({ id => $new->id })->delete;
 
+    # Notify every player about the new black card, so they don't have to leave
+    # their privmsg window to continue playing.
+    foreach my $ug (@usergames) {
+        # Not if they're the Tsar though.
+        next if (1 == $ug->is_tsar);
+
+        $irc->msg($ug->rel_user->nick, "Time for the next Black Card:");
+        $self->notify_bcard($ug->rel_user->nick, $game);
+    }
+
     # Notify the channel about the new Black Card.
-    $self->_irc->msg($chan, "Time for the next Black Card:");
+    $irc->msg($chan, "Time for the next Black Card:");
     $self->notify_bcard($chan, $game);
-    $self->_irc->msg($chan, "Now message me your answers please!");
+    $irc->msg($chan, "Now message me your answers please!");
 }
 
 # Tell a channel or nick about the Black Card that has just been dealt.
