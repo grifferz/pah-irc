@@ -1939,6 +1939,33 @@ sub hand_is_complete {
     return ($num_plays == ($num_players - 1));
 }
 
+# Is this user the game's Card Tsar?
+#
+# Arguments:
+#
+# - The User Schema object.
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# - 0: No.
+#   1: Yes.
+sub user_is_tsar {
+    my ($self, $user, $game) = @_;
+
+    my $schema = $self->_schema;
+
+    my $ug = $schema->resultset('UserGame')->find(
+        {
+            user => $user->id,
+            game => $game->id,
+        }
+    );
+
+    return $ug->is_tsar;
+}
+
 # Inform the channel about the (completed) set of plays.
 #
 # Arguments:
@@ -2170,6 +2197,16 @@ sub do_pub_winner {
                     4 - $num_players, (4 - $num_players) == 1 ? '' : 's'));
         }
 
+        return;
+    }
+
+    # Are they the Card Tsar?
+    my $user = $self->db_get_user($who);
+
+    if (not $self->user_is_tsar($user, $game)) {
+        $irc->msg($chan,
+            sprintf("%s: Sorry, you're not the Card Tsar – that's %s.", $who,
+                $game->rel_tsar_usergame->rel_user->nick));
         return;
     }
 
