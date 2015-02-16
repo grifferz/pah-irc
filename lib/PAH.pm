@@ -940,10 +940,15 @@ sub do_pub_dealin {
         debug("Game at %s still requires %u more players", 4 - $num_players);
         $irc->msg($chan, "We've now got $num_players of minimum 4. Anyone else?");
         $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to play too.});
-    }
+    } elsif (2 == $game->status) {
+        # They joined an already-running game, so they need a hand of
+        # White Cards.
+        $self->topup_hand($usergame);
 
-    # Did they join an already-running game? If so they need a hand of White Cards.
-    $self->topup_hand($usergame);
+        # And to know what the Black Card is.
+        $irc->msg($who, "Current Black Card:");
+        $self->notify_bcard($who, $game);
+    }
 }
 
 # A user wants to resign from the game. If they are the current round's Card
