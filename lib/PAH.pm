@@ -2027,8 +2027,6 @@ sub list_plays {
             $irc->msg($channel->name,
                 sprintf("%s: Which is the best play?",
                     $game->rel_tsar_usergame->rel_user->nick));
-        } else {
-            $irc->msg($channel->name, "…or…");
         }
 
         foreach my $line (split(/\n/, $text)) {
