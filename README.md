@@ -114,8 +114,11 @@ are all fine.
     Your hand of White Cards including any White Cards you already played are
     discarded.
 
-    If you are the current round's Card Tsar then you aren't allowed to resign.
-    Choose the winning play first!
+    If you are the current round's Card Tsar then play will move on without any
+    Awesome Points being awarded. If the hand was complete (all players made
+    their play and plays were announced in the channel) then these White Cards
+    will be discarded and new White Cards drawn. Otherwise played White Cards
+    will be returned to players' hands.
 
 *   `winner <number>`
 

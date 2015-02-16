@@ -1038,6 +1038,9 @@ sub do_pub_resign {
         # Trash any plays this user may have made.
         $self->delete_plays($usergame);
 
+        # And discard their hand of White Cards.
+        $self->discard_hand($usergame);
+
         # Mark them as inactive.
         $usergame->active(0);
         $usergame->update;
