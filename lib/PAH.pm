@@ -1757,21 +1757,37 @@ sub do_priv_play {
         return;
     }
 
-    $irc->msg($who, "Thanks. So this is your play:");
-
     my $play;
     my @cards;
 
     if (1 == $cards_needed) {
         my $first_ugh = $self->db_get_nth_wcard($ug, $first);
 
+        debug("%s plays their #%u card", $who, $first);
         push(@cards, $first_ugh);
     } else {
         my $first_ugh  = $self->db_get_nth_wcard($ug, $first);
         my $second_ugh = $self->db_get_nth_wcard($ug, $second);
 
+        debug("%s plays their #%u and #%u cards", $who, $first, $second);
         push(@cards, ($first_ugh, $second_ugh));
     }
+
+    # Have they tried to play a card that isn't in their hand?
+    foreach my $ugh (@cards) {
+        if (not defined $ugh) {
+            debug("%s tried to play a card that wasn't in their hand", $who);
+
+            my $hand_count = $self->count_cards($ug);
+            $irc->msg($who,
+                "Sorry, that card doesn't seem to be in your hand. Your hand is"
+               . " numbered 1 – $hand_count.");
+
+            return;
+        }
+    }
+
+    $irc->msg($who, "Thanks. So this is your play:");
 
     $play = $self->build_play($ug, $bcardidx, \@cards);
 
@@ -2471,6 +2487,27 @@ sub pick_new_tsar {
          sprintf("The new Card Tsar is %s.", $new_tsar->rel_user->nick));
 
      $self->deal_to_tsar($game);
+}
+
+# Count the number of White Cards in a hand for a UserGame.
+#
+# Arguments:
+#
+# - The UserGame Schema object.
+#
+# Returns:
+#
+# Count of cards.
+sub count_cards {
+    my ($self, $ug) = @_;
+
+    my $schema = $self->_schema;
+
+    return $schema->resultset('UserGameHand')->search(
+        {
+            user_game => $ug->id,
+        }
+    )->count;
 }
 
 1;
