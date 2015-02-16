@@ -2407,8 +2407,6 @@ sub cleanup_plays {
         push(@cards, $tally->{$uid}->{cards});
     }
 
-    print STDERR Dumper(\@cards);
-
     # Now @cards is an array of UserGameHands that need to be deleted, so build
     # an array of just the ids.
     my @to_delete;
