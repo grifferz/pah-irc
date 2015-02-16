@@ -86,6 +86,11 @@ has _plays => (
     is => 'ro',
 );
 
+# Stash for lots of "time this last happened" stuff.
+has _last => (
+    is => 'ro',
+);
+
 sub BUILD {
   my ($self) = @_;
 
@@ -161,6 +166,7 @@ sub BUILD {
       scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
 
   $self->{_plays} = {};
+  $self->{_last}  = {};
 }
 
 # The "main"
@@ -613,6 +619,28 @@ sub do_pub_status {
     }
 
     my $game = $channel->rel_game;
+
+    # How long ago did we last do this?
+    my $now = time();
+
+    if (defined $self->_last->{$game->id}
+            and defined $self->_last->{$game->id}->{status}) {
+        my $last_status = $self->_last->{$game->id}->{status};
+
+        if (($now - $last_status) <= 120) {
+            # Last time we did status in this channel was 120 seconds ago or less.
+            debug("%s tried to display status for %s but it was already done %u"
+               . " secs ago; ignoring", $who, $chan, ($now - $last_status));
+            $irc->msg($chan,
+                sprintf("$who: Sorry, I'm ignoring your status command in"
+                   . " because I did one just %u secs ago.",
+                   ($now - $last_status)));
+            return;
+        }
+    }
+
+    # Record timestamp of when we did this.
+    $self->_last->{$game->id}->{status} = $now;
 
     if (not defined $game) {
         # There's never been a game in this channel.
