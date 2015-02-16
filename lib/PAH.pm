@@ -1374,6 +1374,17 @@ sub topup_hand {
         # Delete what is there first though, just to avoid any duplicate card
         # issues.
         $schema->resultset('WCard')->search({ game => $game->id })->delete;
+
+        # Delete all the discard piles as well.
+        my @usergames = $game->rel_usergames;
+        my @ug_ids    = map { $_->id } @usergames;
+
+        $schema->resultset('UserGameDiscard')->search(
+            {
+                user_game => { '-in' => \@ug_ids },
+            }
+        )->delete;
+
         $self->db_populate_cards($game, 'White');
     }
 
