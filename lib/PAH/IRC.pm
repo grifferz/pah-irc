@@ -257,7 +257,6 @@ sub on_privatemsg {
 
     # Ignore stuff that isn't a normal message.
     if ($ircmsg->{command} !~ /^PRIVMSG$/i) {
-        debug("Ignoring a private NOTICE");
         return;
     }
 
