@@ -974,8 +974,11 @@ sub do_pub_resign {
 
     my $game = $channel->rel_game;
 
+    debug("%s attempts to resign from game in %s", $who, $chan);
+
     # Is there a game actually running?
     if (not defined $game) {
+        debug("%s can't resign from non-existent game in %s", $who, $chan);
         $irc->msg($chan, "$who: There isn't a game running at the moment.");
         return;
     }
@@ -994,38 +997,53 @@ sub do_pub_resign {
     # Is the user active in the game?
     if (not defined $usergame or 0 == $usergame->active) {
         # No.
+        debug("%s tried to resign from game in %s but they weren't active", $who,
+            $chan);
         $irc->msg($chan, "$who: You're not playing!");
         return;
     }
-
-    # Are they the Card Tsar? If so then they can't resign!
-    if (1 == $usergame->is_tsar) {
-        $irc->msg($chan, "$who: You're the Card Tsar, you can't resign!");
-        $irc->msg($chan,
-            "$who: Just pick a winner for this round first, then you can"
-            . " resign.");
-        return;
-    }
-
-    # Mark them as inactive.
-    $usergame->active(0);
-    $usergame->update;
-
-    # Trash any plays this user may have made.
-    $self->discard_plays($usergame);
-
-    # And discard their hand of White Cards.
-    $self->discard_hand($usergame);
 
     $irc->msg($chan, "$who: Okay, you've been dealt out of the game.");
     $irc->msg($chan,
         qq{$who: If you want to join in again later then type}
         . qq{ "$my_nick: deal me in"});
 
+    # Are they the Card Tsar?
+    if (1 == $usergame->is_tsar) {
+        debug("%s was Tsar for %s", $who, $chan);
+
+        if (2 == $game->status and $self->hand_is_complete($game)) {
+            debug("Played cards in %s have been seen so must be discarded", $chan);
+            $self->cleanup_plays($game);
+        }
+
+        # And discard their hand of White Cards.
+        $self->discard_hand($usergame);
+
+        # Mark them as inactive.
+        $usergame->active(0);
+        $usergame->update;
+
+        # Give the other players any new cards they need.
+        $self->topup_hands($game);
+
+        # Elect the next Tsar.
+        $self->pick_new_tsar($game);
+    } else {
+        # Trash any plays this user may have made.
+        $self->delete_plays($usergame);
+
+        # Mark them as inactive.
+        $usergame->active(0);
+        $usergame->update;
+    }
+
     # Has this taken the number of players too low for the game to continue?
     my $player_count = scalar $game->rel_active_usergames;
 
     if ($player_count < 4) {
+        debug("Resignation of %s in %s has brought the game down to %u player%s",
+            $who, $chan, $player_count, 1 == $player_count ? '' : 's');
         $game->status(1);
         $game->update;
 
@@ -1039,6 +1057,7 @@ sub do_pub_resign {
     # Has this actually completed the hand (i.e. we were waiting on the user who
     # just resigned)?
     if (2 == $game->status and $self->hand_is_complete($game)) {
+        debug("Resignation of %s in %s has completed the hand", $who, $chan);
         $irc->msg($chan,
             "Now that $who quit, all the plays are in. No more changes!");
         $self->prep_plays($game);
@@ -2170,7 +2189,7 @@ sub build_waitstring {
     return $waitstring;
 }
 
-# Discard any plays this user may have made in this game.
+# Delete any plays this user may have made in this game.
 #
 # Arguments:
 #
@@ -2179,7 +2198,7 @@ sub build_waitstring {
 # Returns:
 #
 # Nothing.
-sub discard_plays {
+sub delete_plays {
     my ($self, $ug) = @_;
 
     my $tally = $self->_plays->{$ug->game};
