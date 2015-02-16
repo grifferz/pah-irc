@@ -822,6 +822,8 @@ sub do_pub_dealin {
 
     my $game = $channel->rel_game;
 
+    debug("%s wants to join game at %s", $who, $chan);
+
     # Is there a game running already?
     if (not defined $game) {
         # No, there is no game.
@@ -833,11 +835,11 @@ sub do_pub_dealin {
         # I'm leaning towards "no" because the fact that the channel doesn't
         # already have a game running may hint towards the norms of the channel
         # being that games aren't welcome.
-        $self->_irc->msg($chan,
+        debug("There's no game at %s for %s to join", $chan, $who);
+        $irc->msg($chan,
             "$who: Sorry, there's no game here to deal you in to. Want to start"
            . " one?");
-       $self->_irc->msg($chan,
-            "$who: If so, type \"$my_nick: start\"");
+        $irc->msg($chan, qq{$who: If so, type "$my_nick: start"});
         return;
     }
 
@@ -850,7 +852,8 @@ sub do_pub_dealin {
     # Are they already in it?
     if (defined $game->rel_active_usergames
             and grep $_->id == $user->id, @active_usergames) {
-        $self->_irc->msg($chan, "$who: Heyyy, you're already playing!");
+        debug("%s is already playing in game at %s", $who, $chan);
+        $irc->msg($chan, "$who: Heyyy, you're already playing!");
         return;
     }
 
@@ -860,6 +863,7 @@ sub do_pub_dealin {
     if (2 == $game->status and $self->hand_is_complete($game)) {
         # TODO: Maybe keep track that they wanted to play, and deal them in as
         # soon as the current hand finishes?
+        debug("%s can't join game at %s because the hand is complete", $who, $chan);
         $irc->msg($chan,
             sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
                . " to pick the winner. Please try again later.", $who,
@@ -871,7 +875,9 @@ sub do_pub_dealin {
     my $num_players = scalar @active_usergames;
 
     if ($num_players >= 20) {
-        $self->_irc->msg($chan,
+        debug("%s can't join game at %s because there's already %s players", $who,
+            $chan, $num_players);
+        $irc->msg($chan,
             "$who: Sorry, there's already $num_players players in this game and"
            . " that's the maximum. Try again once someone has resigned!");
         return;
@@ -890,28 +896,46 @@ sub do_pub_dealin {
     $game->activity_time(time());
     $game->update;
 
-    $self->_irc->msg($chan, "$who: Nice! You're in!");
+    debug("%s was added to game at %s", $who, $chan);
+    $irc->msg($chan, "$who: Nice! You're in!");
 
     # Does the game have enough players to start yet?
     $num_players = scalar $game->rel_active_usergames;
 
     if ($num_players >= 4 and 1 == $game->status) {
+        debug("Game at %s now has enough players to proceed", $chan);
+
         $game->status(2);
         $game->update;
-        $self->_irc->msg($chan,
-            "The game begins! Give me a minute or two to tell everyone their hands"
-           . " without flooding myself off, please.");
+
+        my $prefix;
+
+        if (defined $game->bcardidx) {
+            # This game already had some rounds so it has been unpaused.
+            $prefix = 'The game is on again!';
+        } else {
+            # This game has never had any rounds before; this is a new game.
+            $prefix = 'The game begins!';
+        }
+
+        $irc->msg($chan, "$prefix Give me a minute or two to tell everyone their"
+               . " hands without flooding myself off, please.");
+
         # Get a chat window open with all the players.
         $self->brief_players($game);
         # Top everyone's White Card hands up to 10 cards.
         $self->topup_hands($game);
-        # And deal out a Black Card to the Tsar.
-        $self->deal_to_tsar($game);
+        # And deal out a Black Card to the Tsar, if necessary.
+        if (not defined $game->bcardidx) {
+            $self->deal_to_tsar($game);
+        } else {
+            $irc->msg($chan, "Current Black Card:");
+            $self->notify_bcard($chan, $game);
+        }
     } elsif (1 == $game->status) {
-        $self->_irc->msg($chan,
-            "We've now got $num_players of minimum 4. Anyone else?");
-        $self->_irc->msg($chan,
-            "Type \"$my_nick: me\" if you'd like to play too.");
+        debug("Game at %s still requires %u more players", 4 - $num_players);
+        $irc->msg($chan, "We've now got $num_players of minimum 4. Anyone else?");
+        $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to play too.});
     }
 
     # Did they join an already-running game? If so they need a hand of White Cards.

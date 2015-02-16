@@ -76,9 +76,9 @@ __PACKAGE__->add_columns(
     # The index of the current Black Card for this Game.
     bcardidx => {
         data_type    => 'integer',
-        is_nullable   => 0,
+        is_nullable   => 1,
         extra         => { unsigned => 1 },
-        default_value => 0,
+        default_value => 'NULL',
     },
 
 );

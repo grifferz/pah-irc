@@ -30,7 +30,7 @@
 <text text-anchor="start" x="237" y="-406.4" font-family="Times Roman,serif" font-size="14.00">&#45; activity_time</text>
 <text text-anchor="start" x="237" y="-389.4" font-family="Times Roman,serif" font-size="14.00">&#45; status</text>
 <text text-anchor="start" x="237" y="-372.4" font-family="Times Roman,serif" font-size="14.00">&#45; deck</text>
-<text text-anchor="start" x="237" y="-355.4" font-family="Times Roman,serif" font-size="14.00">&#45; bcardidx</text>
+<text text-anchor="start" x="237" y="-355.4" font-family="Times Roman,serif" font-size="14.00">&#45; bcardidx [N]</text>
 </g>
 <!-- node1&#45;&gt;node3 -->
 <g id="edge2" class="edge"><title>node1&#45;&gt;node3</title>
