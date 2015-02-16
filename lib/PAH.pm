@@ -1879,6 +1879,17 @@ sub build_play {
         $btext =~ s/_{5,}/$wtext/s;
     }
 
+    # Remove extra punctuation.
+    #
+    # Sometimes a White Card will end with '!' or '?' and the placeholder in
+    # the Black Card will also have '.' after it, resulting in doubled
+    # punctuation like:
+    #
+    # → What will always get you laid? Surprise sex!.
+    #
+    # So squash any periods after '!' or '?'.
+    $btext =~ s/([\.\?\!])\./$1/gs;
+
     # Upper-case things we put at the start.
     $btext =~ s/^(\S)/uc($1)/e;
 
