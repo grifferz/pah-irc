@@ -85,7 +85,9 @@ are all fine.
     Starts a new game of Perpetually Against Humanity. Players will need to be
     gathered before it will actually proceed.
 
-*   `deal me in`
+*   `dealmein`
+
+    `deal me in`
 
     Join in to the currently-active game. You'll immediately receive a hand and
     a reminder of the current Black Card by private message. You can play your
@@ -97,6 +99,8 @@ are all fine.
     If the game now has enough players to start then it will start.
 
 *   `resign`
+
+    `dealmeout`
 
     `deal me out`
 

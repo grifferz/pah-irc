@@ -95,35 +95,35 @@ sub BUILD {
   $self->{_config} = $config->{_};
 
   $self->{_pub_dispatch} = {
-      'status'      => {
+      'status'    => {
           sub        => \&do_pub_status,
           privileged => 0,
       },
-      'start'       => {
+      'start'     => {
           sub        => \&do_pub_start,
           privileged => 1,
       },
-      'me'  => {
-          sub       => \&do_pub_dealin,
+      'me'        => {
+          sub        => \&do_pub_dealin,
           privileged => 1,
       },
-      'me!'  => {
-          sub       => \&do_pub_dealin,
+      'me!'       => {
+          sub        => \&do_pub_dealin,
           privileged => 1,
       },
-      'deal me in'  => {
-          sub       => \&do_pub_dealin,
+      'dealmein'  => {
+          sub        => \&do_pub_dealin,
           privileged => 1,
       },
-      'resign'      => {
+      'resign'    => {
           sub        => \&do_pub_resign,
           privileged => 1,
       },
-      'deal me out' => {
+      'dealmeout' => {
           sub        => \&do_pub_resign,
           privileged => 1,
       },
-      'winner'      => {
+      'winner'    => {
           sub        => \&do_pub_winner,
           privileged => 1,
       },
@@ -449,6 +449,10 @@ sub process_chan_command {
         # All they said was a single digit, so treat it as picking a winner.
         $rest = $1;
         $cmd  = "winner";
+    } elsif ($cmd eq 'deal me in') {
+        $cmd = 'dealmein';
+    } elsif ($cmd eq 'deal me out') {
+       $cmd = 'dealmeout';
     } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
         $cmd  = $1;
         $rest = $2;
