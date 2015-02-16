@@ -107,8 +107,8 @@ sub on_registered {
     $self->{_msg_queue} = [ ];
 
     $self->{msg_timer} = AnyEvent->timer(
-        after => 0,
-        interval => 1,
+        after    => 0,
+        interval => 0.75,
         cb => sub {
             $self->process_msg_queue();
         },
