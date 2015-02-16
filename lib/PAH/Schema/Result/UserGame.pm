@@ -83,8 +83,8 @@ __PACKAGE__->add_columns(
         default_value => 0,
     },
 
-    # Waiting on a move since timestamp.
-    wait_since => {
+    # Timestamp of last activity.
+    activity_time => {
         data_type     => 'integer',
         is_nullable   => 0,
         extra         => { unsigned => 1 },
