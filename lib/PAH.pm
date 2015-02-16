@@ -1745,6 +1745,12 @@ sub do_priv_play {
             $irc->msg($who, qq{/msg $my_nick play 1 2});
             return;
         }
+
+        if ($first == $second) {
+            debug("%s tried to play two identical cards.", $who);
+            $irc->msg($who, "You must play two different cards! Try again.");
+            return;
+        }
     } else {
         debug("Black Card with index %u appears to need %u answers, which is weird.",
             $bcardidx, $cards_needed);
