@@ -717,6 +717,7 @@ sub do_pub_start {
     my $chan    = $args->{chan};
     my $who     = $args->{nick};
     my $my_nick = $self->_irc->nick();
+    my $irc     = $self->_irc;
     my $schema  = $self->_schema;
 
     # Do we have a channel in the database yet? The only way to create a
@@ -725,7 +726,7 @@ sub do_pub_start {
     my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
-        $self->_irc->msg($chan,
+        $irc->msg($chan,
             "$who: Sorry, I don't seem to have $chan in my database, which is"
            . " a weird error that needs to be reported!");
        return;
@@ -756,21 +757,19 @@ sub do_pub_start {
         my $status = $game->status;
 
         if (0 == $status) {
-            $self->_irc->msg($chan,
+            $irc->msg($chan,
                 "$who: Sorry, there's already a game for this channel, though"
                . " it seems to be paused when it shouldn't be! Ask around?");
         } elsif (1 == $status) {
             my $count = scalar ($game->rel_active_usergames);
 
-            $self->_irc->msg($chan,
+            $irc->msg($chan,
                 "$who: Sorry, there's already a game here but we only have"
                . " $count of minimum 4 players. Does anyone else want to"
                . " play?");
-            $self->_irc->msg($chan,
-                "Type \"$my_nick: me\" if you'd like to!");
+            $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to!});
         } elsif (2 == $status) {
-            $self->_irc->msg($chan,
-                 "$who: Sorry, there's already a game running here!");
+            $irc->msg($chan, "$who: Sorry, there's already a game running here!");
         }
 
         return;
@@ -805,20 +804,21 @@ sub do_pub_start {
     # will be the first Card Tsar.
     my $usergame = $schema->resultset('UserGame')->create(
         {
-            user      => $user->id,
-            game      => $game->id,
-            is_tsar   => 1,
-            tsarcount => 1,
-            active    => 1,
+            user          => $user->id,
+            game          => $game->id,
+            is_tsar       => 1,
+            tsarcount     => 1,
+            active        => 1,
+            activity_time => time(),
         }
     );
 
     # Now tell 'em.
-    $self->_irc->msg($chan,
+    $irc->msg($chan,
         "$who: You're on! We have a game of Perpetually Against Humanity up in"
        . " here. 4 players minimum are required. Who else wants to play?");
-    $self->_irc->msg($chan,
-        "Say \"$my_nick: me\" if you'd like to!");
+    $irc->msg($chan,
+        qq{Say "$my_nick: me" if you'd like to!});
 }
 
 # A user wants to join a (presumably) already-running game. This can happen
@@ -918,9 +918,10 @@ sub do_pub_dealin {
     # "Let the User see the Game!" Ahem. Add the User to the Game.
     my $usergame = $schema->resultset('UserGame')->update_or_create(
         {
-            user   => $user->id,
-            game   => $game->id,
-            active => 1,
+            user          => $user->id,
+            game          => $game->id,
+            active        => 1,
+            activity_time => time(),
         }
     );
 
@@ -1054,6 +1055,7 @@ sub do_pub_resign {
         $self->discard_hand($usergame);
 
         # Mark them as inactive.
+        $usergame->activity_time(time());
         $usergame->active(0);
         $usergame->update;
 
@@ -1850,8 +1852,8 @@ sub do_priv_play {
             return;
         }
     } else {
-        debug("Black Card with index %u appears to need %u answers, which is weird.",
-            $bcardidx, $cards_needed);
+        debug("Black Card with index %u appears to need %u answers,"
+           . " which is weird.", $bcardidx, $cards_needed);
         return;
     }
 
@@ -1910,6 +1912,9 @@ sub do_priv_play {
     };
 
     $num_plays++;
+
+    $ug->activity_time(time());
+    $ug->update;
 
     # Tell the channel that the user has made their play.
     if ($self->hand_is_complete($game)) {
@@ -2396,6 +2401,9 @@ sub do_pub_winner {
                     id => $uid,
                 }
             );
+
+            $game->rel_tsar_usergame->activity_time(time());
+            $game->rel_tsar_usergame->update;
 
             $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
