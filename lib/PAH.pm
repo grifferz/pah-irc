@@ -2043,9 +2043,13 @@ sub list_plays {
 
     my $irc     = $self->_irc;
     my $channel = $game->rel_channel;
+    my $tsar_ug = $game->rel_tsar_usergame;
+    my $chan    = $channel->disp_name;
 
     # Hash ref of User ids.
     my $plays = $self->_plays->{$game->id};
+
+    my $header_length;
 
     # Go through the plays in the specified sequence order just in case Perl's
     # hash ordering is predictable.
@@ -2053,22 +2057,28 @@ sub list_plays {
         sort { $plays->{$a}->{seq} <=> $plays->{$b}->{seq} }
         keys %{ $plays }) {
 
-        my $seq  = $plays->{$uid}->{seq};
-        my $text = $plays->{$uid}->{play};
+        my $seq       = $plays->{$uid}->{seq};
+        my $text      = $plays->{$uid}->{play};
+        my $tsar_nick = $tsar_ug->rel_user->nick;
 
         if (1 == $seq) {
-            $irc->msg($channel->name,
-                sprintf("%s: Which is the best play?",
-                    $game->rel_tsar_usergame->rel_user->nick));
+            $header_length = length("$tsar_nick: Which is the best play?");
+
+            $irc->msg($chan, "$tsar_nick: Which is the best play?");
+            $irc->msg($chan, '=' x $header_length);
+
         }
 
         foreach my $line (split(/\n/, $text)) {
             # Sometimes YAML leaves us with a trailing newline in the text.
             next if ($line =~ /^\s*$/);
 
-            $irc->msg($channel->name, "$seq → $line");
+            $irc->msg($chan, "$seq → $line");
         }
     }
+
+    $irc->msg($chan, '=' x $header_length);
+
 }
 
 # Build a string describing who or what the game is waiting on for progress.
