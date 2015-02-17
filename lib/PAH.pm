@@ -1949,13 +1949,21 @@ sub do_priv_play {
         $self->list_plays($game);
 
     } elsif ($is_new) {
-        my $waiting_on = $num_players - $num_plays - 1;
-
         # Only bother to tell the channel if this is a new play.
         # User can then keep changing their play without spamming the channel.
-        $irc->msg($channel->name,
-            sprintf("%s has made their play! We're waiting on %u more play%s.",
-                $who, $waiting_on, $waiting_on == 1 ? '' : 's'));
+        my $waiting_on = $num_players - $num_plays - 1;
+
+        # If there's less than 6 players left to make their play then name them
+        # explicitly.
+        if ($waiting_on < 6) {
+            $irc->msg($channel->name,
+                sprintf("%s has made their play! %s", $who,
+                    $self->build_waitstring($game)));
+        } else {
+            $irc->msg($channel->name,
+                sprintf("%s has made their play! We're currently waiting on"
+                   . " plays from %u more people.", $who, $waiting_on));
+        }
     }
 }
 
