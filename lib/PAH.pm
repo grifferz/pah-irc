@@ -1600,6 +1600,15 @@ sub deal_to_tsar {
         },
     );
 
+    if (not defined $new) {
+        # Black deck ran out.
+        debug("Black deck for game in %s is exhausted; reshuffling",
+            $chan);
+        $self->db_populate_cards($game, 'Black');
+        $self->deal_to_tsar($game);
+        return;
+    }
+
     # Update the Game with the index of the current black card.
     $game->bcardidx($new->cardidx);
     $game->activity_time(time());
