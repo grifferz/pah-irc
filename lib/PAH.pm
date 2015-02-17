@@ -150,6 +150,10 @@ sub BUILD {
           sub        => \&do_priv_hand,
           privileged => 1,
       },
+      'list' => {
+          sub        => \&do_priv_hand,
+          privileged => 1,
+      },
       'black' => {
           sub        => \&do_priv_black,
           privileged => 0,
