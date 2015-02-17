@@ -1603,7 +1603,7 @@ sub deal_to_tsar {
     if (not defined $new) {
         # Black deck ran out.
         debug("Black deck for game in %s is exhausted; reshuffling",
-            $channel->disp_name);
+            $chan);
         $self->db_populate_cards($game, 'Black');
         $self->deal_to_tsar($game);
         return;
