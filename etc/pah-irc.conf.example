@@ -24,3 +24,12 @@ pidfile = pah-irc.pid
 
 # SQLite 3 database file.
 dbfile = ./var/pah-irc.sqlite
+
+# How long can a game be idle before someone is forcibly resigned to kick
+# things along?
+#
+# If you desire fast-paced games (not what this bot is designed for) you could
+# try setting it fairly low, like 5 minutes (300). But then you may find it
+# hard to get enough people together and awake at the same time.
+# Specified in seconds.
+turnclock = 86400 # A day.
