@@ -114,6 +114,14 @@ sub on_registered {
         },
     );
 
+    $self->{waitclock_timer} = AnyEvent->timer(
+        after    => 60,
+        interval => 60,
+        cb       => sub {
+            $self->{parent}->check_idlers($self->{parent}->_config->{turnclock});
+        },
+    );
+
     $self->{parent}->join_welcoming_channels;
 }
 

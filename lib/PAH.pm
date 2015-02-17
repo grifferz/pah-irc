@@ -30,6 +30,7 @@ use MooseX::Getopt;
 with 'MooseX::Getopt';
 use Try::Tiny;
 use List::Util qw/shuffle/;
+use POSIX qw/strftime/;
 
 use Data::Dumper;
 
@@ -98,6 +99,12 @@ sub BUILD {
       or die Config::Tiny->errstr;
   # Only care about the root section for now.
   $self->{_config} = $config->{_};
+
+  if (not defined $self->{_config}->{turnclock}
+          or $self->{_config}->{turnclock} !~ /^\d+$/
+          or $self->{_config}->{turnclock} <= 0) {
+      die "'turnclock' config item must be a positive integer";
+  }
 
   $self->{_pub_dispatch} = {
       'status'    => {
@@ -1042,8 +1049,21 @@ sub do_pub_resign {
         qq{$who: If you want to join in again later then type}
         . qq{ "$my_nick: deal me in"});
 
+    $self->resign($usergame);
+}
+
+sub resign {
+    my ($self, $ug) = @_;
+
+    my $user    = $ug->rel_user;
+    my $game    = $ug->rel_game;
+    my $channel = $game->rel_channel;
+    my $chan    = $channel->disp_name;
+    my $who     = $user->nick;
+    my $irc     = $self->_irc;
+
     # Are they the Card Tsar?
-    if (1 == $usergame->is_tsar) {
+    if (1 == $ug->is_tsar) {
         debug("%s was Tsar for %s", $who, $chan);
 
         if (2 == $game->status and $self->hand_is_complete($game)) {
@@ -1052,12 +1072,12 @@ sub do_pub_resign {
         }
 
         # And discard their hand of White Cards.
-        $self->discard_hand($usergame);
+        $self->discard_hand($ug);
 
         # Mark them as inactive.
-        $usergame->activity_time(time());
-        $usergame->active(0);
-        $usergame->update;
+        $ug->activity_time(time());
+        $ug->active(0);
+        $ug->update;
 
         # Give the other players any new cards they need.
         $self->topup_hands($game);
@@ -1066,20 +1086,22 @@ sub do_pub_resign {
         $self->pick_new_tsar($game);
     } else {
         # Trash any plays this user may have made.
-        $self->delete_plays($usergame);
+        $self->delete_plays($ug);
 
         # And discard their hand of White Cards.
-        $self->discard_hand($usergame);
+        $self->discard_hand($ug);
 
         # Mark them as inactive.
-        $usergame->active(0);
-        $usergame->update;
+        $ug->active(0);
+        $ug->update;
     }
 
     # Has this taken the number of players too low for the game to continue?
     my $player_count = scalar $game->rel_active_usergames;
 
     if ($player_count < 4) {
+        my $my_nick = $irc->nick();
+
         debug("Resignation of %s in %s has brought the game down to %u player%s",
             $who, $chan, $player_count, 1 == $player_count ? '' : 's');
         $game->status(1);
@@ -1097,7 +1119,8 @@ sub do_pub_resign {
     if (2 == $game->status and $self->hand_is_complete($game)) {
         debug("Resignation of %s in %s has completed the hand", $who, $chan);
         $irc->msg($chan,
-            "Now that $who quit, all the plays are in. No more changes!");
+            "Now that $who was dealt out, all the plays are in."
+           . " No more changes!");
         $self->prep_plays($game);
         $self->list_plays($game);
     }
@@ -2633,6 +2656,142 @@ sub count_cards {
             user_game => $ug->id,
         }
     )->count;
+}
+
+# Check all active Games for idle timeout. If the UserGames being waited upon
+# have idled longer than the turnclock then the least active one is forcibly
+# resigned.
+#
+# The Game's activity timer will be updated if that happens, so that the
+# remaining UserGames have chance to perform their action.
+#
+# Arguments:
+#
+# - The turnclock in seconds.
+#
+# Returns:
+#
+# Nothing.
+sub check_idlers {
+    my ($self, $turnclock) = @_;
+
+    my $schema = $self->_schema;
+
+    my $now    = time();
+    my $cutoff = $now - $turnclock;
+
+    # Any Game with activity < $cutoff has idled too long.
+    my @idlegames = $schema->resultset('Game')->search(
+        {
+            -and => [
+                status        => 2,
+                activity_time => { '<'  => $cutoff },
+                activity_time => { '!=' => 0 },
+            ],
+        },
+        {
+            prefetch => 'rel_channel',
+        }
+    );
+
+    foreach my $game (@idlegames) {
+        debug("Need to deal with idle game at %s, idle since %s with"
+           . " cutoff %s", $game->rel_channel->disp_name,
+           strftime("%FT%T", localtime($game->activity_time)),
+           strftime("%FT%T", localtime($cutoff)));
+        $self->punish_idler($game);
+    }
+}
+
+# Forcibly resign the longest idler in a Game. If the game is waiting on the
+# Card Tsar then they are the only one who can be punished.
+#
+# Arguments:
+#
+# - The Game object we're acting on.
+#
+# Returns:
+#
+# Nothing.
+sub punish_idler {
+    my ($self, $game) = @_;
+
+    my $schema = $self->_schema;
+
+    my $idler;
+
+    if ($self->hand_is_complete($game)) {
+        # Punish Card Tsar.
+        $idler = $game->rel_tsar_usergame;
+        debug("Punishing idle Card Tsar in %s", $game->rel_channel->disp_name);
+    } else {
+        # Punish most idle player.
+        $idler = $schema->resultset('UserGame')->find(
+            {
+                'active'           => 1,
+                'game'             => $game->id,
+                'me.activity_time' => { '>' => 0 },
+            },
+            {
+                order_by => 'me.activity_time ASC',
+                prefetch => [qw/rel_user rel_game/],
+                rows     => 1,
+            }
+        );
+    }
+
+    if (not defined $idler) {
+        debug("Couldn't find any idlers to punish in %s!",
+            $game->rel_channel->disp_name);
+        return;
+    }
+
+    $self->force_resign($idler);
+}
+
+
+# Forcibly resign a player.
+#
+# The Game's activity timer will be updated if that happens, so that the
+# remaining UserGames have chance to perform their action.
+#
+# Arguments:
+#
+# - The UserGame object we're acting on.
+#
+# Returns:
+#
+# Nothing.
+sub force_resign {
+    my ($self, $ug) = @_;
+
+    my $user    = $ug->rel_user;
+    my $game    = $ug->rel_game;
+    my $channel = $game->rel_channel;
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+
+    debug("Resigning %s from game at %s due to idleness", $user->nick,
+        $channel->disp_name);
+
+    $irc->msg($channel->disp_name,
+        sprintf("I'm forcibly resigning %s from the game due to idleness. Idle"
+           . " since %s.", $user->nick,
+           strftime("%FT%T", localtime($ug->activity_time))));
+
+    $irc->msg($user->nick,
+        sprintf("You've been forcibly resigned from the game in %s because you've"
+           . " been idle since %s!", $channel->disp_name,
+           strftime("%FT%T", localtime($ug->activity_time))));
+    $irc->msg($user->nick,
+        sprintf(qq{If you ever want to join in again, just type "%s: deal me in"}
+           . qq{ in %s!}, $my_nick, $channel->disp_name));
+
+    $self->resign($ug);
+
+    $game->activity_time(time());
+    $game->update;
 }
 
 1;
