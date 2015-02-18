@@ -1839,8 +1839,8 @@ sub do_priv_play {
     if (0 == $game_count) {
         $irc->msg($who, "You aren't currently playing a game with me!");
         $irc->msg($who,
-            sprintf("You probably want to be typing \"%s: start\" "
-                    . "or \"%s: deal me in\" in a channel."), $my_nick, $my_nick);
+            qq{You probably want to be typing "$my_nick: start" or}
+           . qq{ "$my_nick: deal me in" in a channel.}, $my_nick, $my_nick);
         return;
     } elsif ($game_count > 1) {
         # Can only get here when the channel is not specified.
@@ -1850,14 +1850,14 @@ sub do_priv_play {
             "Sorry, you're in multiple active games right now so I need you to"
            . " specify which channel you mean.");
         $irc->msg($who,
-            "You can do that by typing \"/msg $my_nick #channel play …\"");
+            qq{You can do that by typing "/msg $my_nick #channel play …"});
         return;
     }
 
     # Finally we've got the specific UserGame for this player and channel.
-    my $ug        = $active_usergames[0];
-    my $game      = $ug->rel_game;
-    my $channel   = $game->rel_channel;
+    my $ug      = $active_usergames[0];
+    my $game    = $ug->rel_game;
+    my $channel = $game->rel_channel;
 
     # Is there already a full set of plays for this game? If so then no more
     # changes are allowed.
