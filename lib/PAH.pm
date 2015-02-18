@@ -2373,8 +2373,12 @@ sub build_waitstring {
         } @usergames;
 
         if (1 == scalar @to_play) {
-            $waitstring = sprintf("We're just waiting on %s to make their"
-               . " play.", $to_play[0]->rel_user->nick);
+            my $pronoun = $to_play[0]->rel_user->pronoun;
+
+            $pronoun = "their" if (not defined $pronoun);
+
+            $waitstring = sprintf("We're just waiting on %s to make %s"
+               . " play.", $to_play[0]->rel_user->nick, $pronoun);
         } else {
             my @to_play_nicks = map { "" . $_->rel_user->nick . "" } @to_play;
             my $last          = pop @to_play_nicks;
