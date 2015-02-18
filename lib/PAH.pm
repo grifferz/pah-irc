@@ -277,6 +277,7 @@ sub joined {
                . " waiting", $chan, $num_players);
         } else {
             $game->status(2); # We're on.
+            $game->activity_time(time());
             debug("Game for %s has enough players so it's now active",
                 $chan);
         }
@@ -972,6 +973,7 @@ sub do_pub_dealin {
         debug("Game at %s now has enough players to proceed", $chan);
 
         $game->status(2);
+        $game->activity_time(time());
         $game->update;
 
         my $prefix;
@@ -1883,7 +1885,7 @@ sub do_priv_play {
     if ($game->status != 2) {
         $irc->msg($who,
             sprintf("Sorry, the game in %s isn't active at the moment, so no plays"
-               . " are being accepted.", $channel->disp_name);
+               . " are being accepted.", $channel->disp_name));
         return;
     }
 
