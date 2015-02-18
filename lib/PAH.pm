@@ -1096,6 +1096,9 @@ sub resign {
         if (2 == $game->status and $self->hand_is_complete($game)) {
             debug("Played cards in %s have been seen so must be discarded", $chan);
             $self->cleanup_plays($game);
+        } else {
+            # Just delete everyone's plays.
+            delete $self->_plays->{$game->id};
         }
 
         # And discard their hand of White Cards.
