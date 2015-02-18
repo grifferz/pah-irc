@@ -2055,7 +2055,10 @@ sub notify_plays {
     my $new_plays = 0;
 
     foreach my $uid (keys %{ $tally }) {
-        $new_plays++ if (0 == $tally->{$uid}->{notified});
+        if (0 == $tally->{$uid}->{notified}) {
+            $new_plays++;
+            $tally->{$uid}->{notified} = 1;
+        }
     }
 
     # If there's fewer than 4 players left to make their play then name them
