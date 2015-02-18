@@ -92,6 +92,11 @@ has _last => (
     is => 'ro',
 );
 
+# Play notification timers for each game.
+has _pn_timers => (
+    is => 'ro',
+);
+
 sub BUILD {
   my ($self) = @_;
 
@@ -176,8 +181,9 @@ sub BUILD {
   debug("Deck has %u Black Cards, %u White Cards",
       scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
 
-  $self->{_plays} = {};
-  $self->{_last}  = {};
+  $self->{_plays}      = {};
+  $self->{_last}       = {};
+  $self->{_pn_timers}  = {};
 }
 
 # The "main"
@@ -1977,8 +1983,9 @@ sub do_priv_play {
     }
 
     $self->_plays->{$game->id}->{$user->id} = {
-        cards => \@cards,
-        play  => $play,
+        cards    => \@cards,
+        play     => $play,
+        notified => 0,
     };
 
     $num_plays++;
@@ -1988,6 +1995,9 @@ sub do_priv_play {
 
     # Tell the channel that the user has made their play.
     if ($self->hand_is_complete($game)) {
+        # Kill any timer that might be about to notify of plays.
+        undef $self->_pn_timers->{$game->id};
+
         $irc->msg($channel->name, "All plays are in. No more changes!");
 
         $self->prep_plays($game);
@@ -1998,20 +2008,60 @@ sub do_priv_play {
     } elsif ($is_new) {
         # Only bother to tell the channel if this is a new play.
         # User can then keep changing their play without spamming the channel.
-        my $waiting_on = $num_players - $num_plays - 1;
 
-        # If there's less than 6 players left to make their play then name them
-        # explicitly.
-        if ($waiting_on < 6) {
-            $irc->msg($channel->name,
-                sprintf("%s has made their play! %s", $who,
-                    $self->build_waitstring($game)));
-        } else {
-            $irc->msg($channel->name,
-                sprintf("%s has made their play! We're currently waiting on"
-                   . " plays from %u more people.", $who, $waiting_on));
+        # Start a timer to notify about plays, as long as there isn't already a
+        # timer running.
+        if (not defined $self->_pn_timers->{$game->id}) {
+            $self->_pn_timers->{$game->id} = AnyEvent->timer(
+                after => 60,
+                cb    => sub { $self->notify_plays($game); },
+            );
         }
     }
+}
+
+# Notify a channel about new plays that have been made.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub notify_plays {
+    my ($self, $game) = @_;
+
+    my $num_players = scalar $game->rel_active_usergames;
+    my $num_plays   = $self->num_plays($game);
+    my $waiting_on  = $num_players - $num_plays - 1;
+    my $tally       = $self->_plays->{$game->id};
+    my $channel     = $game->rel_channel;
+    my $irc         = $self->_irc;
+
+    # Plays that we haven't yet notified for.
+    my $new_plays = 0;
+
+    foreach my $uid (keys %{ $tally }) {
+        $new_plays++ if (0 == $tally->{$uid}->{notified});
+    }
+
+    # If there's fewer than 4 players left to make their play then name them
+    # explicitly.
+    if ($waiting_on < 4) {
+        $irc->msg($channel->disp_name,
+            sprintf("%u %s just played! %s", $new_plays,
+                $new_plays == 1 ? 'person' : 'people',
+                $self->build_waitstring($game)));
+    } else {
+        $irc->msg($channel->disp_name,
+            sprintf("%u %s just played! We're currently waiting on plays from"
+               . " %u more people.", $new_plays,
+               $new_plays == 1 ? 'person' : 'people', $waiting_on));
+    }
+
+    # Kill the timer again.
+    undef $self->_pn_timers->{$game->id};
 }
 
 # Assemble a play from the current Black Card and some White Cards.
