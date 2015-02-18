@@ -1693,7 +1693,7 @@ sub notify_bcard {
         # Sometimes YAML leaves us with a trailing newline in the text.
         next if ($line =~ /^\s*$/);
 
-        $self->_irc->msg($who, "→ $line");
+        $self->_irc->msg($who, "→ $line");
     }
 
 }
