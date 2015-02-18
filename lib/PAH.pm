@@ -977,7 +977,7 @@ sub do_pub_dealin {
             $self->notify_bcard($chan, $game);
         }
     } elsif (1 == $game->status) {
-        debug("Game at %s still requires %u more players", 4 - $num_players);
+        debug("Game at %s still requires %u more players", $chan, 4 - $num_players);
         $irc->msg($chan, "We've now got $num_players of minimum 4. Anyone else?");
         $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to play too.});
     } elsif (2 == $game->status) {
@@ -2371,6 +2371,7 @@ sub discard_hand {
 }
 
 # The Game now has a full set of plays, so apply a random sequence number to them.
+# Update game activity timer so Tsar has the full turnclock to choose a winner.
 #
 # Arguments:
 #
@@ -2381,6 +2382,9 @@ sub discard_hand {
 # Nothing.
 sub prep_plays {
     my ($self, $game) = @_;
+
+    $game->activity_time(time());
+    $game->update;
 
     my $tally = $self->_plays->{$game->id};
 
