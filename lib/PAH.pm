@@ -1286,6 +1286,40 @@ sub db_populate_cards {
 
     my @card_indices = shuffle (0 .. ($num_cards - 1));
 
+    if ($color eq 'White') {
+        # Don't try to insert White Cards that are already in someone's hand.
+
+        # Get all the players and prefetch their whole hand.
+        my @players = $schema->resultset('UserGame')->search(
+            { game => $game->id },
+            { prefetch => 'rel_usergamehands' }
+        );
+
+        my @hand_card_indices;
+
+        # Make an array of card indices of the cards in every player's hands.
+        foreach my $ug (@players) {
+=pod
+            debug("Dropping %u cards from %s hand", scalar $ug->rel_usergamehands,
+                $ug->rel_user->nick);
+
+            foreach my $ugh ($ug->rel_usergamehands) {
+                debug("  Dropped: %s", $deck->{White}->[$ugh->wcardidx]);
+            }
+=cut
+            push(@hand_card_indices, map { $_->wcardidx } $ug->rel_usergamehands);
+        }
+
+        # Remove the hand cards from the deck's cards.
+        my %seen;
+        @seen{@card_indices} = ( );
+        delete @seen { @hand_card_indices };
+
+        debug("Dropped %u cards which are currently in %s players' hands",
+            scalar @hand_card_indices, $game->rel_channel->disp_name);
+        @card_indices = keys %seen;
+    }
+
     my @cards = map { { game => $game->id, cardidx => $_ } } @card_indices;
 
     my $table = ($color eq 'Black'? 'BCard' : 'WCard');
