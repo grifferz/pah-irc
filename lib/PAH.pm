@@ -1879,6 +1879,14 @@ sub do_priv_play {
     my $game    = $ug->rel_game;
     my $channel = $game->rel_channel;
 
+    # Is the game actually active?
+    if ($game->status != 2) {
+        $irc->msg($who,
+            sprintf("Sorry, the game in %s isn't active at the moment, so no plays"
+               . " are being accepted.", $channel->disp_name);
+        return;
+    }
+
     # Is there already a full set of plays for this game? If so then no more
     # changes are allowed.
     if ($self->hand_is_complete($game)) {
