@@ -640,7 +640,7 @@ sub do_pub_status {
     # How long ago did we last do this?
     my $now = time();
 
-    if (defined $self->_last->{$game->id}
+    if (defined $game and defined $self->_last->{$game->id}
             and defined $self->_last->{$game->id}->{status}) {
         my $last_status = $self->_last->{$game->id}->{status};
 
@@ -657,7 +657,9 @@ sub do_pub_status {
     }
 
     # Record timestamp of when we did this.
-    $self->_last->{$game->id}->{status} = $now;
+    if (defined $game) {
+        $self->_last->{$game->id}->{status} = $now;
+    }
 
     if (not defined $game) {
         # There's never been a game in this channel.
@@ -709,12 +711,26 @@ sub do_pub_status {
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
-        $irc->msg($chan,
-            sprintf("%s: A game exists but we only have %u player%s. Find me %u"
-               . " more and we're on.", $who, $num_players,
-               1 == $num_players ? '' : 's', 4 - $num_players));
-        $irc->msg($chan,
-            qq{Any takers? Just type "$my_nick: me" and you're in.});
+        # Game is still gathering players. Give different response depending on
+        # whether they are already in it or not.
+        my $ug = $self->db_get_nick_in_game($who, $game);
+
+        if (defined $ug) {
+            $irc->msg($chan,
+                sprintf("%s: A game exists but we only have %u player%s"
+                   . " (%s). Find me %u more and we're on.", $who, $num_players,
+                   1 == $num_players ? '' : 's',
+                   1 == $num_players ? 'you' : 'including you', 4 - $num_players));
+            $irc->msg($chan,
+                qq{Any takers? Just type "$my_nick: me" and you're in.});
+        } else {
+            $irc->msg($chan,
+                sprintf("%s: A game exists but we only have %u player%s. Find"
+                   . " me %u more and we're on.", $who, $num_players,
+                   1 == $num_players ? '' : 's', 4 - $num_players));
+            $irc->msg($chan,
+                qq{$who: How about you? Just type "$my_nick: me" and you're in.});
+        }
     } elsif (0 == $game->status) {
         $irc->msg($chan,
             "$who: The game is paused but I don't know why! Report this!");
@@ -984,7 +1000,8 @@ sub do_pub_dealin {
         }
     } elsif (1 == $game->status) {
         debug("Game at %s still requires %u more players", $chan, 4 - $num_players);
-        $irc->msg($chan, "We've now got $num_players of minimum 4. Anyone else?");
+        $irc->msg($chan,
+            "We've now got $num_players of minimum 4. Anyone else?");
         $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to play too.});
     } elsif (2 == $game->status) {
         # They joined an already-running game, so they need a hand of
@@ -2896,6 +2913,32 @@ sub force_resign {
 
     $game->activity_time(time());
     $game->update;
+}
+
+# Find the UserGame for a given nickname in a Game.
+#
+# Arguments:
+#
+# - The nickname as a scalar string.
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# The UserGame Schema object or undef if not found.
+sub db_get_nick_in_game {
+    my ($self, $who, $game) = @_;
+
+    my $user = $self->db_get_user($who);
+
+    my @ugs = $user->rel_usergames;
+
+    foreach my $ug (@ugs) {
+        return $ug if ($ug->game == $game->id);
+    }
+
+    # Didn't find it.
+    return undef;
 }
 
 1;
