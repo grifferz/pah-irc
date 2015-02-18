@@ -11,39 +11,40 @@
 <polygon fill="lightgoldenrodyellow" stroke="lightgoldenrodyellow" points="-4,5 -4,-642 463,-642 463,5 -4,5"/>
 <!-- node1 -->
 <g id="node1" class="node"><title>node1</title>
-<polygon fill="white" stroke="black" points="232.5,-536.5 232.5,-637.5 357.5,-637.5 357.5,-536.5 232.5,-536.5"/>
-<text text-anchor="middle" x="295" y="-620.9" font-family="Times Roman,serif" font-size="14.00">channels</text>
-<polyline fill="none" stroke="black" points="232.5,-612.5 357.5,-612.5 "/>
-<text text-anchor="start" x="240.5" y="-595.9" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
-<text text-anchor="start" x="240.5" y="-578.9" font-family="Times Roman,serif" font-size="14.00">&#45; name [U]</text>
-<text text-anchor="start" x="240.5" y="-561.9" font-family="Times Roman,serif" font-size="14.00">&#45; disp_name [U]</text>
-<text text-anchor="start" x="240.5" y="-544.9" font-family="Times Roman,serif" font-size="14.00">&#45; welcome</text>
+<polygon fill="white" stroke="black" points="233.5,-536.5 233.5,-637.5 358.5,-637.5 358.5,-536.5 233.5,-536.5"/>
+<text text-anchor="middle" x="296" y="-620.9" font-family="Times Roman,serif" font-size="14.00">channels</text>
+<polyline fill="none" stroke="black" points="233.5,-612.5 358.5,-612.5 "/>
+<text text-anchor="start" x="241.5" y="-595.9" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
+<text text-anchor="start" x="241.5" y="-578.9" font-family="Times Roman,serif" font-size="14.00">&#45; name [U]</text>
+<text text-anchor="start" x="241.5" y="-561.9" font-family="Times Roman,serif" font-size="14.00">&#45; disp_name [U]</text>
+<text text-anchor="start" x="241.5" y="-544.9" font-family="Times Roman,serif" font-size="14.00">&#45; welcome</text>
 </g>
 <!-- node3 -->
 <g id="node3" class="node"><title>node3</title>
-<polygon fill="white" stroke="black" points="231,-347 231,-499 359,-499 359,-347 231,-347"/>
-<text text-anchor="middle" x="295" y="-482.4" font-family="Times Roman,serif" font-size="14.00">games</text>
-<polyline fill="none" stroke="black" points="231,-474 359,-474 "/>
-<text text-anchor="start" x="239" y="-457.4" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK,FK]</text>
-<text text-anchor="start" x="239" y="-440.4" font-family="Times Roman,serif" font-size="14.00">&#45; channel [FK,U]</text>
-<text text-anchor="start" x="239" y="-423.4" font-family="Times Roman,serif" font-size="14.00">&#45; create_time</text>
-<text text-anchor="start" x="239" y="-406.4" font-family="Times Roman,serif" font-size="14.00">&#45; activity_time</text>
-<text text-anchor="start" x="239" y="-389.4" font-family="Times Roman,serif" font-size="14.00">&#45; status</text>
-<text text-anchor="start" x="239" y="-372.4" font-family="Times Roman,serif" font-size="14.00">&#45; deck</text>
-<text text-anchor="start" x="239" y="-355.4" font-family="Times Roman,serif" font-size="14.00">&#45; bcardidx [N]</text>
+<polygon fill="white" stroke="black" points="232,-347 232,-499 360,-499 360,-347 232,-347"/>
+<text text-anchor="middle" x="296" y="-482.4" font-family="Times Roman,serif" font-size="14.00">games</text>
+<polyline fill="none" stroke="black" points="232,-474 360,-474 "/>
+<text text-anchor="start" x="240" y="-457.4" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK,FK]</text>
+<text text-anchor="start" x="240" y="-440.4" font-family="Times Roman,serif" font-size="14.00">&#45; channel [FK,U]</text>
+<text text-anchor="start" x="240" y="-423.4" font-family="Times Roman,serif" font-size="14.00">&#45; create_time</text>
+<text text-anchor="start" x="240" y="-406.4" font-family="Times Roman,serif" font-size="14.00">&#45; activity_time</text>
+<text text-anchor="start" x="240" y="-389.4" font-family="Times Roman,serif" font-size="14.00">&#45; status</text>
+<text text-anchor="start" x="240" y="-372.4" font-family="Times Roman,serif" font-size="14.00">&#45; deck</text>
+<text text-anchor="start" x="240" y="-355.4" font-family="Times Roman,serif" font-size="14.00">&#45; bcardidx [N]</text>
 </g>
 <!-- node1&#45;&gt;node3 -->
 <g id="edge2" class="edge"><title>node1&#45;&gt;node3</title>
-<path fill="none" stroke="black" d="M295,-536.456C295,-527.748 295,-518.481 295,-509.143"/>
-<polygon fill="black" stroke="black" points="298.5,-509.004 295,-499.005 291.5,-509.005 298.5,-509.004"/>
+<path fill="none" stroke="black" d="M296,-536.456C296,-527.748 296,-518.481 296,-509.143"/>
+<polygon fill="black" stroke="black" points="299.5,-509.004 296,-499.005 292.5,-509.005 299.5,-509.004"/>
 </g>
 <!-- node2 -->
 <g id="node2" class="node"><title>node2</title>
-<polygon fill="white" stroke="black" points="132,-389.5 132,-456.5 212,-456.5 212,-389.5 132,-389.5"/>
-<text text-anchor="middle" x="172" y="-439.9" font-family="Times Roman,serif" font-size="14.00">users</text>
-<polyline fill="none" stroke="black" points="132,-431.5 212,-431.5 "/>
-<text text-anchor="start" x="140" y="-414.9" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
-<text text-anchor="start" x="140" y="-397.9" font-family="Times Roman,serif" font-size="14.00">&#45; nick [U]</text>
+<polygon fill="white" stroke="black" points="104,-381 104,-465 214,-465 214,-381 104,-381"/>
+<text text-anchor="middle" x="159" y="-448.4" font-family="Times Roman,serif" font-size="14.00">users</text>
+<polyline fill="none" stroke="black" points="104,-440 214,-440 "/>
+<text text-anchor="start" x="112" y="-423.4" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
+<text text-anchor="start" x="112" y="-406.4" font-family="Times Roman,serif" font-size="14.00">&#45; nick [U]</text>
+<text text-anchor="start" x="112" y="-389.4" font-family="Times Roman,serif" font-size="14.00">&#45; pronoun [N]</text>
 </g>
 <!-- node4 -->
 <g id="node4" class="node"><title>node4</title>
@@ -62,13 +63,13 @@
 </g>
 <!-- node2&#45;&gt;node4 -->
 <g id="edge10" class="edge"><title>node2&#45;&gt;node4</title>
-<path fill="none" stroke="black" d="M172,-389.281C172,-369.964 172,-344.576 172,-319.212"/>
-<polygon fill="black" stroke="black" points="175.5,-319.127 172,-309.127 168.5,-319.127 175.5,-319.127"/>
+<path fill="none" stroke="black" d="M161.646,-380.861C162.773,-362.922 164.141,-341.133 165.509,-319.353"/>
+<polygon fill="black" stroke="black" points="169.003,-319.56 166.137,-309.361 162.017,-319.122 169.003,-319.56"/>
 </g>
 <!-- node3&#45;&gt;node4 -->
 <g id="edge6" class="edge"><title>node3&#45;&gt;node4</title>
-<path fill="none" stroke="black" d="M243.187,-346.803C237.478,-337.447 231.658,-327.771 225.925,-318.111"/>
-<polygon fill="black" stroke="black" points="228.792,-316.082 220.691,-309.254 222.766,-319.644 228.792,-316.082"/>
+<path fill="none" stroke="black" d="M243.818,-346.803C238.065,-337.447 232.198,-327.771 226.419,-318.111"/>
+<polygon fill="black" stroke="black" points="229.267,-316.054 221.142,-309.254 223.253,-319.636 229.267,-316.054"/>
 </g>
 <!-- node5 -->
 <g id="node5" class="node"><title>node5</title>
@@ -81,8 +82,8 @@
 </g>
 <!-- node3&#45;&gt;node5 -->
 <g id="edge4" class="edge"><title>node3&#45;&gt;node5</title>
-<path fill="none" stroke="black" d="M295.368,-346.803C295.494,-320.694 295.632,-292.089 295.747,-268.305"/>
-<polygon fill="black" stroke="black" points="299.248,-268.103 295.797,-258.086 292.248,-268.069 299.248,-268.103"/>
+<path fill="none" stroke="black" d="M296,-346.803C296,-320.694 296,-292.089 296,-268.305"/>
+<polygon fill="black" stroke="black" points="299.5,-268.086 296,-258.086 292.5,-268.086 299.5,-268.086"/>
 </g>
 <!-- node8 -->
 <g id="node8" class="node"><title>node8</title>
@@ -95,13 +96,13 @@
 </g>
 <!-- node3&#45;&gt;node8 -->
 <g id="edge8" class="edge"><title>node3&#45;&gt;node8</title>
-<path fill="none" stroke="black" d="M337.332,-346.803C352.097,-320.226 368.299,-291.062 381.65,-267.03"/>
-<polygon fill="black" stroke="black" points="384.822,-268.528 386.619,-258.086 378.703,-265.128 384.822,-268.528"/>
+<path fill="none" stroke="black" d="M337.964,-346.803C352.6,-320.226 368.662,-291.062 381.897,-267.03"/>
+<polygon fill="black" stroke="black" points="385.064,-268.534 386.822,-258.086 378.932,-265.157 385.064,-268.534"/>
 </g>
 <!-- node4&#45;&gt;node3 -->
 <g id="edge12" class="edge"><title>node4&#45;&gt;node3</title>
-<path fill="none" stroke="black" d="M230.08,-302.522C237.154,-314.237 244.287,-326.249 251.11,-337.938"/>
-<polygon fill="black" stroke="black" points="248.21,-339.914 256.26,-346.803 254.263,-336.398 248.21,-339.914"/>
+<path fill="none" stroke="black" d="M230.069,-301.817C237.382,-313.823 244.767,-326.156 251.82,-338.144"/>
+<polygon fill="black" stroke="black" points="248.818,-339.943 256.892,-346.803 254.858,-336.405 248.818,-339.943"/>
 </g>
 <!-- node6 -->
 <g id="node6" class="node"><title>node6</title>
