@@ -936,9 +936,9 @@ sub do_pub_dealin {
         }
     );
 
-    # Update Channel activity timer.
-    $game->activity_time(time());
-    $game->update;
+    # Update player activity timer.
+    $usergame->activity_time(time());
+    $usergame->update;
 
     debug("%s was added to game at %s", $who, $chan);
     $irc->msg($chan, "$who: Nice! You're in!");
