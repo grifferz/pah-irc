@@ -19,7 +19,7 @@ Get Cards Against Humanity here!
 =cut
 
 package PAH;
-our $VERSION = "0.2";
+our $VERSION = "0.3";
 
 use utf8; # There's some funky literals in here
 use Config::Tiny;
@@ -48,7 +48,7 @@ has config_file => (
 has ircname => (
     isa     => 'Str',
     is      => 'ro',
-    default => sub { "pah-irc $VERSION" }
+    default => sub { "pah-irc v$VERSION" }
 );
 
 has _config => (
