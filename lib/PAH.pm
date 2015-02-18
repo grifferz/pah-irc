@@ -1858,13 +1858,10 @@ sub do_priv_play {
     my $ug        = $active_usergames[0];
     my $game      = $ug->rel_game;
     my $channel   = $game->rel_channel;
-    my $num_plays = $self->num_plays($game);
 
     # Is there already a full set of plays for this game? If so then no more
     # changes are allowed.
-    my $num_players = scalar $game->rel_active_usergames;
-
-    if ($num_plays == ($num_players - 1)) {
+    if ($self->hand_is_complete($game)) {
         $irc->msg($who,
             sprintf("All plays have already been made for this game, so no changes"
                . " now! We're now waiting on the Card Tsar (%s).",
@@ -1987,8 +1984,6 @@ sub do_priv_play {
         play     => $play,
         notified => 0,
     };
-
-    $num_plays++;
 
     $ug->activity_time(time());
     $ug->update;
