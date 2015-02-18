@@ -175,6 +175,21 @@ time that can be left off and the bot will work it out.
     Where a channel will not be required, just saying one or two numbers
     (without the "play" prefix) is an acceptable shortcut.
 
+*   `pronoun <pronoun>`
+
+    By default the bot uses the "their" pronoun:
+
+    ```
+    <PAH> dutchie: A game is active! We're just waiting on **dave2** to make their
+          play.
+    …
+    <PAH> 3 people just played! We're just waiting on **dg** to make their play.
+    ```
+
+    If you would prefer for the bot to use a different pronoun in relation to
+    you, use this command to set it. This will apply in all games that you are
+    in.
+
 ## Installation
 
 You can find the dependencies in the **cpanfile**, but you may find it simpler
