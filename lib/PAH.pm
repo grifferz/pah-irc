@@ -137,6 +137,10 @@ sub BUILD {
           sub        => \&do_pub_dealin,
           privileged => 1,
       },
+      'join'  => {
+          sub        => \&do_pub_dealin,
+          privileged => 1,
+      },
       'resign'    => {
           sub        => \&do_pub_resign,
           privileged => 1,
