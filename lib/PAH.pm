@@ -1207,7 +1207,7 @@ sub resign {
         $self->topup_hands($game);
 
         # Elect the next Tsar.
-        $self->pick_new_tsar($game);
+        $self->pick_new_tsar(undef, $game);
     } else {
         # Trash any plays this user may have made.
         $self->delete_plays($ug);
@@ -1786,9 +1786,7 @@ sub deal_to_tsar {
     }
 
     # Notify the channel about the new Black Card.
-    $irc->msg($chan, "Time for the next Black Card:");
     $self->notify_bcard($chan, $game);
-    $irc->msg($chan, "Now message me your answers please!");
 }
 
 # Tell a channel or nick about the Black Card that has just been dealt.
@@ -2669,9 +2667,9 @@ sub do_pub_winner {
 
             $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
-            $self->announce_win($winuser, $game);
+            my $winstring = $self->announce_win($winuser, $game);
             $self->topup_hands($game);
-            $self->pick_new_tsar($game);
+            $self->pick_new_tsar($winstring, $game);
             return;
         }
     }
@@ -2773,7 +2771,7 @@ sub cleanup_plays {
     delete $self->_plays->{$game->id};
 }
 
-# Announce the winner of a hand.
+# Build a string that announces the winner of a hand.
 #
 # Arguments:
 #
@@ -2783,7 +2781,7 @@ sub cleanup_plays {
 #
 # Returns:
 #
-# Nothing.
+# The string.
 sub announce_win {
     my ($self, $user, $game) = @_;
 
@@ -2799,9 +2797,8 @@ sub announce_win {
         }
     );
 
-    $irc->msg($chan,
-        sprintf("The winner is %s, who now has %u Awesome Point%s!",
-            $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's'));
+    return sprintf("The winner is %s, who now has %u Awesome Point%s!",
+        $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's');
 }
 
 # Make the next player the Card Tsar.
@@ -2812,13 +2809,15 @@ sub announce_win {
 #
 # Arguments:
 #
+# - A stering describing the previous win.
+#
 # - The Game Schema object the win relates to.
 #
 # Returns:
 #
 # Nothing.
 sub pick_new_tsar {
-    my ($self, $game) = @_;
+    my ($self, $winstring, $game) = @_;
 
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
@@ -2870,8 +2869,14 @@ sub pick_new_tsar {
      $new_tsar->tsarcount($new_tsar->tsarcount + 1);
      $new_tsar->update;
 
-     $irc->msg($chan,
-         sprintf("The new Card Tsar is %s.", $new_tsar->rel_user->nick));
+     if (defined $winstring) {
+         $irc->msg($chan,
+             sprintf("%s The new Card Tsar is %s.", $winstring,
+                 $new_tsar->rel_user->nick));
+     } else {
+         $irc->msg($chan,
+             sprintf("The new Card Tsar is %s.", $new_tsar->rel_user->nick));
+     }
 
      $self->deal_to_tsar($game);
 }
