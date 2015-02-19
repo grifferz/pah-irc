@@ -787,6 +787,7 @@ sub do_pub_status {
         my $inner = $schema->resultset('UserGame')->search(
             {
                 game => $game->id,
+                wins => { '>' => 0 },
             },
             {
                 columns  => [ qw/wins/ ],
@@ -807,11 +808,14 @@ sub do_pub_status {
             },
         );
 
-        $winstring = join(' ',
-            map { $_->rel_user->nick . '(' . $_->wins . ')' }
-            @top3);
+        # Might not be any non-zero scores.
+        if (scalar @top3) {
+            $winstring = join(' ',
+                map { $_->rel_user->nick . '(' . $_->wins . ')' } @top3);
 
-        $irc->msg($chan, "Top 3 all time: $winstring");
+            $irc->msg($chan, "Top 3 all time: $winstring");
+        }
+
         $irc->msg($chan, "Current Black Card:");
         $self->notify_bcard($chan, $game);
     } elsif (1 == $game->status) {
