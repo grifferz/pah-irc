@@ -784,13 +784,23 @@ sub do_pub_status {
 
         $irc->msg($chan, "Active Players: $winstring");
 
-        my @top3 = $schema->resultset('UserGame')->search(
+        my $inner = $schema->resultset('UserGame')->search(
             {},
             {
-                join     => 'rel_user',
+                columns  => [ qw/wins/ ],
+                distinct => 1,
+                rows     => 3,
+                order_by => 'wins DESC',
+            }
+        );
+
+        my @top3 = $schema->resultset('UserGame')->search(
+            {
+                wins => { -in => $inner->get_column("wins")->as_query }
+            },
+            {
                 prefetch => 'rel_user',
                 order_by => 'wins DESC',
-                rows     => 3,
             },
         );
 
