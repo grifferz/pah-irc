@@ -2128,9 +2128,15 @@ sub do_priv_play {
 
         # Start a timer to notify about plays, as long as there isn't already a
         # timer running.
+        #
+        # The timer is 1/60th of the turnclock, minumum 60 seconds.
+        my $after;
+        $after = $self->_config->{turnclock} / 60;
+        $after = 60 if ($after < 60);
+
         if (not defined $self->_pn_timers->{$game->id}) {
             $self->_pn_timers->{$game->id} = AnyEvent->timer(
-                after => 60,
+                after => $after,
                 cb    => sub { $self->notify_plays($game); },
             );
         }
