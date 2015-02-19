@@ -785,7 +785,9 @@ sub do_pub_status {
         $irc->msg($chan, "Active Players: $winstring");
 
         my $inner = $schema->resultset('UserGame')->search(
-            {},
+            {
+                game => $game->id,
+            },
             {
                 columns  => [ qw/wins/ ],
                 distinct => 1,
@@ -796,6 +798,7 @@ sub do_pub_status {
 
         my @top3 = $schema->resultset('UserGame')->search(
             {
+                game => $game->id,
                 wins => { -in => $inner->get_column("wins")->as_query }
             },
             {
