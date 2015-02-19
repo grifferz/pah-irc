@@ -151,20 +151,24 @@ sub BUILD {
   };
 
   $self->{_priv_dispatch} = {
-      'hand' => {
+      'hand'    => {
           sub        => \&do_priv_hand,
           privileged => 1,
       },
-      'list' => {
+      'list'    => {
           sub        => \&do_priv_hand,
           privileged => 1,
       },
-      'black' => {
+      'black'   => {
           sub        => \&do_priv_black,
           privileged => 0,
       },
-      'play' => {
+      'play'    => {
           sub        => \&do_priv_play,
+          privileged => 1,
+      },
+      'pronoun' => {
+          sub        => \&do_priv_pronoun,
           privileged => 1,
       },
   };
@@ -2959,6 +2963,45 @@ sub db_get_nick_in_game {
 
     # Didn't find it.
     return undef;
+}
+
+# User wants to set a personal pronoun to be used instead of the default "their".
+#
+# We will allow max five characters, a-zA-Z.
+sub do_priv_pronoun {
+    my ($self, $args) = @_;
+
+    my $params  = $args->{params};
+    my $who     = $args->{nick};
+    my $user    = $self->db_get_user($who);
+    my $irc     = $self->_irc;
+
+
+    # If they didn't specify a pronoun then just tell them what their current
+    # pronoun is.
+    if (not defined $params or $params =~ /^\s*$/) {
+        my $pronoun = $user->pronoun;
+
+        $pronoun = 'their' if (not defined $pronoun);
+
+        $irc->msg($who, sprintf("Your current pronoun is %s.", $pronoun));
+        return;
+    }
+
+    # Remove trailing/leading white space.
+    chomp($params);
+    $params =~ s/^\s*//;
+
+    if ($params =~ /^[a-zA-Z]{1,5}$/) {
+        $user->pronoun($params);
+        $user->update;
+        $irc->msg($who, "Your pronoun has been updated to $params.");
+        return;
+    }
+
+    # It was invalid.
+    $irc->msg($who, "Sorry, that doesn't look like a reasonable pronoun. I'll"
+       . " accept up to five characters, a-z plus A-Z.");
 }
 
 1;
