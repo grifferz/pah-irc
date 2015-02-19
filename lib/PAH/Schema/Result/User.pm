@@ -41,6 +41,18 @@ __PACKAGE__->add_columns(
         size        => 50, # Max length of Freenode nick
     },
 
+    # Possessive pronoun that the bot will use when referring to this user's
+    # plays, wins, etc.
+    # http://en.wikipedia.org/wiki/Gender-specific_and_gender-neutral_pronouns#Summary
+    #
+    # If set, this is the pronoun. If NULL, the default pronoun "their" will be used.
+    pronoun => {
+        data_type     => 'varchar',
+        is_nullable   => 1,
+        size          => 5,
+        default_value => NULL,
+    }
+
 );
 
 __PACKAGE__->set_primary_key('id');

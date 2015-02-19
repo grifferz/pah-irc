@@ -144,6 +144,7 @@ time that can be left off and the bot will work it out.
     Repeat the text of the current Black Card.
 
 *   `[#channel] hand`
+    `[#channel] list`
 
     Provides a numbered list of the White Cards in the player's hand.
 
@@ -173,6 +174,18 @@ time that can be left off and the bot will work it out.
 
     Where a channel will not be required, just saying one or two numbers
     (without the "play" prefix) is an acceptable shortcut.
+
+*   `pronoun <pronoun>`
+
+    By default the bot uses the "their" pronoun:
+
+    * `<PAH>` dutchie: A game is active! We're just waiting on **dave2** to make their play.
+    * […]
+    * `<PAH>` 3 people just played! We're just waiting on **dg** to make their play.
+
+    If you would prefer for the bot to use a different pronoun in relation to
+    you, use this command to set it. This will apply in all games that you are
+    in.
 
 ## Installation
 
@@ -269,7 +282,7 @@ but a later release should support additional packs.
 Undoubtedly many.
 
 I don't really know what I am doing, programming-wise, but I know at least that
-having a single module file with 2,400 lines in it is not sane.
+having a single module file with 3,100 lines in it is not sane.
 
 So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
 
