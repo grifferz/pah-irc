@@ -97,6 +97,11 @@ has _pn_timers => (
     is => 'ro',
 );
 
+# Tally of which users have been introduced to the game.
+has _intro => (
+    is => 'ro',
+);
+
 sub BUILD {
   my ($self) = @_;
 
@@ -185,9 +190,10 @@ sub BUILD {
   debug("Deck has %u Black Cards, %u White Cards",
       scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
 
-  $self->{_plays}      = {};
-  $self->{_last}       = {};
-  $self->{_pn_timers}  = {};
+  $self->{_plays}     = {};
+  $self->{_last}      = {};
+  $self->{_pn_timers} = {};
+  $self->{_intro}     = {};
 }
 
 # The "main"
@@ -301,6 +307,88 @@ sub joined {
         debug("…but it's currently %s, so I won't do anything about that",
             $status_txt);
     }
+}
+
+# A user joined a channle that we're in. Decide about whether we're going to
+# introduce them to the game, and then do so.
+#
+# Arguments:
+#
+# - The channel name as a scalar.
+#
+# - The nick name as a scalar.
+#
+# Returns:
+#
+# Nothing.
+sub user_joined {
+    my($self, $chan, $nick) = @_;
+
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+
+    $chan = lc($chan);
+    $nick = lc($nick);
+
+    debug("* %s joined %s", $nick, $chan);
+
+    # Did we already introduce this user?
+    if (defined $self->_intro->{$nick}) {
+        # Yes, so do nothing.
+        return;
+    }
+
+    # Is there a game for this channel already in existence?
+    my $channel = $self->db_get_channel($chan);
+
+    if (not defined $channel) {
+        debug("Somehow got a join event for a channel %s we have no knowledge of",
+            $chan);
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    if (not defined $game or 0 == $game->status) {
+        # Game has never existed, so keep quiet.
+        debug("Not introducing %s to game at %s because it isn't running", $nick, $chan);
+        return;
+    }
+
+    # A game exists (but could be paused), someone has joined, they haven't
+    # been introduced before…
+
+    # …but are they already playing?
+    my $ug = $self->db_get_nick_in_game($nick, $game);
+
+    if (defined $ug) {
+        # Must know about the game even if they aren't currently active, so
+        # don't bother.
+        return;
+    }
+
+    # Introduce!
+    debug("Introducing %s to the game in %s", $nick, $chan);
+    $self->_intro->{$nick} = time();
+
+    if (2 == $game->status) {
+        $irc->msg($nick,
+            sprintf(qq{Hi! I'm currently running a game of Perpetually Against}
+                . qq{ Humanity in %s. Are you interested in playing?}, $chan));
+    } else {
+        $irc->msg($nick,
+            sprintf(qq{Hi! I'm currently gathering players for a game of}
+                . qq{ Perpetually Against Humanity in %s. Are you interested in}
+                . qq{ joining?}, $chan));
+    }
+
+    $irc->msg($nick,
+        qq{If so then just type "$my_nick: deal me in" in the channel.});
+    $irc->msg($nick,
+        qq{See https://github.com/grifferz/pah-irc for more info. I won't bother}
+       . qq{ you again if you're not interested!});
+
 }
 
 # Mark a channel as no longer welcoming, for whatever reason. Usually because

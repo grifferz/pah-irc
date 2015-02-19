@@ -282,7 +282,7 @@ but a later release should support additional packs.
 Undoubtedly many.
 
 I don't really know what I am doing, programming-wise, but I know at least that
-having a single module file with 2,400 lines in it is not sane.
+having a single module file with 3,100 lines in it is not sane.
 
 So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
 

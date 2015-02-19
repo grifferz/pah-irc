@@ -165,7 +165,13 @@ sub on_disconnect {
 sub on_join {
     my ($self, $nick, $channel, $myself) = @_;
 
-    $self->{parent}->joined($channel) if $myself;
+    if ($myself) {
+        $self->{parent}->joined($channel);
+        return;
+    }
+
+    # It's not us. Decide about introducing them to the game.
+    $self->{parent}->user_joined($channel, $nick);
 }
 
 sub on_kick {
