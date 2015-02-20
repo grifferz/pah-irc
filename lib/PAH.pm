@@ -2964,11 +2964,12 @@ sub pick_new_tsar {
 
      if (defined $winstring) {
          $irc->msg($chan,
-             sprintf("%s The new Card Tsar is %s.", $winstring,
-                 $new_tsar->rel_user->nick));
+             sprintf("%s The new Card Tsar is %s. Time for the next Black Card:",
+                 $winstring, $new_tsar->rel_user->nick));
      } else {
          $irc->msg($chan,
-             sprintf("The new Card Tsar is %s.", $new_tsar->rel_user->nick));
+             sprintf("The new Card Tsar is %s. Time for the next Black Card:",
+                 $new_tsar->rel_user->nick));
      }
 
      $self->deal_to_tsar($game);
