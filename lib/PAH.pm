@@ -2610,6 +2610,11 @@ sub load_tallyfile {
             debug("  Loaded %u plays from game in %s",
                 scalar keys %{ $tally->{$game_id} },
                 $game->rel_channel->disp_name);
+
+            foreach my $user_id (keys %{ $tally->{$game_id} }) {
+                debug("  %2u. %s", $tally->{$game_id}->{$user_id}->{seq},
+                    $tally->{$game_id}->{$user_id}->{play});
+            }
         }
 
         return $tally;
