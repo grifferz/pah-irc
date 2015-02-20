@@ -2451,6 +2451,8 @@ sub list_plays {
     # Hash ref of User ids.
     my $plays = $self->_plays->{$game->id};
 
+    my $num_plays = scalar keys %{ $plays };
+
     my $header_length;
 
     # Go through the plays in the specified sequence order just in case Perl's
@@ -2475,7 +2477,12 @@ sub list_plays {
             # Sometimes YAML leaves us with a trailing newline in the text.
             next if ($line =~ /^\s*$/);
 
-            $irc->msg($chan, "$seq → $line");
+            # Pad play number to two spaces if there's 10 or more of them.
+            if ($num_plays > 9) {
+                $irc->msg($chan, sprintf("%2u → %s", $seq, $line));
+            } else {
+                $irc->msg($chan, "$seq → $line");
+            }
         }
     }
 
