@@ -2684,6 +2684,8 @@ sub prep_plays {
         $i++;
     }
 
+    $self->write_tallyfile;
+
     return;
 }
 
