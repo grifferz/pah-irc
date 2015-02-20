@@ -236,10 +236,9 @@ If you haven't got the hint yet, the idea here is not to stress about games
 being very slow-moving. They can just kind of happen in their own time. There
 isn't any end.
 
-What happens when someone ignores their responsibility though?
-
-At the moment none of this enforced-resign stuff is implemented, so someone not
-taking their turn will stall the game forever. Ideally though:
+What happens when someone ignores their responsibility though? At the moment
+we're trying forced resignations after a timeout (the `turnclock` in the config
+file).
 
 There's only two responsibilities in Perpetually Against Humanity:
 
@@ -247,7 +246,7 @@ There's only two responsibilities in Perpetually Against Humanity:
 * If you're not the Card Tsar then you need to make your play.
 
 If that doesn't happen in a reasonable amount of time—and for now we'll go with
-48 hours being a reasonable amount of time—then the player responsible has
+24 hours being a reasonable amount of time—then the player responsible has
 timed out of the game. For now we'll treat that like resigning.
 
 For a Card Tsar that means:
@@ -286,4 +285,4 @@ having a single module file with 3,100 lines in it is not sane.
 
 So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
 
-Issues can be reported on github.
+Issues can be [reported on github](https://github.com/grifferz/pah-irc/issues).
