@@ -31,6 +31,7 @@ with 'MooseX::Getopt';
 use Try::Tiny;
 use List::Util qw/shuffle/;
 use POSIX qw/strftime/;
+use Storable qw/nstore retrieve/;
 
 use Data::Dumper;
 
@@ -42,7 +43,13 @@ use PAH::Deck;
 has config_file => (
     isa     => 'Str',
     is      => 'ro',
-    default => sub { "etc/pah-irc.conf" }
+    default => sub { 'etc/pah-irc.conf' },
+);
+
+has _tallyfile => (
+    isa     => 'Str',
+    is      => 'ro',
+    default => sub { 'var/playtally' },
 );
 
 has ircname => (
@@ -114,6 +121,10 @@ sub BUILD {
           or $self->{_config}->{turnclock} !~ /^\d+$/
           or $self->{_config}->{turnclock} <= 0) {
       die "'turnclock' config item must be a positive integer";
+  }
+
+  if (defined $self->{_config}->{tallyfile}) {
+      $self->{_tallyfile} = $self->{_config}->{tallyfile};
   }
 
   $self->{_pub_dispatch} = {
@@ -190,10 +201,12 @@ sub BUILD {
   debug("Deck has %u Black Cards, %u White Cards",
       scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
 
-  $self->{_plays}     = {};
   $self->{_last}      = {};
   $self->{_pn_timers} = {};
   $self->{_intro}     = {};
+
+
+
 }
 
 # The "main"
@@ -201,6 +214,7 @@ sub start {
     my ($self) = @_;
 
     $self->db_connect;
+    $self->{_plays} = $self->load_tallyfile;
 
     try {
         $self->connect;
@@ -1210,6 +1224,7 @@ sub resign {
         } else {
             # Just delete everyone's plays.
             delete $self->_plays->{$game->id};
+            $self->write_tallyfile;
         }
 
         # And discard their hand of White Cards.
@@ -2122,6 +2137,8 @@ sub do_priv_play {
         notified => 0,
     };
 
+    $self->write_tallyfile;
+
     $ug->activity_time(time());
     $ug->update;
 
@@ -2184,6 +2201,7 @@ sub notify_plays {
         if (0 == $tally->{$uid}->{notified}) {
             $new_plays++;
             $tally->{$uid}->{notified} = 1;
+            $self->write_tallyfile;
         }
     }
 
@@ -2529,6 +2547,64 @@ sub delete_plays {
     my $tally = $self->_plays->{$ug->game};
 
     delete $tally->{$ug->user} if (exists $tally->{$ug->user});
+    $self->write_tallyfile;
+}
+
+# Write the tally of plays in the current round to a tally file on disk in case
+# the bot restarts.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub write_tallyfile {
+    my ($self) = @_;
+
+    debug("Writing tallyfile to %s", $self->_tallyfile);
+    nstore $self->_plays, $self->_tallyfile;
+}
+
+# Load the tallyfile into the play tally if it exists.
+#
+# Arguments:
+#
+# None
+#
+# Returns:
+#
+# The tall structure if successful, an empty hashref otherwise.
+sub load_tallyfile {
+    my ($self) = @_;
+
+    if (-r $self->_tallyfile) {
+        debug("Loading play tally from %s", $self->_tallyfile);
+
+        my $schema = $self->_schema;
+        my $tally  = retrieve($self->_tallyfile);
+
+        foreach my $game_id (keys %{ $tally }) {
+            my $game = $schema->resultset('Game')->find(
+                {
+                    id => $game_id,
+                },
+                {
+                    prefetch => 'rel_channel',
+                }
+            );
+
+            debug("  Loaded %u plays from game in %s",
+                scalar keys %{ $tally->{$game_id} },
+                $game->rel_channel->disp_name);
+        }
+
+        return $tally;
+    } else {
+        debug("No tally file to load");
+        return {};
+    }
 }
 
 # Discard the user's current hand of White Cards.

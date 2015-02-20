@@ -10,3 +10,4 @@ requires 'JSON::MaybeXS';
 requires 'DBIx::Class';
 requires 'DBD::SQLite';
 requires 'SQL::Translator', '>= 0.11018';
+requires 'Storable';

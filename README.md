@@ -227,9 +227,6 @@ becomes a problem.
 Pretty much all game state is kept in the database so it should be safe to kill
 and restart the bot at any time.
 
-The plays that have currently been made are only stored in memory, so that just
-means that each player will need to make their play again once the bot is back.
-
 ## Speed of play, or lack thereof
 
 If you haven't got the hint yet, the idea here is not to stress about games
