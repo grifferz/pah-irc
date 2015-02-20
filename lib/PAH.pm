@@ -2191,12 +2191,12 @@ sub notify_plays {
     # explicitly.
     if ($waiting_on < 4) {
         $irc->msg($channel->disp_name,
-            sprintf("%u %s just played! %s", $new_plays,
+            sprintf("%u %s recently played! %s", $new_plays,
                 $new_plays == 1 ? 'person' : 'people',
                 $self->build_waitstring($game)));
     } else {
         $irc->msg($channel->disp_name,
-            sprintf("%u %s just played! We're currently waiting on plays from"
+            sprintf("%u %s recently played! We're currently waiting on plays from"
                . " %u more people.", $new_plays,
                $new_plays == 1 ? 'person' : 'people', $waiting_on));
     }
