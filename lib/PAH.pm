@@ -1026,7 +1026,7 @@ sub do_pub_dealin {
 
     # Are they already in it?
     if (defined $game->rel_active_usergames
-            and grep $_->id == $user->id, @active_usergames) {
+            and grep $_->user == $user->id, @active_usergames) {
         debug("%s is already playing in game at %s", $who, $chan);
         $irc->msg($chan, "$who: Heyyy, you're already playing!");
         return;
