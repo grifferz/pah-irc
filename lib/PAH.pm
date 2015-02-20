@@ -1688,13 +1688,23 @@ sub notify_new_wcards {
     my $num_added = scalar @{ $new };
 
     $irc->msg($who,
-        sprintf("%u new White Card%s been dealt to you:", $num_added,
-            1 == $num_added ? ' has' : 's have'));
+        sprintf("%u new White Card%s been dealt to you in %s:", $num_added,
+            1 == $num_added ? ' has' : 's have',
+            $ug->rel_game->rel_channel->disp_name));
 
     $self->notify_wcards($ug, $new);
 
     if ($num_added < 10) {
-        $irc->msg($who, qq{To see your full hand, type "hand".});
+        my @active_usergames = $ug->rel_user->rel_active_usergames;
+
+        if (scalar @active_usergames > 1) {
+            # They're in more than one game, so they need to specify the channel.
+            $irc->msg($who,
+                sprintf(qq{To see your full hand, type "%s hand".},
+                    $ug->rel_game->rel_channel->disp_name));
+        } else {
+            $irc->msg($who, qq{To see your full hand, type "hand".});
+        }
     }
 }
 
@@ -1813,7 +1823,8 @@ sub deal_to_tsar {
         # Not if they're the Tsar though.
         next if (1 == $ug->is_tsar);
 
-        $irc->msg($ug->rel_user->nick, "Time for the next Black Card:");
+        $irc->msg($ug->rel_user->nick,
+            sprintf("Time for the next Black Card in %s:", $chan));
         $self->notify_bcard($ug->rel_user->nick, $game);
     }
 
@@ -2112,7 +2123,8 @@ sub do_priv_play {
         }
     }
 
-    $irc->msg($who, "Thanks. So this is your play:");
+    $irc->msg($who,
+        sprintf("Thanks. So this is your play for %s:", $channel->disp_name));
 
     $play = $self->build_play($ug, $bcardidx, \@cards);
 
