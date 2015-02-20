@@ -2,7 +2,7 @@
 
 ## What?
 
-It's another IRC bot for playing Cards Against Humanity.
+It's another IRC bot for playing [Cards Against Humanity](http://www.cardsagainsthumanity.com/).
 
 ## Why?
 
