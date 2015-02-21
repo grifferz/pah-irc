@@ -3068,7 +3068,8 @@ sub check_idlers {
 }
 
 # Forcibly resign the longest idler in a Game. If the game is waiting on the
-# Card Tsar then they are the only one who can be punished.
+# Card Tsar then they are the only one who can be punished. Otherwise the Tsar
+# can never be resigned.
 #
 # Arguments:
 #
@@ -3089,11 +3090,12 @@ sub punish_idler {
         $idler = $game->rel_tsar_usergame;
         debug("Punishing idle Card Tsar in %s", $game->rel_channel->disp_name);
     } else {
-        # Punish most idle player.
+        # Punish most idle player, but not Card Tsar.
         $idler = $schema->resultset('UserGame')->find(
             {
                 'active'           => 1,
                 'game'             => $game->id,
+                'is_tsar'          => 0,
                 'me.activity_time' => { '>' => 0 },
             },
             {
