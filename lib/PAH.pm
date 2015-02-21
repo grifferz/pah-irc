@@ -187,6 +187,10 @@ sub BUILD {
           sub        => \&do_priv_pronoun,
           privileged => 1,
       },
+      'status' => {
+          sub        => \&do_priv_status,
+          privileged => 0,
+      },
   };
 
   $self->{_whois_queue} = {};
@@ -722,6 +726,230 @@ sub do_unknown {
     }
 }
 
+sub do_priv_status {
+    my ($self, $args) = @_;
+
+    my $who     = $args->{nick};
+    my $lc_who  = lc($who);
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    my $channel;
+
+    if (not defined $chan) {
+        # Need to work out which channel they mean.
+
+        # Hash reference whose keys are the channels the bot is in, and the
+        # values are a hash reference of nick names in the channel.
+        my $chan_list = $irc->channel_list();
+
+        my @nick_is_in;
+
+        foreach my $c (keys %{ $chan_list }) {
+            # Can't just do a key lookup because the nick hash contains mixed
+            # case nicks.
+            foreach my $n (keys %{ $chan_list->{$c} }) {
+                if ($lc_who eq lc($n)) {
+                    push(@nick_is_in, $c);
+                    last;
+                }
+            }
+        }
+
+        my @gamechans_nick_is_in;
+
+        foreach my $c (@nick_is_in) {
+            my $dbchan = $self->db_get_channel($c);
+
+            if (defined $dbchan and defined $dbchan->rel_game) {
+                push(@gamechans_nick_is_in, $dbchan);
+            }
+        }
+
+        # So @gamechans_nick_is_in is now an array of Channel objects for
+        # channels that this nick is in, where games are being played.
+        #
+        # Of these channels, which ones have an active game in?
+        my @active_gamechans_nick_is_in = grep {
+            2 == $_->rel_game->status } @gamechans_nick_is_in;
+
+        if (1 == scalar @active_gamechans_nick_is_in) {
+            # They're in just one channel that has an active game, so assume
+            # they meant that one.
+            $channel = $active_gamechans_nick_is_in[0];
+            $chan    = $channel->disp_name;
+
+        } elsif (scalar @active_gamechans_nick_is_in > 1) {
+            # They're in multiple channels that have active games so we don't
+            # know what they meant and they will need to specify a channel
+            # explicitly.
+            $channel = undef;
+            $chan    = undef;
+        }
+
+        # If we got this far then out of all the channels we share with the
+        # user, none of them have an active game. But you can still call
+        # 'status' on an inactive game, so so see if they are in just one
+        # channel with a game existing.
+        if (1 == scalar @gamechans_nick_is_in) {
+            $channel = $gamechans_nick_is_in[0];
+            $chan    = $channel->disp_name;
+        } elsif (scalar @gamechans_nick_is_in > 1) {
+            # They're in multiple channels with games (that are all inactive).
+            # We don't know which one they meant and they will have to be
+            # explicit.
+            $channel = undef;
+            $chan    = undef;
+        }
+    } else {
+        # They specified a channel, so try to get that one.
+        $channel = $self->db_get_channel($chan);
+    }
+
+    # By now we either:
+    #
+    # 1. Guessed the channel and have a channel object in $channel, channel name
+    #    in $chan.
+    # 2. Couldn't guess the channel and have an undef $channel object, undef
+    #    $chan.
+    # 3. Have a specified a channel in $chan, and we found the object in $channel.
+    # 4. Have a specified a channel in $chan but we couldn't find it, so $channel
+    #    is undef.
+    if (not defined $channel) {
+        # Cases 2 or 4.
+        if (defined $chan) {
+            # They specified the channel but it didn't exist (#4). Probably bot
+            # has never been in it.
+            $irc->msg($who, "Sorry, I have no knowledge of $chan.");
+            return;
+        }
+
+        # It's case #2.
+        $irc->msg($who,
+            qq{Sorry, I can't work out which channel's game you're interested in.}
+           . qq{ Try again with "#channel status".});
+        return;
+    }
+
+    # Must be cases 1 or 3.
+    my $game = $channel->rel_game;
+
+    if (not defined $game) {
+        # There's never been a game in this channel.
+        $irc->msg($who,
+            "There's no game of Perpetually Against Humanity in $chan.");
+        $irc->msg($who,
+            "Want to start one? Anyone with a registered nickname can do so.");
+        $irc->msg($who,
+            qq{Just type "$my_nick: start" in $chan and find at least 3}
+           . qq{ friends.});
+    } elsif (2 == $game->status) {
+        my @active_usergames = $game->rel_active_usergames;
+
+        my $tsar = $game->rel_tsar_usergame;
+
+        my $waitstring = $self->build_waitstring($game);
+
+        $irc->msg($who, "A game is active in $chan! $waitstring");
+        $irc->msg($who,
+            sprintf("The current Card Tsar in %s is %s", $chan,
+                $tsar->rel_user->nick));
+
+        @active_usergames = sort { $b->wins <=> $a->wins } @active_usergames;
+
+        my $winstring = join(' ',
+            map { $_->rel_user->nick . '(' . $_->wins . ')' } @active_usergames);
+
+        $irc->msg($who, "Active Players in $chan: $winstring");
+
+        my @top3 = $self->top3_scorers($game);
+
+        # Might not be any non-zero scores.
+        if (scalar @top3) {
+            $winstring = join(' ',
+                map { $_->rel_user->nick . '(' . $_->wins . ')' } @top3);
+            $irc->msg($who, "Top 3 all time in $chan: $winstring");
+        }
+
+        $irc->msg($who, "Current Black Card in $chan:");
+        $self->notify_bcard($who, $game);
+    } elsif (1 == $game->status) {
+        my $num_players = scalar $game->rel_active_usergames;
+
+        # Game is still gathering players. Give different response depending on
+        # whether they are already in it or not.
+        my $ug = $self->db_get_nick_in_game($who, $game);
+
+        if (defined $ug) {
+            $irc->msg($who,
+                sprintf("A game exists in %s but we only have %u player%s "
+                    . "(%s). Find me %u more and we're on.", $chan,
+                    $num_players, 1 == $num_players ? '' : 's',
+                    1 == $num_players ? 'you' : 'including you',
+                    4 - $num_players));
+        } else {
+            $irc->msg($who,
+                sprintf("A game exists in %s but we only have %u player%s."
+                   . " Find me %umore and we're on.", $chan, $num_players,
+                   1 == $num_players ? '' : 's', 4 - $num_players));
+        }
+    } elsif (0 == $game->status) {
+        $irc->msg($who,
+            "The game in $chan is paused but I don't know why!"
+            . " Report this!");
+    } else {
+        debug("Game for %s has an unexpected status (%u)", $chan, $game->status);
+        $irc->msg($who,
+            "I'm confused about the state of the game in $chan, sorry!"
+            . " Report this!");
+    }
+}
+
+# Work out the top 3 scorers for a given game, taking ties into account.
+#
+# Arguments:
+#
+# - The Game schema object.
+#
+# Returns:
+#
+# An array of the top 3 winners taking ties into account, but not including any
+# zero scorers.
+sub top3_scorers {
+    my ($self, $game) = @_;
+
+    my $schema = $self->_schema;
+
+    my $inner = $schema->resultset('UserGame')->search(
+        {
+            game => $game->id,
+            wins => { '>' => 0 },
+        },
+        {
+            columns  => [ qw/wins/ ],
+            distinct => 1,
+            rows     => 3,
+            order_by => 'wins DESC',
+        }
+    );
+
+    my @top3 = $schema->resultset('UserGame')->search(
+        {
+            game => $game->id,
+            wins => { -in => $inner->get_column("wins")->as_query },
+        },
+        {
+            prefetch => 'rel_user',
+            order_by => 'wins DESC',
+        },
+    );
+
+    return @top3;
+}
+
 sub do_pub_status {
     my ($self, $args) = @_;
 
@@ -798,29 +1026,7 @@ sub do_pub_status {
 
         $irc->msg($chan, "Active Players: $winstring");
 
-        my $inner = $schema->resultset('UserGame')->search(
-            {
-                game => $game->id,
-                wins => { '>' => 0 },
-            },
-            {
-                columns  => [ qw/wins/ ],
-                distinct => 1,
-                rows     => 3,
-                order_by => 'wins DESC',
-            }
-        );
-
-        my @top3 = $schema->resultset('UserGame')->search(
-            {
-                game => $game->id,
-                wins => { -in => $inner->get_column("wins")->as_query }
-            },
-            {
-                prefetch => 'rel_user',
-                order_by => 'wins DESC',
-            },
-        );
+        my @top3 = $self->top3_scorers($game);
 
         # Might not be any non-zero scores.
         if (scalar @top3) {
