@@ -139,6 +139,11 @@ Many commands optionally take a channel parameter. This is only needed if the
 player is in more than one active game. That's fairly unlikely so most of the
 time that can be left off and the bot will work it out.
 
+*   `[#channel] status`
+
+    Identical to the public `status` command, but in private in case you don't
+    want to bother the channel with the output.
+
 *   `[#channel] black`
 
     Repeat the text of the current Black Card.
