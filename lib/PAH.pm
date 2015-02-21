@@ -783,11 +783,27 @@ sub do_priv_status {
             $chan    = $channel->disp_name;
 
         } elsif (scalar @active_gamechans_nick_is_in > 1) {
-            # They're in multiple channels that have active games so we don't
-            # know what they meant and they will need to specify a channel
-            # explicitly.
-            $channel = undef;
-            $chan    = undef;
+            # They're in multiple channels that have active games. How many of
+            # them are they actually active in?
+            my @they_are_active_in;
+
+            foreach my $c (@active_gamechans_nick_is_in) {
+                my $ug = $self->db_get_nick_in_game($c->rel_game);
+                push(@they_are_active_in, $c) if (defined $ug);
+            }
+
+            if (1 == scalar @they_are_active_in) {
+                # Cool, even though they're watching multiple games they are
+                # only active in one of them, so assume they emant that one.
+                $channel = $they_are_active_in[0];
+                $chan    = $channel->disp_name;
+            } else {
+                # They're active in multiple games and are in the channels
+                # watching more than one, so we have no idea which one they
+                # meant. They're going to have to specify.
+                $channel = undef;
+                $chan    = undef;
+            }
         }
 
         # If we got this far then out of all the channels we share with the
@@ -823,11 +839,15 @@ sub do_priv_status {
         if (defined $chan) {
             # They specified the channel but it didn't exist (#4). Probably bot
             # has never been in it.
+            debug("%s asked for status of game in %s but I don't know anything"
+               . " about %s", $who, $chan, $chan);
             $irc->msg($who, "Sorry, I have no knowledge of $chan.");
             return;
         }
 
         # It's case #2.
+        debug("%s asked for game status but I couldn't work out which channel they"
+           . " were interested in", $who);
         $irc->msg($who,
             qq{Sorry, I can't work out which channel's game you're interested in.}
            . qq{ Try again with "#channel status".});
