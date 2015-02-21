@@ -2860,8 +2860,11 @@ sub cleanup_plays {
     my @cards;
 
     foreach my $uid (keys %{ $tally }) {
-        # 'cards' is an arrayref of arrayref of UserGameHands for what was played.
-        push(@cards, $tally->{$uid}->{cards});
+        # 'ugh_id' is an arrayref of ids of UserGameHands for what was played.
+        foreach my $id (@{ $tally->{$uid}->{ugh_ids} }) {
+            my $ugh = $schema->resultset('UserGameHand')->find({ id => $id });
+            push(@cards, $ugh);
+        }
     }
 
     # Now @cards is an array of UserGameHands that need to be deleted, so build
