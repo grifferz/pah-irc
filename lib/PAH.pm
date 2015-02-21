@@ -2870,17 +2870,14 @@ sub cleanup_plays {
     # Now @cards is an array of UserGameHands that need to be deleted, so build
     # an array of just the ids.
     my @to_delete;
-    foreach my $hand (@cards) {
-        foreach my $ugh (@{ $hand }) {
-            my $white_deck = $self->_deck->{$game->deck}->{White};
-            my $idx = $ugh->wcardidx;
+    foreach my $ugh (@cards) {
+        my $white_deck = $self->_deck->{$game->deck}->{White};
+        my $idx = $ugh->wcardidx;
 
-            debug("Discarding played White Cards:");
-            debug("%s:  %s", $ugh->rel_usergame->rel_user->nick,
-                $white_deck->[$idx]);
+        debug("Discarding played White Cards:");
+        debug("%s:  %s", $ugh->rel_usergame->rel_user->nick, $white_deck->[$idx]);
 
-            push(@to_delete, $ugh->id);
-        }
+        push(@to_delete, $ugh->id);
     }
 
     $schema->resultset('UserGameHand')->search(
