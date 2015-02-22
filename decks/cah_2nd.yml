@@ -4,7 +4,7 @@
 #
 #   http://www.yaml.org/
 
-Description:    Cards Against Humanity Second Expansion
+Description:    Cards Against Humanity Second Expansion (Modified)
 License:        Creative Commons BY-NC-SA 2.0
 Copyright:      Cards Against Humanity LLC
 
@@ -42,7 +42,6 @@ Black:
         In his newest and most difficult stunt,
         David Blaine must escape from _____.
     - Charades was ruined for me forever when my mom had to act out _____.
-    - My country, 'tis of thee, sweet land of _____.
     # Embedded colons (":") will also mess things up by becoming an errant hash
     # key, so again pipe is needed.
     - |
@@ -55,7 +54,7 @@ Black:
         My mom freaked out when she looked at my browser history
         and found _____.com/_____.
     - |
-        Tonight on 20/20: What you don't know about _____ could kill you.
+        Tonight on Panorama: What you don't know about _____ could kill you.
     - >
         I spent my whole life working towards _____,
         only to have it ruined by _____.
@@ -69,7 +68,6 @@ White:
     - a bigger, blacker, dick
     - upgrading homeless people to mobile hotspots
     - mild autism
-    - the mere concept of Applebee's
     - wearing an octopus for a hat
     - nunchuck moves
     - a sad fat dragon with no friends
@@ -91,7 +89,6 @@ White:
     - survivor's guilt
     - the human body
     - swiftly achieving orgasm
-    - getting hilariously gang-banged by the Blue Man Group
     - Boris the Soviet Love Hammer
     - Daddy's belt
     - Jeff Goldblum
@@ -138,6 +135,6 @@ White:
     - tongue
     - an army of skeletons
     - the Google
-    - finding Waldo
+    - finding Wally
     - a man in yoga pants with a ponytail and feather earrings
     - power
