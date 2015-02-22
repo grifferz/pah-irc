@@ -254,6 +254,10 @@ sub on_publicmsg {
     # AgainstHumanity, status
     # AgainstHumanity: status
     if ($content !~ /^$nick\s*(?:[,;:]\s*)?(.*)$/i) {
+        # Whatever they said isn't a command, so is porbably just normal
+        # chatter. Check if we are waiting on them to perform some action and
+        # poke them to do it if so.
+        $self->{parent}->poke($from, $channel);
         return;
     }
 

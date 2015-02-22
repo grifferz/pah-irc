@@ -109,6 +109,11 @@ has _intro => (
     is => 'ro',
 );
 
+# Tally of who has been poked to perform their game duties.
+has _pokes => (
+    is => 'ro',
+);
+
 sub BUILD {
   my ($self) = @_;
 
@@ -208,9 +213,7 @@ sub BUILD {
   $self->{_last}      = {};
   $self->{_pn_timers} = {};
   $self->{_intro}     = {};
-
-
-
+  $self->{_pokes}     = {};
 }
 
 # The "main"
@@ -1466,6 +1469,7 @@ sub resign {
 
         # Elect the next Tsar.
         $self->pick_new_tsar(undef, $game);
+        $self->clear_pokes($game);
     } else {
         # Trash any plays this user may have made.
         $self->delete_plays($ug);
@@ -3015,6 +3019,7 @@ sub do_pub_winner {
             my $winstring = $self->announce_win($winuser, $game);
             $self->topup_hands($game);
             $self->pick_new_tsar($winstring, $game);
+            $self->clear_pokes($game);
             return;
         }
     }
@@ -3449,6 +3454,91 @@ sub do_priv_pronoun {
     # It was invalid.
     $irc->msg($who, "Sorry, that doesn't look like a reasonable pronoun. I'll"
        . " accept up to five characters, a-z plus A-Z.");
+}
+
+# Clear out any record of pokes that have been made so that new pokes can be
+# sent if needed.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub clear_pokes {
+    my ($self, $game) = @_;
+
+    if (defined $self->_pokes->{$game->id}) {
+        debug("Clearing pokes for game at %s", $game->rel_channel->disp_name);
+        delete $self->_pokes->{$game->id};
+    }
+}
+
+# We've seen a user perform some public action, so now check if we are waiting
+# on them to do something in the game. If so, send them a poke in private
+# message to attempt to hurry things along.
+#
+# Arguments:
+#
+# - User's nickname as scalar string.
+#
+# - Channel this happened in as scalar string.
+#
+# Returns:
+#
+# Nothing.
+sub poke {
+    my ($self, $nick, $chan) = @_;
+
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+    my $channel = $self->db_get_channel($chan);
+
+    if (not defined $channel) {
+        # Channel is not in our database so give up here.
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    if (not defined $game or 2 != $game->status) {
+        # Either there's no game or the game isn't active, so give up.
+        return;
+    }
+
+    my $ug = $self->db_get_nick_in_game($nick, $game);
+
+    if (exists $self->_pokes->{$game->id}->{$ug->user}) {
+        # Already poked them, so give up.
+        return;
+    }
+
+    if ($self->hand_is_complete($game)) {
+        # If the hand is complete then we must be waiting on the card Tsar. Are
+        # they the Card Tsar?
+        if (1 == $ug->is_tsar) {
+            debug("Poke %s into choosing a winner in %s.", $nick, $chan);
+            $irc->msg($nick,
+                qq{Hi! We're waiting on you to pick the winner in $chan. Please}
+               . qq{ type "$my_nick: <number>" in the channel to do so. This is the}
+               . qq{ only reminder I'll send!});
+            $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
+        }
+    } else {
+        # We're waiting on some number of players to play their answers, so is
+        # this one of them?
+        if (not exists $self->_plays->{$game->id}->{$ug->user}
+                and 0 == $ug->is_tsar) {
+            debug("Poke %s into making their play in %s.", $nick, $chan);
+            $irc->msg($nick,
+                qq{Hi! We're waiting on you to make your play in $chan. Use the}
+               . qq{ play command to make your play, the hand command to}
+               . qq{ see your hand again, or the black command to see the Black}
+               . qq{ Card. This is the only reminder I'll send!});
+            $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
+        }
+    }
 }
 
 1;
