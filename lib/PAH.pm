@@ -3509,7 +3509,7 @@ sub poke {
 
     my $ug = $self->db_get_nick_in_game($nick, $game);
 
-    if (not defined $ug) {
+    if (not defined $ug or $ug->active != 1) {
         # They're not in the game.
         return;
     }
