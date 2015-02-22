@@ -3509,6 +3509,11 @@ sub poke {
 
     my $ug = $self->db_get_nick_in_game($nick, $game);
 
+    if (not defined $ug) {
+        # They're not in the game.
+        return;
+    }
+
     if (exists $self->_pokes->{$game->id}->{$ug->user}) {
         # Already poked them, so give up.
         return;
