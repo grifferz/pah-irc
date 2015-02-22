@@ -2416,6 +2416,11 @@ sub do_priv_play {
                 cb    => sub { $self->notify_plays($game); },
             );
         }
+    } else {
+        # Hand isn't complete, we got a play but it wasn't a *new* play. So,
+        # treat it as already notified.
+        $self->_plays->{$game->id}->{$user->id}->{notified} = 1;
+        $self->write_tallyfile;
     }
 }
 
