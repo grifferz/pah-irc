@@ -2368,13 +2368,15 @@ sub do_priv_play {
     # Record the play in this game's tally.
     my $is_new = 1;
 
+    my @ugh_ids = map { $_->id } @cards;
+
     if (defined $self->_plays and defined $self->_plays->{$game->id}
             and defined $self->_plays->{$game->id}->{$user->id}) {
         $is_new = 0;
     }
 
     $self->_plays->{$game->id}->{$user->id} = {
-        cards    => \@cards,
+        ugh_id   => \@ugh_ids,
         play     => $play,
         notified => 0,
     };
