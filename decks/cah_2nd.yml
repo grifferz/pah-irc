@@ -1,0 +1,143 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity Second Expansion
+License:        Creative Commons BY-NC-SA 2.0
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+        Before I run for president,
+        I must destroy all evidence of my involvement with _____.
+    - >
+        The healing process began when I joined a support group
+        for victims of _____.
+    # Black Cards with multiple lines are rare, but they do exist. You can use
+    # "|" and then your newlines will be included in the data.
+    - |
+        Little miss Muffet
+        Sat on a tuffet,
+        Eating her curds and _____.
+    - >
+        This is your captain speaking.
+        Fasten your seatbelts and prepare for _____.
+    - The votes are in, and the new high school mascot is _____.
+    - If God didn't want us to enjoy _____, he wouldn't have given us _____.
+    - >
+        In his newest and most difficult stunt,
+        David Blaine must escape from _____.
+    - Charades was ruined for me forever when my mom had to act out _____.
+    - My country, 'tis of thee, sweet land of _____.
+    # Embedded colons (":") will also mess things up by becoming an errant hash
+    # key, so again pipe is needed.
+    - |
+        The Five Stages of Grief: denial, anger, bargaining, _____, acceptance.
+    - Before _____, all we had was _____.
+    - >
+        After months of debate, the
+        Occupy Wall Street General Assembly could only agree on "More _____!"
+    - >
+        My mom freaked out when she looked at my browser history
+        and found _____.com/_____.
+    - |
+        Tonight on 20/20: What you don't know about _____ could kill you.
+    - >
+        I spent my whole life working towards _____,
+        only to have it ruined by _____.
+    - >
+        You haven't truly lived until you've experienced _____
+        and _____ at the same time.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - a bigger, blacker, dick
+    - upgrading homeless people to mobile hotspots
+    - mild autism
+    - the mere concept of Applebee's
+    - wearing an octopus for a hat
+    - nunchuck moves
+    - a sad fat dragon with no friends
+    - an unhinged ferris wheel rolling towards the sea
+    - whipping a disobedient slave
+    - catastrophic urethral trauma
+    - living in a trashcan
+    - an ether-soaked rag
+    - Hillary Clinton's death stare
+    - the corporations
+    - a sweet spaceship
+    - existing
+    - a magic hippie love cloud
+    - a 55-gallon drum of lube
+    - a piñata full of scorpions
+    - Fuck Mountain
+    - special musical guest, Cher
+    - mooing
+    - survivor's guilt
+    - the human body
+    - swiftly achieving orgasm
+    - getting hilariously gang-banged by the Blue Man Group
+    - Boris the Soviet Love Hammer
+    - Daddy's belt
+    - Jeff Goldblum
+    - the grey nutrient broth that sustains Mitt Romney
+    - me
+    - making a friend
+    - tiny nipples
+    - double penetration
+    - a soulful rendition of "Ol' Man River"
+    - oncoming traffic
+    - weapons-grade plutonium
+    - intimacy problems
+    - a dollop of sour cream
+    - some really fucked-up shit
+    - a sweaty, panting leather daddy
+    - a slightly shittier parallel universe
+    - subduing a grizzly bear and making her your wife
+    - spring break # original had an exclamation mark
+    - my first kill
+    - rising from the grave
+    - being awesome at sex
+    - graphic violence, adult language, and some sexual content
+    - the mixing of the races
+    - dining with cardboard cutouts of the cast of "Friends"
+    - fetal alcohol syndrome
+    - >
+        taking a man's eyes and balls out
+        and putting his eyes where his balls go
+        and then his balls into the eye holes
+    - another shot of morphine
+    - One Ring to rule them all
+    - all of this blood
+    - a squadron of moles wearing aviator goggles
+    - Grandpa's ashes
+    - Loki, the trickster god
+    - bullshit
+    - basic human decency
+    - whining like a little bitch
+    - Pretty Pretty Princess Dress-Up Board Game®
+    - a Burmese tiger pit
+    - pumping out a baby every nine months
+    - the new Radiohead album
+    - Death by Steven Segal
+    - tongue
+    - an army of skeletons
+    - the Google
+    - finding Waldo
+    - a man in yoga pants with a ponytail and feather earrings
+    - power
