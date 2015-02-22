@@ -791,7 +791,7 @@ sub do_priv_status {
             my @they_are_active_in;
 
             foreach my $c (@active_gamechans_nick_is_in) {
-                my $ug = $self->db_get_nick_in_game($c->rel_game);
+                my $ug = $self->db_get_nick_in_game($who, $c->rel_game);
                 push(@they_are_active_in, $c) if (defined $ug);
             }
 
