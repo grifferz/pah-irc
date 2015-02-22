@@ -2376,7 +2376,7 @@ sub do_priv_play {
     }
 
     $self->_plays->{$game->id}->{$user->id} = {
-        ugh_id   => \@ugh_ids,
+        ugh_ids  => \@ugh_ids,
         play     => $play,
         notified => 0,
     };
@@ -3093,7 +3093,7 @@ sub cleanup_plays {
     my @cards;
 
     foreach my $uid (keys %{ $tally }) {
-        # 'ugh_id' is an arrayref of ids of UserGameHands for what was played.
+        # 'ugh_ids' is an arrayref of ids of UserGameHands for what was played.
         foreach my $id (@{ $tally->{$uid}->{ugh_ids} }) {
             my $ugh = $schema->resultset('UserGameHand')->find({ id => $id });
             push(@cards, $ugh);
