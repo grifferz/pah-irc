@@ -32,6 +32,7 @@ use Try::Tiny;
 use List::Util qw/shuffle/;
 use POSIX qw/strftime/;
 use Storable qw/nstore retrieve/;
+use Time::Duration;
 
 use Data::Dumper;
 
@@ -1721,24 +1722,26 @@ sub db_populate_cards {
 sub brief_players {
     my ($self, $game) = @_;
 
-    my $chan    = $game->rel_channel->disp_name;
-    my $my_nick = $self->_irc->nick();
+    my $chan      = $game->rel_channel->disp_name;
+    my $irc       = $self->_irc;
+    my $my_nick   = $irc->nick();
+    my $turnclock = $self->_config->{turnclock};
 
     my @active_usergames = $game->rel_active_usergames;
 
     foreach my $ug (@active_usergames) {
         my $who = $ug->rel_user->nick;
 
-        $self->_irc->msg($who,
+        $irc->msg($who,
             "Hi! The game's about to start. You may find it easier to keep this"
            . " window open for sending me game commands.");
-        $self->_irc->msg($who,
-            "Turns in this game can take up to 48 hours, so there's no need to"
-           . " rush.");
-        $self->_irc->msg($who,
-            "If you need to stop playing though, please type"
-           . " \"$my_nick: resign\" in $chan so the others aren't kept"
-           . " waiting.");
+        $irc->msg($who,
+            sprintf("Turns in this game can take around %s (mostly done within"
+               . " %s though), so there's no need to rush.",
+               duration($turnclock * 2), duration($turnclock)));
+        $irc->msg($who,
+            qq{If you need to stop playing though, please type "$my_nick: resign"}
+           . qq{ in $chan so the others aren't kept waiting.});
     }
 }
 
