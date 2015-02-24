@@ -18,7 +18,10 @@ use base "AnyEvent::IRC::Client";
 use AnyEvent::IRC::Util qw(prefix_nick);
 use JSON::MaybeXS qw(to_json);
 use Encode;
+use Algorithm::TokenBucket;
+
 use PAH::Log;
+
 use Data::Dumper;
 
 sub connect {
@@ -108,7 +111,7 @@ sub on_registered {
 
     $self->{msg_timer} = AnyEvent->timer(
         after    => 0,
-        interval => 0.75,
+        interval => 0.2,
         cb => sub {
             $self->process_msg_queue();
         },
@@ -125,11 +128,9 @@ sub on_registered {
     $self->{parent}->join_welcoming_channels;
 }
 
-# If there are IRC messages in the send queue, take the oldest one and send it.
+# If there are IRC messages in the send queue and the token bucket says we can
+# send, take the oldest one and send it.
 #
-# This is very dumb and operates on a fixed interval of 1 per second.
-#
-# TODO: Make it smarter, e.g. allowing for bursts, use token bucket filter, etc.
 # TODO: Experiment with what is actually a safe interval. 1/sec is quite slow.
 # TODO: Consider using the send queue for more than just PRIVMSG?
 sub process_msg_queue {
@@ -138,9 +139,29 @@ sub process_msg_queue {
     my $queue = $self->{_msg_queue};
 
     if (scalar @{ $queue }) {
+        if (not defined $self->{_bucket}) {
+            debug("Creating token bucket, %.2f per sec, burst %u",
+                $self->{parent}->_config->{msg_per_sec},
+                $self->{parent}->_config->{msg_burst});
+            $self->{_bucket} = Algorithm::TokenBucket->new(
+                $self->{parent}->_config->{msg_per_sec},
+                $self->{parent}->_config->{msg_burst});
+        }
+
+        my $bucket = $self->{_bucket};
+
+        if (not $bucket->conform(1)) {
+=pod
+            debug("Delaying sending a PRIVMSG because the token bucket is empty:");
+            debug("  %s → %s", $queue->[0]->{text}, $queue->[0]->{who});
+=cut
+            return;
+        }
+
         my $first = shift @{ $queue };
 
         $self->send_srv(PRIVMSG => $first->{who}, encode('utf-8', $first->{text}));
+        $bucket->count(1);
     }
 }
 
