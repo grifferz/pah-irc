@@ -133,6 +133,24 @@ sub BUILD {
       $self->{_tallyfile} = $self->{_config}->{tallyfile};
   }
 
+  if (not defined $self->{_config}->{msg_per_sec}) {
+      $self->{_config}->{msg_per_sec} = 1;
+  }
+
+  if ($self->{_config}->{msg_per_sec} !~ /^[\d\.]+$/
+          or $self->{_config}->{msg_per_sec} <= 0) {
+      die "'msg_per_sec' config item must be a positive integer";
+  }
+
+  if (not defined $self->{_config}->{msg_burst}) {
+      $self->{_config}->{msg_burst} = 10;
+  }
+
+  if ($self->{_config}->{msg_burst} !~ /^\d+$/
+          or $self->{_config}->{msg_burst} <= 0) {
+      die "'msg_burst' config item must be a positive integer";
+  }
+
   $self->{_pub_dispatch} = {
       'status'    => {
           sub        => \&do_pub_status,

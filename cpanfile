@@ -12,3 +12,4 @@ requires 'DBD::SQLite';
 requires 'SQL::Translator', '>= 0.11018';
 requires 'Storable';
 requires 'Time::Duration';
+requires 'Algorithm::TokenBucket';

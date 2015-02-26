@@ -32,4 +32,19 @@ dbfile = ./var/pah-irc.sqlite
 # try setting it fairly low, like 5 minutes (300). But then you may find it
 # hard to get enough people together and awake at the same time.
 # Specified in seconds.
-turnclock = 86400 # A day.
+turnclock = 86400
+
+# Rate-limit outgoing IRC PRIVMSG to this many per second. If you don't set
+# this then the default is 1 (per second). Bear in mind that most IRC daemons
+# will drop your messages or kill you off if you are considered to be flooding.
+# Therefore you should only set this higher than 1 if you've made special
+# arrangements to not be subject to flood limits.
+#msg_per_sec = 1
+
+# Allow a burst of this many messages at 5 per second, and only apply the above
+# rate after that. If not set this will default to 10. That is the default
+# allowed on Charybdis and ircd-seven (Freenode) IRC daemons.
+#
+# You should only increase this from 10 if you have made special arrangements
+# to not be subject to flood limits.
+#msg_burst = 10
