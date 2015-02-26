@@ -3045,8 +3045,8 @@ sub do_pub_winner {
             $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
             my $winstring = $self->announce_win($winuser, $game);
-            $self->topup_hands($game);
             $self->pick_new_tsar($winstring, $game);
+            $self->topup_hands($game);
             $self->clear_pokes($game);
             return;
         }
