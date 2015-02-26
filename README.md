@@ -36,7 +36,8 @@ them particularly played to IRC's strengths, those being:
 
 ## Usage
 
-Quite a few interactions with the bot will be fairly natural language and depend on context, for example:
+Quite a few interactions with the bot will be fairly natural language and
+depend on context, for example:
 
 > &lt;AgainstHumanity&gt; We need 3 more players to get this game started. Who
                           else wants to play? Say "AgainstHumanity: me" if
@@ -206,6 +207,26 @@ Or if you'd rather use CPAN modules for everything that's not core Perl:
 ```
 $ cpanm --local-lib-contained=./pah-libs --installdeps .
 ```
+
+## Flooding
+
+The game can be rather verbose, both in the channel and in private message to
+players. If you aren't careful then the IRC server will probably flood-limit
+the bot by dropping its messages or even disconnect it from the network.
+
+The default bot configuration allows for a burst of 10 messages and thereafter
+will send only one message per second until there has been a pause of 10
+seconds again. This appears to be enough to avoid flood-limiting on networks
+that use Charybdis or ircd-seven (e.g. Freenode).
+
+Freenode IRC operators have told us that voicing the bot in a channel will
+exempt it from some flood checks both to the channel and to users who share the
+channel with the bot.
+
+If you are in a position to further exempt the bot from flood limits (i.e. you
+have access to the IRC server configuration, or know someone who will modify it
+for you) then you can adjust the bot's own flood limiting by altering the
+`msg_per_sec` and `msg_burst` configuration options.
 
 ## Security
 
