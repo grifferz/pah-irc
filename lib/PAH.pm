@@ -2872,6 +2872,14 @@ sub load_tallyfile {
                 }
             );
 
+            if (not defined $game) {
+                # The plays in the tallyfile somehow relate to a game that is
+                # no longer in the database. Could be a nuked database.
+                debug("  Ignoring plays for nonexistent game %u", $game_id);
+                delete $tally->{$game_id};
+                next;
+            }
+
             debug("  Loaded %u plays from game in %s",
                 scalar keys %{ $tally->{$game_id} },
                 $game->rel_channel->disp_name);
