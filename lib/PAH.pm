@@ -1487,7 +1487,7 @@ sub resign {
         $self->topup_hands($game);
 
         # Elect the next Tsar.
-        $self->pick_new_tsar(undef, $game);
+        $self->pick_new_tsar(undef, undef, undef, $game);
         $self->clear_pokes($game);
     } else {
         # Trash any plays this user may have made.
@@ -2075,7 +2075,7 @@ sub deal_to_tsar {
         next if (1 == $ug->is_tsar);
 
         $irc->msg($ug->rel_user->nick,
-            sprintf("Time for the next Black Card in %s:", $chan));
+            sprintf("[%s] Time for the next Black Card:", $chan));
         $self->notify_bcard($ug->rel_user->nick, $game);
     }
 
@@ -3050,10 +3050,10 @@ sub do_pub_winner {
             $game->rel_tsar_usergame->activity_time(time());
             $game->rel_tsar_usergame->update;
 
-            $self->end_round($winuser, $game);
+            my $win_ug = $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
             my $winstring = $self->announce_win($winuser, $game);
-            $self->pick_new_tsar($winstring, $game);
+            $self->pick_new_tsar($win_ug, $tally->{$uid}->{play}, $winstring, $game);
             $self->topup_hands($game);
             $self->clear_pokes($game);
             return;
@@ -3076,7 +3076,7 @@ sub do_pub_winner {
 #
 # Returns:
 #
-# Nothing.
+# The UserGame of the winner after their stats have been updated.
 sub end_round {
     my ($self, $user, $game) = @_;
 
@@ -3106,6 +3106,8 @@ sub end_round {
     )->update({ hands => \'hands + 1' });
 
     # tsarcount / is_tsar is updated at the start of next round.
+
+    return $ug;
 }
 
 # The round has ended so the tally of plays for this game should be cleared out.
@@ -3155,6 +3157,7 @@ sub cleanup_plays {
 
     # Finally delete the plays from the tally.
     delete $self->_plays->{$game->id};
+    $self->write_tallyfile;
 }
 
 # Build a string that announces the winner of a hand.
@@ -3195,7 +3198,14 @@ sub announce_win {
 #
 # Arguments:
 #
-# - A stering describing the previous win.
+# - A UserGame Schema object for the previous round's winner. undef if the Tsar
+#   isn't being elected because of a win.
+#
+# - A string for the winning play. undef if the Tsar isn't being elected
+#   because of a win.
+#
+# - A string describing the previous win. undef if the Tsar isn't being elected
+#   because of a win.
 #
 # - The Game Schema object the win relates to.
 #
@@ -3203,7 +3213,7 @@ sub announce_win {
 #
 # Nothing.
 sub pick_new_tsar {
-    my ($self, $winstring, $game) = @_;
+    my ($self, $winner, $winplay, $winstring, $game) = @_;
 
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
@@ -3246,6 +3256,41 @@ sub pick_new_tsar {
              "I couldn't work out who the next Card Tsar should be. This is"
             . " probably a bug. Going to have to pause the game. Report this!");
          return;
+     }
+
+     # Message every player to tell them who the winner was, before moving on
+     # with the new Card Tsar.
+     my @active_usergames = $game->rel_active_usergames;
+
+     foreach my $ug (@active_usergames) {
+         # Don't message the current Tsar as presumably they were there when
+         # they picked the winner.
+         next if ($ug->id == $current_tsar->id);
+
+         if ($ug->id == $winner->id) {
+             # Congratulate winning user.
+             $irc->msg($ug->rel_user->nick,
+                 sprintf("[%s] Congrats, you won! You now have %u Awesome"
+                    . " Point%s! Your winning play was:", $chan, $winner->wins,
+                    $winner->wins == 1 ? '' : 's'));
+         } else {
+             # Tell player about winner.
+             my $pronoun = $ug->rel_user->pronoun;
+             $pronoun = 'their' if (not defined $pronoun);
+
+             $irc->msg($ug->rel_user->nick,
+                 sprintf("[%s] The winner was %s, who now has %u"
+                    . " Awesome Point%s! %s winning play was:", $chan,
+                    $winner->rel_user->nick,
+                    $winner->wins, $winner->wins == 1 ? '' : 's',
+                    ucfirst($pronoun)));
+         }
+
+         foreach my $line (split(/\n/, $winplay)) {
+             # Sometimes YAML leaves us with a trailing newline in the text.
+             next if ($line =~ /^\s*$/);
+             $irc->msg($ug->rel_user->nick, "→ $line");
+         }
      }
 
      $current_tsar->is_tsar(0);
