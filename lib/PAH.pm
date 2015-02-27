@@ -889,17 +889,62 @@ sub do_priv_status {
             qq{Just type "$my_nick: start" in $chan and find at least 3}
            . qq{ friends.});
     } elsif (2 == $game->status) {
-        my @active_usergames = $game->rel_active_usergames;
-
         my $tsar = $game->rel_tsar_usergame;
 
-        my $waitstring = $self->build_waitstring($game);
+        my $waitstring;
 
-        $irc->msg($who, "A game is active in $chan! $waitstring");
+        if ($self->hand_is_complete($game)) {
+            # Waiting on Card Tsar.
+            $waitstring = sprintf("Waiting on %s to pick the winning play.",
+                $tsar->rel_user->nick);
+        } else {
+            my @to_play     = $self->waiting_on($game);
+            my $num_waiting = scalar @to_play;
+
+            if ($num_waiting == 1) {
+                # Only one person, so shame them.
+                my $user    = $to_play[0]->rel_user;
+                my $pronoun = $user->pronoun;
+
+                $pronoun = 'their' if (not defined $pronoun);
+
+                $waitstring = sprintf("Waiting on %s to make %s play.",
+                    $user->nick, $pronoun);
+            } else {
+                # Multiple people so just number them.
+                $waitstring = sprintf("Waiting on %u %s to make their play%s.",
+                    $num_waiting, $num_waiting == 1 ? 'person' : 'people',
+                    $num_waiting == 1 ? '' : 's');
+            }
+        }
+
+        my $start_time    = $game->round_time;
+        my $activity_time = $game->activity_time;
+
+        # round_time is a new column and may be unset (0); if so then use
+        # activity_time.
+        $start_time       = $activity_time if (0 == $start_time);
+
+        my $now           = time();
+        my $started_ago   = $now - $start_time;
+        my $punishment_in = $activity_time + $self->_config->{turnclock} - $now;
+
+        # round_time is a new column and may be unset (0); if so then use
+        # activity_time.
+        $start_time = $activity_time if (0 == $start_time);
+
         $irc->msg($who,
-            sprintf("The current Card Tsar in %s is %s", $chan,
-                $tsar->rel_user->nick));
+            sprintf("[%s] %s Round started about %s ago. Idle punishment in"
+               . " about %s.", $chan, $waitstring,
+               concise(duration($started_ago, 2)),
+               concise(duration($punishment_in, 2))));
 
+        $irc->msg($who,
+            sprintf("[%s] The Card Tsar is %s; current Black Card:", $chan,
+                $tsar->rel_user->nick));
+        $self->notify_bcard($who, $game);
+
+=pod
         @active_usergames = sort { $b->wins <=> $a->wins } @active_usergames;
 
         my $winstring = join(' ',
@@ -915,9 +960,8 @@ sub do_priv_status {
                 map { $_->rel_user->nick . '(' . $_->wins . ')' } @top3);
             $irc->msg($who, "Top 3 all time in $chan: $winstring");
         }
+=cut
 
-        $irc->msg($who, "Current Black Card in $chan:");
-        $self->notify_bcard($who, $game);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
@@ -2060,9 +2104,12 @@ sub deal_to_tsar {
         return;
     }
 
-    # Update the Game with the index of the current black card.
+    # Update the Game with the index of the current black card and the timers.
+    my $now = time();
+
     $game->bcardidx($new->cardidx);
-    $game->activity_time(time());
+    $game->activity_time($now);
+    $game->round_time($now);
     $game->update;
 
     # Discard the Black Card off the deck (because it's now part of the Game round).
@@ -2748,6 +2795,47 @@ sub list_plays {
 
 }
 
+# Work out who is still left to make their play.
+#
+# Arguments:
+#
+# - The Game Schema object.
+#
+# Returns:
+#
+# An array of UserGame objects that are yet to make their play, or undef if
+# waiting on the Card Tsar.
+sub waiting_on {
+    my ($self, $game) = @_;
+
+    if ($game->status != 2) {
+        # This should not be called on an inactive game.
+        debug("Can't use waiting_on on an inactive game");
+        return undef;
+    }
+
+    if ($self->hand_is_complete($game)) {
+        return undef;
+    }
+
+    # Some number of players have not yet made their play.
+
+    my $tally       = $self->_plays->{$game->id};
+    my $num_players = scalar $game->rel_active_usergames;
+    my $num_plays   = $self->num_plays($game);
+    my $waiting_num = $num_players - 1 - $num_plays;
+
+    my @usergames = $game->rel_active_usergames;
+
+    # Go through @usergames and build an array of UserGames that *haven't*
+    # made their play yet. Skip the Card Tsar.
+    my @to_play = grep {
+        not exists $tally->{$_->user} and 0 == $_->is_tsar
+    } @usergames;
+
+    return @to_play;
+}
+
 # Build a string describing who or what the game is waiting on for progress.
 #
 # Arguments:
@@ -2775,20 +2863,7 @@ sub build_waitstring {
         $waitstring .= sprintf("the Card Tsar (%s) to pick a winner.",
             $tsar->rel_user->nick);
     } else {
-        # Some number of players have not yet made their play.
-
-        my $tally       = $self->_plays->{$game->id};
-        my $num_players = scalar $game->rel_active_usergames;
-        my $num_plays   = $self->num_plays($game);
-        my $waiting_num = $num_players - 1 - $num_plays;
-
-        my @usergames = $game->rel_active_usergames;
-
-        # Go through @usergames and build an array of UserGames that *haven't*
-        # made their play yet. Skip the Card Tsar.
-        my @to_play = grep {
-            not exists $tally->{$_->user} and 0 == $_->is_tsar
-        } @usergames;
+        my @to_play = $self->waiting_on($game);
 
         if (1 == scalar @to_play) {
             my $pronoun = $to_play[0]->rel_user->pronoun;
