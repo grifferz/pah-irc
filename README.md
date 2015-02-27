@@ -77,9 +77,15 @@ are all fine.
 
     *   The text of the current Black Card;
 
+*   `scores`
+
+    `stats`
+
+    Displays:
+
     *   Who's active in the game and what their scores are.
 
-    *   The top three all-time points-scorers.
+    *   The top three all-time points-scorers for this game, including ties.
 
 *   `start`
 
@@ -143,6 +149,15 @@ time that can be left off and the bot will work it out.
 *   `[#channel] status`
 
     Identical to the public `status` command, but in private in case you don't
+    want to bother the channel with the output.
+
+*   `[#channel] scores`
+
+    `[#channel] stats`
+
+    Displays:
+
+    Identical to the public `scores` command, but in private in case you don't
     want to bother the channel with the output.
 
 *   `[#channel] black`
