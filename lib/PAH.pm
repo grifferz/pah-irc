@@ -3880,6 +3880,23 @@ sub poke {
             $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
         }
     } else {
+        if ($game->round_time != 0) {
+            my $now = time();
+
+            # How old is the round? If it's less than turnclock divided by 60
+            # seconds (min 60) then don't bother.
+            my $poke_time = $self->_config->{turnclock} / 60;
+
+            $poke_time = 60 if ($poke_time < 60);
+
+            $poke_time += $game->round_time;
+
+            if ($now <= $poke_time) {
+                # Too soon.
+                return;
+            }
+        }
+
         # We're waiting on some number of players to play their answers, so is
         # this one of them?
         if (not exists $self->_plays->{$game->id}->{$ug->user}
