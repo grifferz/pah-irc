@@ -1517,9 +1517,21 @@ sub do_pub_dealin {
         return;
     }
 
-    my $user = $schema->resultset('User')->find_or_create(
-        { nick => $who },
-    );
+    my $user = $self->db_get_user($who);
+
+    if (not $user->in_storage) {
+        # This user was just created, so set its disp_nick now and insert it.
+        $user->disp_nick($who);
+        $user->insert;
+    }
+
+    # Set the disp_nick to the same as nick if it is null (old, pre-existing
+    # row, before westarted storing disp_nick).
+    if (not defined $user->disp_nick) {
+        debug("Populating %s's null disp_nick as %s", lc($who), $who);
+        $user->disp_nick($who);
+        $user->update;
+    }
 
     my @active_usergames = $game->rel_active_usergames;
 
@@ -1661,9 +1673,7 @@ sub do_pub_resign {
         return;
     }
 
-    my $user = $schema->resultset('User')->find_or_create(
-        { nick => $who },
-    );
+    my $user = $self->db_get_user($who);
 
     my $usergame = $schema->resultset('UserGame')->find(
         {
@@ -1845,7 +1855,13 @@ sub do_priv_hand {
 # Get the user row from the database that corresponds to the user nick as
 # a string.
 #
-# If there is no such user in the database then create it and return that.
+# If there is no such user in the database then:
+#
+# - Create it.
+# - Populate the disp_nick field.
+#
+# If there is such a row already then check if the disp_nick field needs to be
+# populated.
 #
 # Arguments:
 #
@@ -1859,9 +1875,25 @@ sub db_get_user {
 
     my $schema = $self->_schema;
 
-    return $schema->resultset('User')->find_or_create(
-        { 'nick' => $nick },
+    my $user = $schema->resultset('User')->find_or_new(
+        { 'nick' => lc($nick) },
     );
+
+    if (not $user->in_storage) {
+        # This user was just created, so set its disp_nick now and insert it.
+        $user->disp_nick($nick);
+        $user->insert;
+    }
+
+    # Set the disp_nick to the same as nick if it is null (old, pre-existing
+    # row, before we started storing disp_nick).
+    if (not defined $user->disp_nick) {
+        debug("Populating %s's null disp_nick as %s", lc($nick), $nick);
+        $user->disp_nick($nick);
+        $user->update;
+    }
+
+    return $user;
 }
 
 
