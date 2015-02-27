@@ -385,12 +385,14 @@ sub user_joined {
     my $my_nick = $irc->nick();
 
     $chan = lc($chan);
-    $nick = lc($nick);
+
+    # Need the original case for disp_nick.
+    my $lc_nick = lc($nick);
 
     debug("* %s joined %s", $nick, $chan);
 
     # Did we already introduce this user?
-    if (defined $self->_intro->{$nick}) {
+    if (defined $self->_intro->{$lc_nick}) {
         # Yes, so do nothing.
         return;
     }
@@ -408,7 +410,8 @@ sub user_joined {
 
     if (not defined $game or 0 == $game->status) {
         # Game has never existed, so keep quiet.
-        debug("Not introducing %s to game at %s because it isn't running", $nick, $chan);
+        debug("Not introducing %s to game at %s because it isn't running", $nick,
+            $chan);
         return;
     }
 
@@ -426,7 +429,7 @@ sub user_joined {
 
     # Introduce!
     debug("Introducing %s to the game in %s", $nick, $chan);
-    $self->_intro->{$nick} = time();
+    $self->_intro->{$lc_nick} = time();
 
     if (2 == $game->status) {
         $irc->msg($nick,
