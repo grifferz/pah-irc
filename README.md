@@ -155,8 +155,6 @@ time that can be left off and the bot will work it out.
 
     `[#channel] stats`
 
-    Displays:
-
     Identical to the public `scores` command, but in private in case you don't
     want to bother the channel with the output.
 
