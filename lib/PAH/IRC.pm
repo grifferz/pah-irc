@@ -158,7 +158,24 @@ sub process_msg_queue {
             return;
         }
 
-        my $first = shift @{ $queue };
+        my $first = undef;
+        my $index = 0;
+
+        foreach my $msg (@{ $queue }) {
+            if ($msg->{who} =~ /^[#\&]/) {
+                # Message is to a channel, so send it first.
+                $first = $msg;
+                splice @{ $queue }, $index, 1;
+                last;
+            }
+
+            $index++;
+        }
+
+        if (not defined $first) {
+            # Found no messages for channels, so just take off first private message.
+            $first = shift @{ $queue };
+        }
 
         $self->send_srv(PRIVMSG => $first->{who}, encode('utf-8', $first->{text}));
         $bucket->count(1);
