@@ -40,12 +40,13 @@
 </g>
 <!-- node2 -->
 <g id="node2" class="node"><title>node2</title>
-<polygon fill="white" stroke="black" points="104,-389 104,-473 214,-473 214,-389 104,-389"/>
-<text text-anchor="middle" x="159" y="-456.4" font-family="Times Roman,serif" font-size="14.00">users</text>
-<polyline fill="none" stroke="black" points="104,-448 214,-448 "/>
-<text text-anchor="start" x="112" y="-431.4" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
-<text text-anchor="start" x="112" y="-414.4" font-family="Times Roman,serif" font-size="14.00">&#45; nick [U]</text>
-<text text-anchor="start" x="112" y="-397.4" font-family="Times Roman,serif" font-size="14.00">&#45; pronoun [N]</text>
+<polygon fill="white" stroke="black" points="85.5,-380.5 85.5,-481.5 214.5,-481.5 214.5,-380.5 85.5,-380.5"/>
+<text text-anchor="middle" x="150" y="-464.9" font-family="Times Roman,serif" font-size="14.00">users</text>
+<polyline fill="none" stroke="black" points="85.5,-456.5 214.5,-456.5 "/>
+<text text-anchor="start" x="93.5" y="-439.9" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
+<text text-anchor="start" x="93.5" y="-422.9" font-family="Times Roman,serif" font-size="14.00">&#45; nick [U]</text>
+<text text-anchor="start" x="93.5" y="-405.9" font-family="Times Roman,serif" font-size="14.00">&#45; disp_nick [U,N]</text>
+<text text-anchor="start" x="93.5" y="-388.9" font-family="Times Roman,serif" font-size="14.00">&#45; pronoun [N]</text>
 </g>
 <!-- node4 -->
 <g id="node4" class="node"><title>node4</title>
@@ -64,8 +65,8 @@
 </g>
 <!-- node2&#45;&gt;node4 -->
 <g id="edge10" class="edge"><title>node2&#45;&gt;node4</title>
-<path fill="none" stroke="black" d="M161.553,-388.779C162.762,-368.788 164.264,-343.948 165.748,-319.394"/>
-<polygon fill="black" stroke="black" points="169.25,-319.468 166.36,-309.275 162.263,-319.046 169.25,-319.468"/>
+<path fill="none" stroke="black" d="M155.186,-380.32C157.061,-361.993 159.253,-340.575 161.423,-319.371"/>
+<polygon fill="black" stroke="black" points="164.914,-319.63 162.45,-309.326 157.951,-318.917 164.914,-319.63"/>
 </g>
 <!-- node3&#45;&gt;node4 -->
 <g id="edge6" class="edge"><title>node3&#45;&gt;node4</title>

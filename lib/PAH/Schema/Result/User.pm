@@ -41,6 +41,14 @@ __PACKAGE__->add_columns(
         size        => 50, # Max length of Freenode nick
     },
 
+    # Display nickname, which may be mixed case. Will start off as null and be
+    # updated by the application if necessary.
+    disp_nick => {
+        data_type   => 'varchar',
+        is_nullable => 1,
+        size        => 50,
+    },
+
     # Possessive pronoun that the bot will use when referring to this user's
     # plays, wins, etc.
     # http://en.wikipedia.org/wiki/Gender-specific_and_gender-neutral_pronouns#Summary
@@ -57,6 +65,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->add_unique_constraint('users_nick_idx' => ['nick']);
+__PACKAGE__->add_unique_constraint('users_disp_nick_idx' => ['disp_nick']);
 
 # Relationships.
 
