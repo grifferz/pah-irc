@@ -1348,9 +1348,15 @@ sub report_game_status {
            concise(duration($started_ago, 2)),
            concise(duration($punishment_in, 2))));
 
+    my $tsar_nick = $tsar->rel_user->disp_nick;
+
+    if (not defined $tsar_nick) {
+        $tsar_nick = $tsar->rel_user->nick;
+    }
+
     $irc->msg($target,
         sprintf("%sThe Card Tsar is %s; current Black Card:",
-            $is_nick ? "[$chan] " : '', $tsar->rel_user->nick));
+            $is_nick ? "[$chan] " : '', $tsar_nick));
 
     $self->notify_bcard($target, $game);
 }
