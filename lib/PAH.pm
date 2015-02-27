@@ -889,60 +889,7 @@ sub do_priv_status {
             qq{Just type "$my_nick: start" in $chan and find at least 3}
            . qq{ friends.});
     } elsif (2 == $game->status) {
-        my $tsar = $game->rel_tsar_usergame;
-
-        my $waitstring;
-
-        if ($self->hand_is_complete($game)) {
-            # Waiting on Card Tsar.
-            $waitstring = sprintf("Waiting on %s to pick the winning play.",
-                $tsar->rel_user->nick);
-        } else {
-            my @to_play     = $self->waiting_on($game);
-            my $num_waiting = scalar @to_play;
-
-            if ($num_waiting == 1) {
-                # Only one person, so shame them.
-                my $user    = $to_play[0]->rel_user;
-                my $pronoun = $user->pronoun;
-
-                $pronoun = 'their' if (not defined $pronoun);
-
-                $waitstring = sprintf("Waiting on %s to make %s play.",
-                    $user->nick, $pronoun);
-            } else {
-                # Multiple people so just number them.
-                $waitstring = sprintf("Waiting on %u %s to make their play%s.",
-                    $num_waiting, $num_waiting == 1 ? 'person' : 'people',
-                    $num_waiting == 1 ? '' : 's');
-            }
-        }
-
-        my $start_time    = $game->round_time;
-        my $activity_time = $game->activity_time;
-
-        # round_time is a new column and may be unset (0); if so then use
-        # activity_time.
-        $start_time       = $activity_time if (0 == $start_time);
-
-        my $now           = time();
-        my $started_ago   = $now - $start_time;
-        my $punishment_in = $activity_time + $self->_config->{turnclock} - $now;
-
-        # round_time is a new column and may be unset (0); if so then use
-        # activity_time.
-        $start_time = $activity_time if (0 == $start_time);
-
-        $irc->msg($who,
-            sprintf("[%s] %s Round started about %s ago. Idle punishment in"
-               . " about %s.", $chan, $waitstring,
-               concise(duration($started_ago, 2)),
-               concise(duration($punishment_in, 2))));
-
-        $irc->msg($who,
-            sprintf("[%s] The Card Tsar is %s; current Black Card:", $chan,
-                $tsar->rel_user->nick));
-        $self->notify_bcard($who, $game);
+        $self->report_game_status($game, $who);
 
 =pod
         @active_usergames = sort { $b->wins <=> $a->wins } @active_usergames;
@@ -1091,39 +1038,7 @@ sub do_pub_status {
         $irc->msg($chan,
             qq{Just type "$my_nick: start" and find at least 3 friends.});
     } elsif (2 == $game->status) {
-        my @active_usergames = $game->rel_active_usergames;
-
-        my $tsar = $game->rel_tsar_usergame;
-
-        my $waitstring = $self->build_waitstring($game);
-
-        $irc->msg($chan,
-            "$who: A game is active! $waitstring");
-        $irc->msg($chan,
-            sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
-
-        @active_usergames = sort {
-            $b->wins <=> $a->wins
-        } @active_usergames;
-
-        my $winstring = join(' ',
-            map { $_->rel_user->nick . '(' . $_->wins . ')' }
-            @active_usergames);
-
-        $irc->msg($chan, "Active Players: $winstring");
-
-        my @top3 = $self->top3_scorers($game);
-
-        # Might not be any non-zero scores.
-        if (scalar @top3) {
-            $winstring = join(' ',
-                map { $_->rel_user->nick . '(' . $_->wins . ')' } @top3);
-
-            $irc->msg($chan, "Top 3 all time: $winstring");
-        }
-
-        $irc->msg($chan, "Current Black Card:");
-        $self->notify_bcard($chan, $game);
+        $self->report_game_status($game, $chan);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
 
@@ -1157,6 +1072,84 @@ sub do_pub_status {
             "$who: I'm confused about the state of the game, sorry. Report"
            . " this!");
     }
+}
+
+# Report the status of an active game to either a nick or a channel.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# - The target of the output (nick or channel) as a scalar string.
+#
+# Returns:
+#
+# Nothing.
+sub report_game_status {
+    my ($self, $game, $target) = @_;
+
+    my $irc  = $self->_irc;
+    my $chan = $game->rel_channel->name;
+    my $tsar = $game->rel_tsar_usergame;
+
+    my $waitstring;
+
+    if ($self->hand_is_complete($game)) {
+        # Waiting on Card Tsar.
+        $waitstring = sprintf("Waiting on ^B%s^B to pick the winning play.",
+            $tsar->rel_user->nick);
+    } else {
+        my @to_play     = $self->waiting_on($game);
+        my $num_waiting = scalar @to_play;
+
+        if ($num_waiting == 1) {
+            # Only one person, so shame them.
+            my $user    = $to_play[0]->rel_user;
+            my $pronoun = $user->pronoun;
+
+            $pronoun = 'their' if (not defined $pronoun);
+
+            $waitstring = sprintf("Waiting on ^B%s^B to make %s play.",
+                $user->nick, $pronoun);
+        } else {
+            # Multiple people so just number them.
+            $waitstring = sprintf("Waiting on %u %s to make their play%s.",
+                $num_waiting, $num_waiting == 1 ? 'person' : 'people',
+                $num_waiting == 1 ? '' : 's');
+        }
+    }
+
+    my $start_time    = $game->round_time;
+    my $activity_time = $game->activity_time;
+
+    # round_time is a new column and may be unset (0); if so then use
+    # activity_time.
+    $start_time       = $activity_time if (0 == $start_time);
+
+    my $now           = time();
+    my $started_ago   = $now - $start_time;
+    my $punishment_in = $activity_time + $self->_config->{turnclock} - $now;
+
+    # If the target is a nickname then we need to prepend the channel so they
+    # know what we're talking about.
+    my $is_nick = 1;
+
+    if ($target =~ /^[#\&]/) {
+        $is_nick = 0;
+        $chan    = $target;
+    }
+
+    $irc->msg($target,
+        sprintf("%s%s Round started about %s ago. Idle punishment in about"
+           . " %s.", $is_nick ? "[$chan] " : '', $waitstring,
+           concise(duration($started_ago, 2)),
+           concise(duration($punishment_in, 2))));
+
+    $irc->msg($target,
+        sprintf("%sThe Card Tsar is %s; current Black Card:",
+            $is_nick ? "[$chan] " : '', $tsar->rel_user->nick));
+
+    $self->notify_bcard($target, $game);
 }
 
 # User wants to start a new game in a channel.
