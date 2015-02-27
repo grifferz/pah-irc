@@ -55,6 +55,14 @@ __PACKAGE__->add_columns(
         extra       => { unsigned => 1 },
     },
 
+    # unixstamp of when the round started.
+    round_time => {
+        data_type     => 'integer',
+        is_nullable   => 0,
+        extra         => { unsigned => 1 },
+        default_value => 0,
+    },
+
     # Status of this game.
     #
     # 0: Paused for unknown reason.
