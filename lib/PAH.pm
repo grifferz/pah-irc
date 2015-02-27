@@ -1519,20 +1519,6 @@ sub do_pub_dealin {
 
     my $user = $self->db_get_user($who);
 
-    if (not $user->in_storage) {
-        # This user was just created, so set its disp_nick now and insert it.
-        $user->disp_nick($who);
-        $user->insert;
-    }
-
-    # Set the disp_nick to the same as nick if it is null (old, pre-existing
-    # row, before westarted storing disp_nick).
-    if (not defined $user->disp_nick) {
-        debug("Populating %s's null disp_nick as %s", lc($who), $who);
-        $user->disp_nick($who);
-        $user->update;
-    }
-
     my @active_usergames = $game->rel_active_usergames;
 
     # Are they already in it?
