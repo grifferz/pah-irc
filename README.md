@@ -163,6 +163,7 @@ time that can be left off and the bot will work it out.
     Repeat the text of the current Black Card.
 
 *   `[#channel] hand`
+
     `[#channel] list`
 
     Provides a numbered list of the White Cards in the player's hand.
