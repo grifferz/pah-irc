@@ -1297,10 +1297,14 @@ sub report_game_status {
 
     my $waitstring;
 
+    my $tsar_nick = $tsar->rel_user->disp_nick;
+
+    $tsar_nick = $tsar->rel_user->nick if (not defined $tsar_nick);
+
     if ($self->hand_is_complete($game)) {
         # Waiting on Card Tsar.
-        $waitstring = sprintf("Waiting on ^B%s^B to pick the winning play.",
-            $tsar->rel_user->nick);
+        $waitstring = sprintf("Waiting on %s to pick the winning play.",
+            $tsar_nick);
     } else {
         my @to_play     = $self->waiting_on($game);
         my $num_waiting = scalar @to_play;
@@ -1312,8 +1316,12 @@ sub report_game_status {
 
             $pronoun = 'their' if (not defined $pronoun);
 
-            $waitstring = sprintf("Waiting on ^B%s^B to make %s play.",
-                $user->nick, $pronoun);
+            my $nick = $user->disp_nick;
+
+            $nick = $user->nick if (not defined $nick);
+
+            $waitstring = sprintf("Waiting on %s to make %s play.", $nick,
+                $pronoun);
         } else {
             # Multiple people so just number them.
             $waitstring = sprintf("Waiting on %u %s to make their play%s.",
@@ -1347,12 +1355,6 @@ sub report_game_status {
            . " %s.", $is_nick ? "[$chan] " : '', $waitstring,
            concise(duration($started_ago, 2)),
            concise(duration($punishment_in, 2))));
-
-    my $tsar_nick = $tsar->rel_user->disp_nick;
-
-    if (not defined $tsar_nick) {
-        $tsar_nick = $tsar->rel_user->nick;
-    }
 
     $irc->msg($target,
         sprintf("%sThe Card Tsar is %s; current Black Card:",
