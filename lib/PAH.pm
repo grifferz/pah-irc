@@ -3335,9 +3335,14 @@ sub do_pub_winner {
     my $user = $self->db_get_user($who);
 
     if (not $self->user_is_tsar($user, $game)) {
+        my $tsar      = $game->rel_tsar_usergame->rel_user;
+        my $tsar_nick = $tsar->disp_nick;
+
+        $tsar_nick = $tsar->nick if (not defined $tsar_nick);
+
         $irc->msg($chan,
             sprintf("%s: Sorry, you're not the Card Tsar – that's %s.", $who,
-                $game->rel_tsar_usergame->rel_user->nick));
+                $tsar_nick));
         return;
     }
 
