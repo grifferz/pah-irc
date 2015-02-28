@@ -618,7 +618,6 @@ sub process_chan_command {
 
     # Downcase everything, even the command, as there currently aren't any
     # public commands that could use mixed case.
-    $sender = lc($sender);
     $chan   = lc($chan);
     $cmd    = lc($cmd);
 
@@ -688,7 +687,7 @@ sub queue_whois_callback {
     my $irc         = $self->_irc;
     my $whois_queue = $self->_whois_queue;
     my $time        = time();
-    my $target      = $cb_info->{target};
+    my $target      = lc($cb_info->{target});
 
     my $queue_entry = {
         info      => $cb_info,
