@@ -3093,25 +3093,40 @@ sub build_waitstring {
 
     my $waitstring = "We're currently waiting on ";
 
-    my $tsar = $game->rel_tsar_usergame;
-
     if ($self->hand_is_complete($game)) {
         # If the hand is complete then we must be waiting on the Card Tsar.
+        my $tsar = $game->rel_tsar_usergame;
+
+        my $tsar_nick = $tsar->rel_user->disp_nick;
+
+        $tsar_nick = $tsar->rel_user->nick if (not defined $tsar_nick);
+
         $waitstring .= sprintf("the Card Tsar (%s) to pick a winner.",
-            $tsar->rel_user->nick);
+            $tsar_nick);
     } else {
         my @to_play = $self->waiting_on($game);
 
         if (1 == scalar @to_play) {
             my $pronoun = $to_play[0]->rel_user->pronoun;
+            my $nick    = $to_play[0]->rel_user->disp_nick;
+
+            $nick = $to_play[0]->rel_user->nick if (not defined $nick);
 
             $pronoun = "their" if (not defined $pronoun);
 
             $waitstring = sprintf("We're just waiting on %s to make %s"
-               . " play.", $to_play[0]->rel_user->nick, $pronoun);
+               . " play.", $nick, $pronoun);
         } else {
-            my @to_play_nicks = map { "" . $_->rel_user->nick . "" } @to_play;
-            my $last          = pop @to_play_nicks;
+            my @to_play_nicks = map {
+                my $user = $_->rel_user;
+                my $nick = $user->disp_nick;
+
+                $nick = $user->nick if (not defined $nick);
+
+                "$nick";
+            } @to_play;
+
+            my $last = pop @to_play_nicks;
 
             $waitstring .= sprintf("plays from %u people: %s and %s.",
                 scalar @to_play, join(', ', @to_play_nicks), $last);
