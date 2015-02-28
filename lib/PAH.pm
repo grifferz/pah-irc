@@ -2478,8 +2478,13 @@ sub do_priv_black {
         # They're the Card Tsar.
         $irc->msg($who, "You're the current Card Tsar!");
     } else {
+        my $tsar      = $tsar->rel_user;
+        my $tsar_nick = $tsar->disp_nick;
+
+        $tsar_nick = $tsar->nick if (not defined $tsar_nick);
+
         $self->_irc->msg($who,
-            sprintf("The current Card Tsar is %s", $tsar->rel_user->nick));
+            sprintf("The current Card Tsar is %s", $tsar_nick));
 
         # Are they in a position to play a move?
         if (defined $usergame) {
