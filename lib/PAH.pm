@@ -1151,8 +1151,14 @@ sub report_game_scores {
     } @active_usergames;
 
     my $winstring = join(' ',
-        map { $_->rel_user->nick . ($_->wins > 0 ? '(' . $_->wins . ')' : '')  }
-        @active_usergames);
+        map {
+            my $user = $_->rel_user;
+            my $nick = $user->disp_nick;
+
+            $nick = $user->nick if (not defined $nick);
+
+            $nick . ($_->wins > 0 ? '(' . $_->wins . ')' : '');
+        } @active_usergames);
 
     # If the target is a nickname then we need to prepend the channel so they
     # know what we're talking about.
@@ -1173,7 +1179,12 @@ sub report_game_scores {
     if (scalar @top3) {
         $winstring = join(' ',
             map {
-                $_->rel_user->nick . ($_->wins > 0 ? '(' . $_->wins . ')' : '')
+                my $user = $_->rel_user;
+                my $nick = $user->disp_nick;
+
+                $nick = $user->nick if (not defined $nick);
+
+                $nick . ($_->wins > 0 ? '(' . $_->wins . ')' : '');
             } @top3);
         $irc->msg($target,
             sprintf("%sTop 3 all time: %s", $is_nick ? "[$chan] " : '',
