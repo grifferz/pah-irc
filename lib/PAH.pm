@@ -3384,8 +3384,7 @@ sub do_pub_winner {
 
             my $win_ug = $self->end_round($winuser, $game);
             $self->cleanup_plays($game);
-            my $winstring = $self->announce_win($winuser, $game);
-            $self->pick_new_tsar($win_ug, $tally->{$uid}->{play}, $winstring, $game);
+            $self->pick_new_tsar($win_ug, $tally->{$uid}->{play}, $game);
             $self->topup_hands($game);
             $self->clear_pokes($game);
             return;
@@ -3522,6 +3521,63 @@ sub announce_win {
         $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's');
 }
 
+# Announce the winner of the previous round in message to all of the players of
+# that round.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# - UserGame Schema object representing the winner.
+#
+# - Text of the winning play as a scalar string.
+#
+# Returns:
+#
+# Nothing.
+sub announce_winner {
+    my ($self, $game, $winner, $winplay) = @_;
+
+    my $irc          = $self->_irc;
+    my $current_tsar = $game->rel_tsar_usergame;
+    my $chan         = $game->rel_channel->disp_name;
+
+    # Message every player to tell them who the winner was, before moving on
+    # with the new Card Tsar.
+    my @active_usergames = $game->rel_active_usergames;
+
+    foreach my $ug (@active_usergames) {
+        # Don't message the current Tsar as presumably they were there when
+        # they picked the winner.
+        next if ($ug->id == $current_tsar->id);
+
+        if ($ug->id == $winner->id) {
+            # Congratulate winning user.
+            $irc->msg($ug->rel_user->nick,
+                sprintf("[%s] Congrats, you won! You now have %u Awesome"
+                    . " Point%s! Your winning play was:", $chan, $winner->wins,
+                    $winner->wins == 1 ? '' : 's'));
+        } else {
+            # Tell player about winner.
+            my $pronoun = $ug->rel_user->pronoun;
+            $pronoun = 'their' if (not defined $pronoun);
+
+            $irc->msg($ug->rel_user->nick,
+                sprintf("[%s] The winner was %s, who now has %u"
+                    . " Awesome Point%s! %s winning play was:", $chan,
+                    $winner->rel_user->nick,
+                    $winner->wins, $winner->wins == 1 ? '' : 's',
+                    ucfirst($pronoun)));
+        }
+
+        foreach my $line (split(/\n/, $winplay)) {
+            # Sometimes YAML leaves us with a trailing newline in the text.
+            next if ($line =~ /^\s*$/);
+            $irc->msg($ug->rel_user->nick, "→ $line");
+        }
+    }
+}
+
 # Make the next player the Card Tsar.
 #
 # This will be the active UserGame object with the next-highest id, as that is
@@ -3536,16 +3592,13 @@ sub announce_win {
 # - A string for the winning play. undef if the Tsar isn't being elected
 #   because of a win.
 #
-# - A string describing the previous win. undef if the Tsar isn't being elected
-#   because of a win.
-#
 # - The Game Schema object the win relates to.
 #
 # Returns:
 #
 # Nothing.
 sub pick_new_tsar {
-    my ($self, $winner, $winplay, $winstring, $game) = @_;
+    my ($self, $winner, $winplay, $game) = @_;
 
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
@@ -3590,39 +3643,8 @@ sub pick_new_tsar {
          return;
      }
 
-     # Message every player to tell them who the winner was, before moving on
-     # with the new Card Tsar.
-     my @active_usergames = $game->rel_active_usergames;
-
-     foreach my $ug (@active_usergames) {
-         # Don't message the current Tsar as presumably they were there when
-         # they picked the winner.
-         next if ($ug->id == $current_tsar->id);
-
-         if ($ug->id == $winner->id) {
-             # Congratulate winning user.
-             $irc->msg($ug->rel_user->nick,
-                 sprintf("[%s] Congrats, you won! You now have %u Awesome"
-                    . " Point%s! Your winning play was:", $chan, $winner->wins,
-                    $winner->wins == 1 ? '' : 's'));
-         } else {
-             # Tell player about winner.
-             my $pronoun = $ug->rel_user->pronoun;
-             $pronoun = 'their' if (not defined $pronoun);
-
-             $irc->msg($ug->rel_user->nick,
-                 sprintf("[%s] The winner was %s, who now has %u"
-                    . " Awesome Point%s! %s winning play was:", $chan,
-                    $winner->rel_user->nick,
-                    $winner->wins, $winner->wins == 1 ? '' : 's',
-                    ucfirst($pronoun)));
-         }
-
-         foreach my $line (split(/\n/, $winplay)) {
-             # Sometimes YAML leaves us with a trailing newline in the text.
-             next if ($line =~ /^\s*$/);
-             $irc->msg($ug->rel_user->nick, "→ $line");
-         }
+     if (defined $winner) {
+         $self->announce_winner($game, $winner, $winplay);
      }
 
      $current_tsar->is_tsar(0);
@@ -3632,7 +3654,14 @@ sub pick_new_tsar {
      $new_tsar->tsarcount($new_tsar->tsarcount + 1);
      $new_tsar->update;
 
-     if (defined $winstring) {
+     if (defined $winner) {
+         my $nick = $winner->rel_user->disp_nick;
+
+         $nick = $winner->rel_user->nick if (not defined $nick);
+
+         my $winstring = sprintf("The winner is %s, who now has %u Awesome"
+            . " Point%s!", $nick, $winner->wins, 1 == $winner->wins ? '' : 's');
+
          $irc->msg($chan,
              sprintf("%s The new Card Tsar is %s. Time for the next Black Card:",
                  $winstring, $new_tsar->rel_user->nick));
