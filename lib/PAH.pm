@@ -531,9 +531,8 @@ sub join_welcoming_channels {
 sub process_priv_command {
     my ($self, $sender, $cmd) = @_;
 
-    # Downcase everything, even the command, as there currently aren't any
-    # private commands that could use mixed case.
-    $sender = lc($sender);
+    # Downcase everything as there currently aren't any private commands that
+    # could use mixed case.
     $cmd    = lc($cmd);
 
     my $chan = undef;
