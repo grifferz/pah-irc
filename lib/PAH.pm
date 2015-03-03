@@ -1713,8 +1713,10 @@ sub resign {
     my $game    = $ug->rel_game;
     my $channel = $game->rel_channel;
     my $chan    = $channel->disp_name;
-    my $who     = $user->nick;
+    my $who     = $user->disp_nick;
     my $irc     = $self->_irc;
+
+    $who = $user->nick if (not defined $who);
 
     # Are they the Card Tsar?
     if (1 == $ug->is_tsar) {
@@ -3810,20 +3812,23 @@ sub force_resign {
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
     my $my_nick = $irc->nick();
+    my $nick    = $user->disp_nick;
 
-    debug("Resigning %s from game at %s due to idleness", $user->nick,
+    $nick = $user->nick if (not defined $nick);
+
+    debug("Resigning %s from game at %s due to idleness", $nick,
         $channel->disp_name);
 
     $irc->msg($channel->disp_name,
         sprintf("I'm forcibly resigning %s from the game due to idleness. Idle"
-           . " since %s.", $user->nick,
+           . " since %s.", $nick,
            strftime("%FT%T", localtime($ug->activity_time))));
 
     $irc->msg($user->nick,
         sprintf("You've been forcibly resigned from the game in %s because you've"
            . " been idle since %s!", $channel->disp_name,
            strftime("%FT%T", localtime($ug->activity_time))));
-    $irc->msg($user->nick,
+    $irc->msg($nick,
         sprintf(qq{If you ever want to join in again, just type "%s: deal me in"}
            . qq{ in %s!}, $my_nick, $channel->disp_name));
 
