@@ -3495,40 +3495,6 @@ sub cleanup_plays {
     $self->write_tallyfile;
 }
 
-# Build a string that announces the winner of a hand.
-#
-# Arguments:
-#
-# - The User Schema object representing the user who has just won.
-#
-# - The Game Schema object the win relates to.
-#
-# Returns:
-#
-# The string.
-sub announce_win {
-    my ($self, $user, $game) = @_;
-
-    my $schema  = $self->_schema;
-    my $irc     = $self->_irc;
-    my $channel = $game->rel_channel;
-    my $chan    = $channel->disp_name;
-
-    my $ug = $schema->resultset('UserGame')->find(
-        {
-            user => $user->id,
-            game => $game->id,
-        }
-    );
-
-    my $nick = $user->disp_nick;
-
-    $nick = $user->nick if (not defined $nick);
-
-    return sprintf("The winner is %s, who now has %u Awesome Point%s!",
-        $nick, $ug->wins, 1 == $ug->wins ? '' : 's');
-}
-
 # Announce the winner of the previous round in message to all of the players of
 # that round.
 #
@@ -3664,6 +3630,10 @@ sub pick_new_tsar {
      $new_tsar->tsarcount($new_tsar->tsarcount + 1);
      $new_tsar->update;
 
+     my $tsar_nick = $new_tsar->rel_user->disp_nick;
+
+     $tsar_nick = $new_tsar->rel_user->nick if (not defined $tsar_nick);
+
      if (defined $winner) {
          my $nick = $winner->rel_user->disp_nick;
 
@@ -3674,11 +3644,11 @@ sub pick_new_tsar {
 
          $irc->msg($chan,
              sprintf("%s The new Card Tsar is %s. Time for the next Black Card:",
-                 $winstring, $new_tsar->rel_user->nick));
+                 $winstring, $tsar_nick));
      } else {
          $irc->msg($chan,
              sprintf("The new Card Tsar is %s. Time for the next Black Card:",
-                 $new_tsar->rel_user->nick));
+                 $tsar_nick));
      }
 
      $self->deal_to_tsar($game);
