@@ -1,5 +1,23 @@
 # Change log
 
+## v0.4
+### 2015-03-03
+* Now keeps cards in hands in the same order and shows the position of new cards as they are dealt: [#4](https://github.com/grifferz/pah-irc/issues/4).
+* Token bucket rate limiter used for all messages: [#16](https://github.com/grifferz/pah-irc/issues/16).
+* Add a private `status` command: [#61](https://github.com/grifferz/pah-irc/issues/61).
+* Private `status` output includes any play the user has made: [#88](https://github.com/grifferz/pah-irc/issues/88).
+* Nag players to make their play if we see them talk: [#67](https://github.com/grifferz/pah-irc/issues/67).
+* Pad play number to two spaces when there's 10 or more of them: [#51](https://github.com/grifferz/pah-irc/issues/51).
+* Warning about turn length is now based on `turnclock`: [#76](https://github.com/grifferz/pah-irc/issues/76).
+* Prioritise channel messages: [#83](https://github.com/grifferz/pah-irc/issues/83).
+* Scores removed from `status` command and added to new `stats` command: [#78](https://github.com/grifferz/pah-irc/issues/78).
+* `status` command now shows when round started and how long before idle punishment: [#66](https://github.com/grifferz/pah-irc/issues/66).
+* Channel is now informed about the winning play before players' hands are topped up, avoiding long pause: [#83](https://github.com/grifferz/pah-irc/issues/83).
+* Players are now also informed of the winner and their play in private message: [#80](https://github.com/grifferz/pah-irc/issues/80).
+* Mixed case nicknames are now preserved: [#1](https://github.com/grifferz/pah-irc/issues/1).
+* Fix bug where Card Tsar could be forcibly resigned even while waiting for other players: [#64](https://github.com/grifferz/pah-irc/issues/64).
+* Cards Against Humanity 2nd expansion added (not actually in use yet though) (Douglas Gardner): [#49](https://github.com/grifferz/pah-irc/pull/73).
+
 ## v0.3
 ### 2015-02-20
 * Now persists plays across restarts of the bot process: [#62](https://github.com/grifferz/pah-irc/issues/62).
