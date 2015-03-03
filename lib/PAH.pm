@@ -3559,29 +3559,31 @@ sub announce_winner {
         # they picked the winner.
         next if ($ug->id == $current_tsar->id);
 
+        my $nick = $ug->rel_user->disp_nick;
+        $nick = $ug->rel_user->nick if (not defined $nick);
+
         if ($ug->id == $winner->id) {
             # Congratulate winning user.
-            $irc->msg($ug->rel_user->nick,
+            $irc->msg($nick,
                 sprintf("[%s] Congrats, you won! You now have %u Awesome"
                     . " Point%s! Your winning play was:", $chan, $winner->wins,
                     $winner->wins == 1 ? '' : 's'));
         } else {
             # Tell player about winner.
-            my $pronoun = $ug->rel_user->pronoun;
+            my $pronoun = $winner->rel_user->pronoun;
             $pronoun = 'their' if (not defined $pronoun);
 
-            $irc->msg($ug->rel_user->nick,
+            $irc->msg($nick,
                 sprintf("[%s] The winner was %s, who now has %u"
                     . " Awesome Point%s! %s winning play was:", $chan,
-                    $winner->rel_user->nick,
-                    $winner->wins, $winner->wins == 1 ? '' : 's',
+                    $nick, $winner->wins, $winner->wins == 1 ? '' : 's',
                     ucfirst($pronoun)));
         }
 
         foreach my $line (split(/\n/, $winplay)) {
             # Sometimes YAML leaves us with a trailing newline in the text.
             next if ($line =~ /^\s*$/);
-            $irc->msg($ug->rel_user->nick, "→ $line");
+            $irc->msg($nick, "→ $line");
         }
     }
 }
