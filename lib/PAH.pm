@@ -258,6 +258,8 @@ sub start {
     $self->db_connect;
     $self->{_plays} = $self->load_tallyfile;
 
+    $self->db_sanity_check_hands;
+
     try {
         $self->connect;
         AnyEvent->condvar->recv;
@@ -1843,8 +1845,8 @@ sub do_priv_hand {
         my $ug    = $active_usergames[0];
         my @cards = $ug->rel_usergamehands;
 
-        # Sort them by "wcardidx".
-        @cards = sort { $a->wcardidx <=> $b->wcardidx } @cards;
+        # Sort them by "pos".
+        @cards = sort { $a->pos <=> $b->pos } @cards;
 
         $self->_irc->msg($who,
             "Your White Cards in " . $ug->rel_game->rel_channel->disp_name
@@ -2079,7 +2081,8 @@ sub topup_hand {
     my $schema     = $self->_schema;
     my $user       = $ug->rel_user;
     my $game       = $ug->rel_game;
-    my $num_wcards = scalar $ug->rel_usergamehands;
+    my @wcards     = $ug->rel_usergamehands;
+    my $num_wcards = scalar @wcards;
     my $channel    = $game->rel_channel;
 
     debug("%s currently has %u White Cards in %s game",
@@ -2093,6 +2096,27 @@ sub topup_hand {
         return;
     }
 
+    # Start off with 10 available card positions.
+    my %avail_pos_hash = map { $_ => 1 } 1 .. 10;
+
+    # Gte rid of positions that we already have.
+    foreach my $wcard (@wcards) {
+        delete $avail_pos_hash{$wcard->pos};
+    }
+
+    # Put that into an array ordered by increasing position.
+    my @avail_pos = sort { $a <=> $b } keys %avail_pos_hash;
+
+    debug("  Available card positions: %s", join(' ', @avail_pos));
+
+    # Sanity check that the number of available positions is the same as the
+    # number of cards needed.
+    if (scalar @avail_pos != $needed) {
+        debug("%s has %u available hand positions but needs %u cards", $user->nick,
+            scalar @avail_pos, $needed);
+        return;
+    }
+
     # Are there discarded cards for this UserGame?
     my @discards = $ug->rel_usergamediscards;
 
@@ -2103,9 +2127,19 @@ sub topup_hand {
         debug("There's %u cards on the discard pile for this user/game; taking %u"
            . " from there", $num_discards, $discards_needed);
 
-        my @discard_insert = map {
-            { user_game => $ug->id, wcardidx => $_->wcardidx }
-        } @discards;
+        my @discard_insert;
+
+        foreach my $d (@discards) {
+            my $new_pos = shift @avail_pos;
+
+            my $new_card = {
+                user_game => $ug->id,
+                wcardidx  => $d->wcardidx,
+                pos       => $new_pos,
+            };
+
+            push(@discard_insert, $new_card);
+        }
 
         # Back into the hand they go…
         $schema->resultset('UserGameHand')->populate(\@discard_insert);
@@ -2118,7 +2152,19 @@ sub topup_hand {
             }
         )->delete;
 
-        $self->notify_new_wcards($ug, \@discards);
+        my @added_pos = map { $_->{pos} } @discard_insert;
+
+        my @added = $schema->resultset('UserGameHand')->search(
+            {
+                user_game => $ug->id,
+                pos       => { '-in' => \@added_pos },
+            },
+            {
+                order_by => 'pos ASC',
+            }
+        );
+
+        $self->notify_new_wcards($ug, \@added);
 
         # Now run topup again to pick up any extra we might need.
         $self->topup_hand($ug);
@@ -2169,9 +2215,19 @@ sub topup_hand {
     );
 
     # Construct an array of hashrefs representing the insert into the hand…
-    my @to_insert = map {
-        { user_game => $ug->id, wcardidx => $_->cardidx }
-    } @new;
+    my @to_insert;
+
+    foreach my $n (@new) {
+        my $new_pos = shift @avail_pos;
+
+        my $new_card = {
+            user_game => $ug->id,
+            wcardidx  => $n->cardidx,
+            pos       => $new_pos,
+        };
+
+        push(@to_insert, $new_card);
+    }
 
     # Actually do the insert…
     $schema->resultset('UserGameHand')->populate(\@to_insert);
@@ -2187,10 +2243,19 @@ sub topup_hand {
         }
     )->delete;
 
-    # Sort them by "cardidx".
-    @new = sort { $a->cardidx <=> $b->cardidx } @new;
+    my @added_pos = map { $_->{pos} } @to_insert;
 
-    $self->notify_new_wcards($ug, \@new);
+    my @added = $schema->resultset('UserGameHand')->search(
+        {
+            user_game => $ug->id,
+            pos       => { '-in' => \@added_pos },
+        },
+        {
+            order_by => 'pos ASC',
+        }
+    );
+
+    $self->notify_new_wcards($ug, \@added);
 }
 
 # A round has just started so each player will need their hand topping back up
@@ -2224,8 +2289,7 @@ sub topup_hands {
 #
 # - The UserGame Schema object for this User/Game.
 #
-# - An arrayref of WCard *or* UserGameDiscard Schema objects representing the
-#   new cards.
+# - An arrayref of UserGameHand Schema objects representing the new cards.
 #
 # Returns:
 #
@@ -2265,13 +2329,7 @@ sub notify_new_wcards {
 # Arguments:
 #
 # - The UserGame Schema object for this User/Game.
-# - An arrayref of Schema objects representing the cards. These can be either:
-#   - ::WCard, representing cards from the deck
-#   - ::UserGameHand, representing cards from the hand
-#   - ::UserGameDiscard, representing cards from the discard pile.
-#
-#   If the object is a ::WCard then the accessor for the card index will be
-#   "cardidx", otherwise it will be "wcardidx".
+# - An arrayref of UserGameHand Schema objects representing the cards.
 #
 # Returns:
 #
@@ -2283,24 +2341,10 @@ sub notify_wcards {
     my $deck = $self->_deck->{$ug->rel_game->deck};
     my $irc  = $self->_irc;
 
-    my $i = 0;
-
-    # Don't number them unless this is a full hand, as the numbering would be
-    # incorrect.
-    my $numbering = scalar @{ $cards } >= 10 ? 1 : 0;
-
     foreach my $wcard (@{ $cards }) {
-        $i++;
-
         my $index;
 
-        if ($wcard->has_column('wcardidx')) {
-            # This is a ::UserGameHand or a ::UserGameDiscard.
-            $index = $wcard->wcardidx;
-        } else {
-            # This is a ::WCard.
-            $index = $wcard->cardidx;
-        }
+        $index = $wcard->wcardidx;
 
         my $text = $deck->{White}->[$index];
 
@@ -2312,11 +2356,7 @@ sub notify_wcards {
             $text .= '.';
         }
 
-        if ($numbering) {
-            $irc->msg($who, sprintf("%2u. %s", $i, $text));
-        } else {
-            $irc->msg($who, "→ $text");
-        }
+        $irc->msg($who, sprintf("%2u. %s", $wcard->pos, $text));
     }
 }
 
@@ -2868,30 +2908,26 @@ sub build_play {
     return $btext;
 }
 
-# Return the UserGameHand row corresponding to the n'th card for a given
-# UserGame, ordered by wcardix.
+# Return the UserGameHand row corresponding to the particular card position for
+# a given UserGame.
 #
 # Arguments:
 #
 # - The UserGame Schema object.
-# - The index (1-based, so "2" would be the second card).
+# - The position in the hand (1-based, so "2" would be the second card).
 #
 # Returns:
 #
 # A UserGameHand Schema object or undef.
 sub db_get_nth_wcard {
-    my ($self, $ug, $idx) = @_;
+    my ($self, $ug, $pos) = @_;
 
     my $schema = $self->_schema;
 
     return $schema->resultset('UserGameHand')->find(
         {
             user_game => $ug->id,
-        },
-        {
-            order_by => { '-asc' => 'wcardidx' },
-            rows     => 1,
-            offset   => $idx - 1,
+            pos       => $pos,
         },
     );
 }
@@ -4008,6 +4044,88 @@ sub poke {
                . qq{ Card. This is the only reminder I'll send!});
             $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
         }
+    }
+}
+
+# Check that all hands in all games are valid, and fix them if necessary (and
+# possible). This includes:
+#
+# - Do all cards have position numbers?
+#
+#   Prior to database version 9 hand cards did not have a position number, so
+#   after schema upgrade their pos column will be NULL. They will need to be
+#   sequentially re-ordered.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub db_sanity_check_hands {
+    my ($self) = @_;
+
+    my $schema = $self->_schema;
+
+    my $nulls = $schema->resultset('UserGameHand')->search(
+        {
+            pos => undef,
+        },
+    );
+
+    my $null_cards = $nulls->count;
+
+    if ($null_cards > 0) {
+        debug("Found %u hand cards with NULL position; fixing…", $null_cards);
+
+        my $ugs = $schema->resultset('UserGame')->search({});
+
+        while (my $ug = $ugs->next) {
+            $self->db_fix_hand_positions($ug);
+        }
+    }
+}
+
+# Re-order a player's hand so that the cards are sequentially numbered.
+#
+# Arguments:
+#
+# - UserGame Schema object whose hand is being fixed.
+#
+# Returns:
+#
+# Nothing.
+sub db_fix_hand_positions {
+    my ($self, $ug) = @_;
+
+    my $schema = $self->_schema;
+
+    my $nulls = $schema->resultset('UserGameHand')->search(
+        {
+            pos       => undef,
+            user_game => $ug->id,
+        },
+        {
+            order_by => 'id ASC',
+        }
+    );
+
+    my $null_count = $nulls->count;
+
+    my $nick = $ug->rel_user->disp_nick;
+
+    $nick = $ug->rel_user->nick if (not defined $nick);
+
+    debug("  Fixing %u NULL-position cards for %s in game %u…", $null_count,
+        $nick, $ug->game);
+
+    my $pos = 1;
+
+    while (my $card = $nulls->next) {
+        $card->pos($pos);
+        $card->update;
+        $pos++;
     }
 }
 

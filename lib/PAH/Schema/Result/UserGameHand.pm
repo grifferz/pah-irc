@@ -47,6 +47,14 @@ __PACKAGE__->add_columns(
         is_nullable => 0,
         extra       => { unsigned => 1 },
     },
+
+    # Position within the hand of this card.
+    pos => {
+        data_type     => 'integer',
+        is_nullable   => 1,
+        extra         => { unsigned => 1 },
+        default_value => NULL,
+    },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -54,6 +62,12 @@ __PACKAGE__->add_unique_constraint(
     'users_games_hands_user_game_wcardidx_idx' => [
         'user_game',
         'wcardidx',
+    ]
+);
+__PACKAGE__->add_unique_constraint(
+    'users_games_hands_user_game_pos_idx' => [
+        'user_game',
+        'pos',
     ]
 );
 
