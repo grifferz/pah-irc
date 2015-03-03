@@ -258,6 +258,8 @@ sub start {
     $self->db_connect;
     $self->{_plays} = $self->load_tallyfile;
 
+    $self->db_sanity_check_hands;
+
     try {
         $self->connect;
         AnyEvent->condvar->recv;
@@ -3985,6 +3987,88 @@ sub poke {
                . qq{ Card. This is the only reminder I'll send!});
             $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
         }
+    }
+}
+
+# Check that all hands in all games are valid, and fix them if necessary (and
+# possible). This includes:
+#
+# - Do all cards have position numbers?
+#
+#   Prior to database version 9 hand cards did not have a position number, so
+#   after schema upgrade their pos column will be NULL. They will need to be
+#   sequentially re-ordered.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub db_sanity_check_hands {
+    my ($self) = @_;
+
+    my $schema = $self->_schema;
+
+    my $nulls = $schema->resultset('UserGameHand')->search(
+        {
+            pos => undef,
+        },
+    );
+
+    my $null_cards = $nulls->count;
+
+    if ($null_cards > 0) {
+        debug("Found %u hand cards with NULL position; fixing…", $null_cards);
+
+        my $ugs = $schema->resultset('UserGame')->search({});
+
+        while (my $ug = $ugs->next) {
+            $self->db_fix_hand_positions($ug);
+        }
+    }
+}
+
+# Re-order a player's hand so that the cards are sequentially numbered.
+#
+# Arguments:
+#
+# - UserGame Schema object whose hand is being fixed.
+#
+# Returns:
+#
+# Nothing.
+sub db_fix_hand_positions {
+    my ($self, $ug) = @_;
+
+    my $schema = $self->_schema;
+
+    my $nulls = $schema->resultset('UserGameHand')->search(
+        {
+            pos       => undef,
+            user_game => $ug->id,
+        },
+        {
+            order_by => 'id ASC',
+        }
+    );
+
+    my $null_count = $nulls->count;
+
+    my $nick = $ug->rel_user->disp_nick;
+
+    $nick = $ug->rel_user->nick if (not defined $nick);
+
+    debug("  Fixing %u NULL-position cards for %s in game %u…", $null_count,
+        $nick, $ug->game);
+
+    my $pos = 1;
+
+    while (my $card = $nulls->next) {
+        $card->pos($pos);
+        $card->update;
+        $pos++;
     }
 }
 
