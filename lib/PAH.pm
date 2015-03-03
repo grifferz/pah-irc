@@ -3521,8 +3521,12 @@ sub announce_win {
         }
     );
 
+    my $nick = $user->disp_nick;
+
+    $nick = $user->nick if (not defined $nick);
+
     return sprintf("The winner is %s, who now has %u Awesome Point%s!",
-        $user->nick, $ug->wins, 1 == $ug->wins ? '' : 's');
+        $nick, $ug->wins, 1 == $ug->wins ? '' : 's');
 }
 
 # Announce the winner of the previous round in message to all of the players of
