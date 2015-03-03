@@ -1365,11 +1365,35 @@ sub report_game_status {
            concise(duration($started_ago, 2)),
            concise(duration($punishment_in, 2))));
 
-    $irc->msg($target,
-        sprintf("%sThe Card Tsar is %s; current Black Card:",
-            $is_nick ? "[$chan] " : '', $tsar_nick));
+    my $user;
 
-    $self->notify_bcard($target, $game);
+    $user = $self->db_get_user($target) if ($is_nick);
+
+    if ($is_nick and defined $self->_plays and defined $self->_plays->{$game->id}
+            and defined $self->_plays->{$game->id}->{$user->id}) {
+        # This is a private status command and they've made a play in this
+        # round, so tell them about it.
+        $irc->msg($target,
+            sprintf("[%s] The Card Tsar is %s. Your play:", $chan,
+                $tsar_nick));
+
+        my $play = $self->_plays->{$game->id}->{$user->id}->{play};
+
+        foreach my $line (split(/\n/, $play)) {
+            # Sometimes YAML leaves us with a trailing newline in the text.
+            next if ($line =~ /^\s*$/);
+
+            $irc->msg($target, "→ $line");
+        }
+    } else {
+        # Either this is public, or they haven't made a play in this round (may
+        # be the Card Tsar) so just tell them the Black Card.
+        $irc->msg($target,
+            sprintf("%sThe Card Tsar is %s; current Black Card:",
+                $is_nick ? "[$chan] " : '', $tsar_nick));
+
+        $self->notify_bcard($target, $game);
+    }
 }
 
 # User wants to start a new game in a channel.
