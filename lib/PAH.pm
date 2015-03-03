@@ -3007,7 +3007,9 @@ sub list_plays {
 
         my $seq       = $plays->{$uid}->{seq};
         my $text      = $plays->{$uid}->{play};
-        my $tsar_nick = $tsar_ug->rel_user->nick;
+        my $tsar_nick = $tsar_ug->rel_user->disp_nick;
+
+        $tsar_nick = $tsar_ug->rel_user->ncik if (not defined $tsar_nick);
 
         if (1 == $seq) {
             $header_length = length("$tsar_nick: Which is the best play?");
