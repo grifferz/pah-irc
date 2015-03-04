@@ -1582,10 +1582,15 @@ sub do_pub_dealin {
         # TODO: Maybe keep track that they wanted to play, and deal them in as
         # soon as the current hand finishes?
         debug("%s can't join game at %s because the hand is complete", $who, $chan);
+
+        my $tsar      = $game->rel_tsar_usergame->rel_user;
+        my $tsar_nick = $tsar->disp_nick;
+
+        $tsar_nick = $tsar->nick if (not defined $tsar_nick);
+
         $irc->msg($chan,
             sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
-               . " to pick the winner. Please try again later.", $who,
-               $game->rel_tsar_usergame->rel_user->nick));
+               . " to pick the winner. Please try again later.", $who, $tsar_nick));
         return;
     }
 
