@@ -1231,8 +1231,8 @@ sub do_pub_status {
             debug("%s tried to display status for %s but it was already done %u"
                . " secs ago; ignoring", $who, $chan, ($now - $last_status));
             $irc->msg($chan,
-                sprintf("$who: Sorry, I'm ignoring your status command in"
-                   . " because I did one just %u secs ago.",
+                sprintf("$who: Sorry, I'm ignoring your status command because"
+                   . " I did one just %u secs ago.",
                    ($now - $last_status)));
             return;
         }
