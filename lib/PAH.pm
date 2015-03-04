@@ -19,7 +19,7 @@ Get Cards Against Humanity here!
 =cut
 
 package PAH;
-our $VERSION = "0.4";
+our $VERSION = "0.5";
 
 use utf8; # There's some funky literals in here
 use Config::Tiny;
