@@ -235,15 +235,15 @@ sub BUILD {
 
   $self->{_whois_queue} = {};
 
-  my $default_deck = 'cah_uk';
+  my $default_packs = 'cah_uk';
 
-  $self->{_deck} = PAH::Deck->load($default_deck);
+  $self->{_deck} = PAH::Deck->new($default_packs);
 
-  my $deck = $self->{_deck}->{$default_deck};
+  my $deck = $self->{_deck};
 
-  debug("Loaded deck: %s", $deck->{Description});
+  debug("Loaded packs: %s", $deck->pack_descs);
   debug("Deck has %u Black Cards, %u White Cards",
-      scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
+      $deck->count('Black'), $deck->count('White'));
 
   $self->{_last}      = {};
   $self->{_pn_timers} = {};
@@ -1962,10 +1962,6 @@ sub db_get_channel {
 # The indices of the cards will be inserted in random order. Therefore we can
 # iterate through a random deck by selecting increasing row ID numbers.
 #
-# Our template decks are:
-#  $self->_deck->{deckname}->{Black}
-#  $self->_deck->{deckname}->{White}
-#
 # Arguments:
 #
 # - Game Schema object
@@ -1984,14 +1980,14 @@ sub db_populate_cards {
         die "color must be either 'Black' or 'White'";
     }
 
-    my $schema   = $self->_schema;
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
+    my $schema = $self->_schema;
+    my $packs  = $game->packs;
+    my $deck   = $self->_deck;
 
-    my $num_cards = scalar @{ $deck->{$color} };
+    my $num_cards = $deck->count($color);
 
-    debug("Shuffling deck of %u %s Cards from the %s set, for game at %s",
-        $num_cards, $color, $deckname, $game->rel_channel->disp_name);
+    debug("Shuffling deck of %u %s Cards from packs [%s], for game at %s",
+        $num_cards, $color, $packs, $game->rel_channel->disp_name);
 
     my @card_indices = shuffle (0 .. ($num_cards - 1));
 
@@ -2008,14 +2004,6 @@ sub db_populate_cards {
 
         # Make an array of card indices of the cards in every player's hands.
         foreach my $ug (@players) {
-=pod
-            debug("Dropping %u cards from %s hand", scalar $ug->rel_usergamehands,
-                $ug->rel_user->nick);
-
-            foreach my $ugh ($ug->rel_usergamehands) {
-                debug("  Dropped: %s", $deck->{White}->[$ugh->wcardidx]);
-            }
-=cut
             push(@hand_card_indices, map { $_->wcardidx } $ug->rel_usergamehands);
         }
 
@@ -2302,9 +2290,8 @@ sub topup_hands {
 sub notify_new_wcards {
     my ($self, $ug, $new) = @_;
 
-    my $who  = $ug->rel_user->nick;
-    my $deck = $self->_deck->{$ug->rel_game->deck};
-    my $irc  = $self->_irc;
+    my $who = $ug->rel_user->nick;
+    my $irc = $self->_irc;
 
     my $num_added = scalar @{ $new };
 
@@ -2343,7 +2330,7 @@ sub notify_wcards {
     my ($self, $ug, $cards) = @_;
 
     my $who  = $ug->rel_user->nick;
-    my $deck = $self->_deck->{$ug->rel_game->deck};
+    my $deck = $self->_deck;
     my $irc  = $self->_irc;
 
     foreach my $wcard (@{ $cards }) {
@@ -2351,7 +2338,7 @@ sub notify_wcards {
 
         $index = $wcard->wcardidx;
 
-        my $text = $deck->{White}->[$index];
+        my $text = $deck->white($index);
 
         # Upcase the first character and add a period on the end unless it
         # already has some punctuation.
@@ -2447,8 +2434,8 @@ sub notify_bcard {
 
     my $channel = $game->rel_channel;
     my $chan    = $channel->disp_name;
-    my $deck    = $self->_deck->{$game->deck};
-    my $text    = $deck->{Black}->[$game->bcardidx];
+    my $deck    = $self->_deck;
+    my $text    = $deck->black($game->bcardidx);
 
     foreach my $line (split(/\n/, $text)) {
         # Sometimes YAML leaves us with a trailing newline in the text.
@@ -2865,30 +2852,29 @@ sub notify_plays {
 sub build_play {
     my ($self, $ug, $bcardidx, $ughs) = @_;
 
-    my $game     = $ug->rel_game;
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
-    my $btext    = $deck->{Black}->[$bcardidx];
+    my $game  = $ug->rel_game;
+    my $deck  = $self->_deck;
+    my $btext = $deck->black($bcardidx);
 
     if ($btext !~ /_{5,}/s) {
         # There's no blanks in this Black Card text so this will be a 1-card
         # answer, tacked on the end.
-        $btext = sprintf("%s %s.",
-            $btext, ucfirst($deck->{White}->[$ughs->[0]->wcardidx]));
+        $btext = sprintf("%s %s.", $btext,
+            ucfirst($deck->white($ughs->[0]->wcardidx)));
         return $btext;
     }
 
     # Don't modify the passed-in $ughs.
     my @build_ughs = @{ $ughs };
     my $ugh        = shift @build_ughs;
-    my $wtext      = $deck->{White}->[$ugh->wcardidx];
+    my $wtext      = $deck->white($ugh->wcardidx);
 
     $btext =~ s/_{5,}/$wtext/s;
 
     # If there's still a UserGameHand left, do it again.
     if (scalar @build_ughs) {
         $ugh   = shift @build_ughs;
-        $wtext = $deck->{White}->[$ugh->wcardidx];
+        $wtext = $deck->white($ugh->wcardidx);
 
         $btext =~ s/_{5,}/$wtext/s;
     }
@@ -2959,9 +2945,8 @@ sub db_get_nth_wcard {
 sub how_many_blanks {
     my ($self, $game, $idx) = @_;
 
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
-    my $text     = $deck->{Black}->[$idx];
+    my $deck = $self->_deck;
+    my $text = $deck->black($idx);
 
     if ($text !~ /_____/s) {
         # no blanks at all, so that's 1.
@@ -3539,11 +3524,16 @@ sub cleanup_plays {
     # an array of just the ids.
     my @to_delete;
     foreach my $ugh (@cards) {
-        my $white_deck = $self->_deck->{$game->deck}->{White};
-        my $idx = $ugh->wcardidx;
+        my $deck = $self->_deck;
+        my $idx  = $ugh->wcardidx;
+        my $user = $ugh->rel_usergame->rel_user;
+        my $nick = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
 
         debug("Discarding played White Cards:");
-        debug("%s:  %s", $ugh->rel_usergame->rel_user->nick, $white_deck->[$idx]);
+        debug("%s:  %s", $nick, $deck->white($idx));
 
         push(@to_delete, $ugh->id);
     }
