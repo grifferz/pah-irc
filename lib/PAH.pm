@@ -1773,7 +1773,7 @@ sub resign {
         $self->topup_hands($game);
 
         # Elect the next Tsar.
-        $self->pick_new_tsar(undef, undef, undef, $game);
+        $self->pick_new_tsar(undef, undef, $game);
         $self->clear_pokes($game);
     } else {
         # Trash any plays this user may have made.
@@ -3643,6 +3643,10 @@ sub announce_winner {
 # Nothing.
 sub pick_new_tsar {
     my ($self, $winner, $winplay, $game) = @_;
+
+    if (not defined $game) {
+        die "Need a game object";
+    }
 
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
