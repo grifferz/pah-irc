@@ -74,8 +74,8 @@ __PACKAGE__->add_columns(
         extra       => { unsigned => 1 },
     },
 
-    # Deck name in use by this Game.
-    deck => {
+    # Packs in use by this Game.
+    packs => {
         data_type     => 'varchar',
         is_nullable   => 0,
         default_value => 'cah_uk',
