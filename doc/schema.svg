@@ -127,7 +127,7 @@
 <polyline fill="none" stroke="black" points="184,-76.5 338,-76.5 "/>
 <text text-anchor="start" x="192" y="-59.9" font-family="Times Roman,serif" font-size="14.00">&#45; id [PK]</text>
 <text text-anchor="start" x="192" y="-42.9" font-family="Times Roman,serif" font-size="14.00">&#45; user_game [FK,U]</text>
-<text text-anchor="start" x="192" y="-25.9" font-family="Times Roman,serif" font-size="14.00">&#45; wcardidx [U]</text>
+<text text-anchor="start" x="192" y="-25.9" font-family="Times Roman,serif" font-size="14.00">&#45; wcardidx [U,N]</text>
 <text text-anchor="start" x="192" y="-8.9" font-family="Times Roman,serif" font-size="14.00">&#45; pos [U,N]</text>
 </g>
 <!-- node4&#45;&gt;node7 -->

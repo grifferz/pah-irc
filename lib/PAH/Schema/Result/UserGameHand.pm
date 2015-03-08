@@ -44,7 +44,7 @@ __PACKAGE__->add_columns(
     # Index into White Card list this relates to.
     wcardidx => {
         data_type   => 'integer',
-        is_nullable => 0,
+        is_nullable => 1,
         extra       => { unsigned => 1 },
     },
 
