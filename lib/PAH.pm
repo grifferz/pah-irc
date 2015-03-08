@@ -2182,14 +2182,7 @@ sub topup_hand {
         $schema->resultset('WCard')->search({ game => $game->id })->delete;
 
         # Delete all the discard piles as well.
-        my @usergames = $game->rel_usergames;
-        my @ug_ids    = map { $_->id } @usergames;
-
-        $schema->resultset('UserGameDiscard')->search(
-            {
-                user_game => { '-in' => \@ug_ids },
-            }
-        )->delete;
+        $self->db_delete_discards($game);
 
         $self->db_populate_cards($game, 'White');
     }
@@ -4130,6 +4123,35 @@ sub db_fix_hand_positions {
         $card->update;
         $pos++;
     }
+}
+
+# Delete all discard piles for a given game.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# Number of cards (rows) deleted.
+sub db_delete_discards {
+    my ($self, $game) = @_;
+
+    my $schema    = $self->_schema;
+    my @usergames = $game->rel_usergames;
+    my @ug_ids    = map { $_->id } @usergames;
+
+    my $discard_rs = $schema->resultset('UserGameDiscard')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    );
+
+    my $count = $discard_rs->count;
+
+    $discard_rs->delete if ($count);
+
+    return $count
 }
 
 1;
