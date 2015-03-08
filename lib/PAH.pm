@@ -151,6 +151,10 @@ sub BUILD {
       die "'msg_burst' config item must be a positive integer";
   }
 
+  if (not defined $self->{_config}->{packs}) {
+      $self->{_config}->{packs} = 'cah_uk';
+  }
+
   $self->{_pub_dispatch} = {
       'status'    => {
           sub        => \&do_pub_status,
@@ -235,13 +239,14 @@ sub BUILD {
 
   $self->{_whois_queue} = {};
 
-  my $default_packs = 'cah_uk';
-
-  $self->{_deck} = PAH::Deck->new($default_packs);
+  $self->{_deck} = PAH::Deck->new($self->{_config}->{packs});
 
   my $deck = $self->{_deck};
 
-  debug("Loaded packs: %s", $deck->pack_descs);
+  debug("Loaded packs:");
+  foreach my $pd ($deck->pack_descs) {
+      debug("  %s", $pd);
+  }
   debug("Deck has %u Black Cards, %u White Cards",
       $deck->count('Black'), $deck->count('White'));
 
