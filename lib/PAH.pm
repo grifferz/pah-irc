@@ -264,6 +264,7 @@ sub start {
     $self->{_plays} = $self->load_tallyfile;
 
     $self->db_sanity_check_hands;
+    $self->db_sanity_check_packs;
 
     try {
         $self->connect;
@@ -4127,6 +4128,179 @@ sub db_fix_hand_positions {
         $card->pos($pos);
         $card->update;
         $pos++;
+    }
+}
+
+# Switch the packs for an existing game to that specified by $self->_deck.
+#
+# Process goes like this:
+#
+# 1. Empty all discard piles.
+# 2. Empty the decks for this game.
+# 3. Check if the current Black Card text already exists in the new Black deck.
+#    - Yes? Update Black Card index in games table to be index of existing card.
+#    - No? Append Black Card on end of deck, update Black Card index in games
+#          table to be new index.
+# 4. Update all rows in users_games_hands for this game to have NULL wcardidx
+#    so there won't be any constraint violations when we are fixing the
+#    wcardidx later.
+# 5. For each White Card that is in the hands of all players in this game:
+#    1. Does this White Card text already exist in the new White deck?
+#       - Yes? Update White Card index in users_games_hands to be index of
+#         existing card.
+#       - No? Append White Card on the end of deck, update White Card index in
+#         users_games_hands to be the new index.
+# 6. Re-populate game's decks (bcards and wcards tables).
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub db_switch_packs {
+    my ($self, $game) = @_;
+
+    my $schema        = $self->_schema;
+    my $deck          = $self->_deck;
+    my $current_packs = join(' ', $deck->packs);
+    my $their_deck    = PAH::Deck->new($game->packs);
+
+    debug("  Deleting all discard piles…");
+
+    my $count = $self->db_delete_discards($game);
+
+    debug("    …Deleted %u cards", $count) if ($count);
+
+    debug("  Deleting bcards…");
+    $schema->resultset('BCard')->search({ game => $game->id })->delete;
+    debug("  Deleting wcards…");
+    $schema->resultset('WCard')->search({ game => $game->id })->delete;
+
+    my $cur_bcardidx = $game->bcardidx;
+    my $cur_bcardtxt = $their_deck->black($cur_bcardidx);
+
+    my $new_bcardidx = $deck->find('Black', $cur_bcardtxt);
+
+    if (defined $new_bcardidx) {
+        if ($new_bcardidx != $cur_bcardidx) {
+            debug("  Their Black Card %u exists as %u in new deck; adjusting…",
+                $cur_bcardidx, $new_bcardidx);
+            $game->bcardidx($new_bcardidx);
+        } else {
+            debug("  Black Cards identical (%u)", $cur_bcardidx);
+        }
+    } else {
+        debug("  Their Black Card %u is not in new deck; appending…",
+            $cur_bcardidx);
+        $new_bcardidx = $deck->append('Black', $cur_bcardtxt);
+        $game->bcardidx($new_bcardidx);
+    }
+
+    my @usergames = $game->rel_usergames;
+    my @ug_ids = map { $_->id } @usergames;
+
+    debug("  Fixing up White Cards in hand for %u players…", scalar @ug_ids);
+
+    # Get the current mappings of ugh id to card text.
+    my $cards = $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    );
+
+    my %texts;
+
+    while (my $card = $cards->next) {
+        $texts{$card->id} = $their_deck->white($card->wcardidx);
+    }
+
+    debug("    Setting indices to NULL…");
+    $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    )->update({ wcardidx => undef });
+
+    $cards = $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        },
+        {
+            prefetch => 'rel_users',
+        }
+    );
+
+    while (my $card = $cards->next) {
+        my $user         = $card->rel_usergame->rel_user;
+        my $cur_wcardtxt = $texts{$card->id};
+        my $new_wcardidx = $deck->find('White', $cur_wcardtxt);
+
+        my $nick = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
+
+        if (defined $new_wcardidx) {
+            debug("    %s has White Card that already exists as %u in new deck;"
+               . " adjusting…", $nick, $new_wcardidx);
+            $card->wcardidx($new_wcardidx);
+        } else {
+            debug("    %s has a White Card that is not in new deck; appending…",
+                $nick);
+            $new_wcardidx = $deck->append('White', $cur_wcardtxt);
+            $card->wcardidx($new_wcardidx);
+        }
+
+        $card->update;
+    }
+
+    $game->packs($current_packs);
+    $game->update;
+
+    debug("  Repopulating decks for this game…");
+    foreach my $color (qw/Black White/) {
+        $self->db_populate_cards($game, $color);
+    }
+}
+
+# Check that every game is using the current set of packs.
+#
+# If a game is not using the current pack then we'll have to hackishly fix
+# things up.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub db_sanity_check_packs {
+    my ($self) = @_;
+
+    my $schema        = $self->_schema;
+    my $deck          = $self->_deck;
+    my $current_packs = join(' ', $deck->packs);
+
+    my $games = $schema->resultset('Game')->search(
+        {
+            packs => { '!=' => $current_packs },
+        },
+        {
+            prefetch => 'rel_channel',
+        }
+    );
+
+    while (my $game = $games->next) {
+        debug("Game in %s has packs '%s' but we've loaded '%s'; fixing up…",
+            $game->rel_channel->disp_name, $game->packs, $current_packs);
+
+        # All this in a transaction.
+        $schema->txn_do(sub {
+            $self->db_switch_packs($game);
+        });
     }
 }
 
