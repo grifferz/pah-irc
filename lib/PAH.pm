@@ -4228,7 +4228,9 @@ sub db_switch_packs {
             user_game => { '-in' => \@ug_ids },
         },
         {
-            prefetch => 'rel_users',
+            prefetch => {
+                'rel_usergame' => 'rel_user',
+            }
         }
     );
 
