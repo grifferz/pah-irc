@@ -12,6 +12,8 @@ Cards Against Humanity is a trademark of Cards Against Humanity LLC.
 
 Learn more about it at [their web site](http://www.cardsagainsthumanity.com/).
 
+There's also [some logs from a real game of PAH](http://grifferz.github.io/pah-irc/doc/logs.html).
+
 ## Why?
 
 There's quite a few IRC bots for this already, but it struck me that none of
