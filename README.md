@@ -2,17 +2,13 @@
 
 ## What?
 
-It's another IRC bot for playing [Cards Against Humanity™](http://www.cardsagainsthumanity.com/).
-
-Cards Against Humanity is a trademark of Cards Against Humanity LLC.
+It's another IRC bot for playing [Cards Against Humanity™](http://www.cardsagainsthumanity.com/). Cards Against Humanity is a trademark of Cards Against Humanity LLC.
 
 [Wikipedia](http://en.wikipedia.org/wiki/Cards_Against_Humanity) describes it as:
 
 > a party game using cards. It is available as a free download that players can print to create their own cards, and also available to purchase in published hardcopy.
 
-Learn more about it at [their web site](http://www.cardsagainsthumanity.com/).
-
-There's also [some logs from a real game of PAH](http://grifferz.github.io/pah-irc/doc/logs.html).
+Here's [some logs from a real game of Perpetually Against Humanity](http://grifferz.github.io/pah-irc/doc/logs.html).
 
 ## Why?
 
