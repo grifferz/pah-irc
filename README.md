@@ -2,7 +2,15 @@
 
 ## What?
 
-It's another IRC bot for playing [Cards Against Humanity](http://www.cardsagainsthumanity.com/).
+It's another IRC bot for playing [Cards Against Humanity™](http://www.cardsagainsthumanity.com/).
+
+Cards Against Humanity is a trademark of Cards Against Humanity LLC.
+
+[Wikipedia](http://en.wikipedia.org/wiki/Cards_Against_Humanity) describes it as
+
+> a party game using cards. It is available as a free download that players can print to create their own cards, and also available to purchase in published hardcopy.
+
+Learn more about it at [their web site](http://www.cardsagainsthumanity.com/).
 
 ## Why?
 
@@ -312,6 +320,12 @@ going to be on IRC for a while) can be helpful by explicitly resigning.
 This will be initially supplied with the UK edition of Cards Against Humanity
 (because the first channels that will probably use it are UK-biased channels),
 but a later release should support additional packs.
+
+## License
+
+This IRC bot is made available under the Artistic License, the same as Perl itself.
+
+Cards Against Humanity card content is used under a [Creative Commons BY-NC-SA license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
 
 ## Bugs
 
