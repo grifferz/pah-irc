@@ -21,6 +21,10 @@ sub new {
     foreach my $name (@packlist) {
         my $yaml = LoadFile("./packs/$name.yml");
 
+        # Trailing newlines begone.
+        chomp(@{ $yaml->{Black} });
+        chomp(@{ $yaml->{White} });
+
         push(@{ $self->{_Black} }, @{ $yaml->{Black} });
         push(@{ $self->{_White} }, @{ $yaml->{White} });
 
