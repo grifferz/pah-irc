@@ -1,6 +1,21 @@
 # Example configuration file for pah-irc. Rename this to etc/pah-irc.conf to
 # use it (you'll need to at least set its nickname and nick password though).
 
+# List of the names of the packs you want to use.
+#
+# This is currently set bot-wide, so applies to all games/channels the bot is
+# in. The names are the .yml files in the packs/ directory. The default setting
+# is "cah_uk".
+#
+# Once you've set this do not re-order the pack names in the list, otherwise it
+# will be treated as a different deck and everything will be reshuffled.
+#
+# Default:
+#packs = cah_uk
+#
+# Default plus 2nd expansion with UK modifications:
+#packs = cah_uk cah_2nd_uk.yml
+
 # Server hostname or IP.
 target_server = uk.blitzed.org
 

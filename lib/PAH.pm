@@ -151,6 +151,10 @@ sub BUILD {
       die "'msg_burst' config item must be a positive integer";
   }
 
+  if (not defined $self->{_config}->{packs}) {
+      $self->{_config}->{packs} = 'cah_uk';
+  }
+
   $self->{_pub_dispatch} = {
       'status'    => {
           sub        => \&do_pub_status,
@@ -235,15 +239,16 @@ sub BUILD {
 
   $self->{_whois_queue} = {};
 
-  my $default_deck = 'cah_uk';
+  $self->{_deck} = PAH::Deck->new($self->{_config}->{packs});
 
-  $self->{_deck} = PAH::Deck->load($default_deck);
+  my $deck = $self->{_deck};
 
-  my $deck = $self->{_deck}->{$default_deck};
-
-  debug("Loaded deck: %s", $deck->{Description});
+  debug("Loaded packs:");
+  foreach my $pd ($deck->pack_descs) {
+      debug("  %s", $pd);
+  }
   debug("Deck has %u Black Cards, %u White Cards",
-      scalar @{ $deck->{Black} }, scalar @{ $deck->{White} });
+      $deck->count('Black'), $deck->count('White'));
 
   $self->{_last}      = {};
   $self->{_pn_timers} = {};
@@ -259,6 +264,7 @@ sub start {
     $self->{_plays} = $self->load_tallyfile;
 
     $self->db_sanity_check_hands;
+    $self->db_sanity_check_packs;
 
     try {
         $self->connect;
@@ -1962,10 +1968,6 @@ sub db_get_channel {
 # The indices of the cards will be inserted in random order. Therefore we can
 # iterate through a random deck by selecting increasing row ID numbers.
 #
-# Our template decks are:
-#  $self->_deck->{deckname}->{Black}
-#  $self->_deck->{deckname}->{White}
-#
 # Arguments:
 #
 # - Game Schema object
@@ -1984,14 +1986,14 @@ sub db_populate_cards {
         die "color must be either 'Black' or 'White'";
     }
 
-    my $schema   = $self->_schema;
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
+    my $schema = $self->_schema;
+    my $packs  = $game->packs;
+    my $deck   = $self->_deck;
 
-    my $num_cards = scalar @{ $deck->{$color} };
+    my $num_cards = $deck->count($color);
 
-    debug("Shuffling deck of %u %s Cards from the %s set, for game at %s",
-        $num_cards, $color, $deckname, $game->rel_channel->disp_name);
+    debug("Shuffling deck of %u %s Cards from packs [%s], for game at %s",
+        $num_cards, $color, $packs, $game->rel_channel->disp_name);
 
     my @card_indices = shuffle (0 .. ($num_cards - 1));
 
@@ -2008,14 +2010,6 @@ sub db_populate_cards {
 
         # Make an array of card indices of the cards in every player's hands.
         foreach my $ug (@players) {
-=pod
-            debug("Dropping %u cards from %s hand", scalar $ug->rel_usergamehands,
-                $ug->rel_user->nick);
-
-            foreach my $ugh ($ug->rel_usergamehands) {
-                debug("  Dropped: %s", $deck->{White}->[$ugh->wcardidx]);
-            }
-=cut
             push(@hand_card_indices, map { $_->wcardidx } $ug->rel_usergamehands);
         }
 
@@ -2194,14 +2188,7 @@ sub topup_hand {
         $schema->resultset('WCard')->search({ game => $game->id })->delete;
 
         # Delete all the discard piles as well.
-        my @usergames = $game->rel_usergames;
-        my @ug_ids    = map { $_->id } @usergames;
-
-        $schema->resultset('UserGameDiscard')->search(
-            {
-                user_game => { '-in' => \@ug_ids },
-            }
-        )->delete;
+        $self->db_delete_discards($game);
 
         $self->db_populate_cards($game, 'White');
     }
@@ -2302,9 +2289,8 @@ sub topup_hands {
 sub notify_new_wcards {
     my ($self, $ug, $new) = @_;
 
-    my $who  = $ug->rel_user->nick;
-    my $deck = $self->_deck->{$ug->rel_game->deck};
-    my $irc  = $self->_irc;
+    my $who = $ug->rel_user->nick;
+    my $irc = $self->_irc;
 
     my $num_added = scalar @{ $new };
 
@@ -2343,7 +2329,7 @@ sub notify_wcards {
     my ($self, $ug, $cards) = @_;
 
     my $who  = $ug->rel_user->nick;
-    my $deck = $self->_deck->{$ug->rel_game->deck};
+    my $deck = $self->_deck;
     my $irc  = $self->_irc;
 
     foreach my $wcard (@{ $cards }) {
@@ -2351,7 +2337,7 @@ sub notify_wcards {
 
         $index = $wcard->wcardidx;
 
-        my $text = $deck->{White}->[$index];
+        my $text = $deck->white($index);
 
         # Upcase the first character and add a period on the end unless it
         # already has some punctuation.
@@ -2447,8 +2433,8 @@ sub notify_bcard {
 
     my $channel = $game->rel_channel;
     my $chan    = $channel->disp_name;
-    my $deck    = $self->_deck->{$game->deck};
-    my $text    = $deck->{Black}->[$game->bcardidx];
+    my $deck    = $self->_deck;
+    my $text    = $deck->black($game->bcardidx);
 
     foreach my $line (split(/\n/, $text)) {
         # Sometimes YAML leaves us with a trailing newline in the text.
@@ -2865,30 +2851,29 @@ sub notify_plays {
 sub build_play {
     my ($self, $ug, $bcardidx, $ughs) = @_;
 
-    my $game     = $ug->rel_game;
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
-    my $btext    = $deck->{Black}->[$bcardidx];
+    my $game  = $ug->rel_game;
+    my $deck  = $self->_deck;
+    my $btext = $deck->black($bcardidx);
 
     if ($btext !~ /_{5,}/s) {
         # There's no blanks in this Black Card text so this will be a 1-card
         # answer, tacked on the end.
-        $btext = sprintf("%s %s.",
-            $btext, ucfirst($deck->{White}->[$ughs->[0]->wcardidx]));
+        $btext = sprintf("%s %s.", $btext,
+            ucfirst($deck->white($ughs->[0]->wcardidx)));
         return $btext;
     }
 
     # Don't modify the passed-in $ughs.
     my @build_ughs = @{ $ughs };
     my $ugh        = shift @build_ughs;
-    my $wtext      = $deck->{White}->[$ugh->wcardidx];
+    my $wtext      = $deck->white($ugh->wcardidx);
 
     $btext =~ s/_{5,}/$wtext/s;
 
     # If there's still a UserGameHand left, do it again.
     if (scalar @build_ughs) {
         $ugh   = shift @build_ughs;
-        $wtext = $deck->{White}->[$ugh->wcardidx];
+        $wtext = $deck->white($ugh->wcardidx);
 
         $btext =~ s/_{5,}/$wtext/s;
     }
@@ -2959,9 +2944,8 @@ sub db_get_nth_wcard {
 sub how_many_blanks {
     my ($self, $game, $idx) = @_;
 
-    my $deckname = $game->deck;
-    my $deck     = $self->_deck->{$deckname};
-    my $text     = $deck->{Black}->[$idx];
+    my $deck = $self->_deck;
+    my $text = $deck->black($idx);
 
     if ($text !~ /_____/s) {
         # no blanks at all, so that's 1.
@@ -3539,11 +3523,16 @@ sub cleanup_plays {
     # an array of just the ids.
     my @to_delete;
     foreach my $ugh (@cards) {
-        my $white_deck = $self->_deck->{$game->deck}->{White};
-        my $idx = $ugh->wcardidx;
+        my $deck = $self->_deck;
+        my $idx  = $ugh->wcardidx;
+        my $user = $ugh->rel_usergame->rel_user;
+        my $nick = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
 
         debug("Discarding played White Cards:");
-        debug("%s:  %s", $ugh->rel_usergame->rel_user->nick, $white_deck->[$idx]);
+        debug("%s:  %s", $nick, $deck->white($idx));
 
         push(@to_delete, $ugh->id);
     }
@@ -4140,6 +4129,210 @@ sub db_fix_hand_positions {
         $card->update;
         $pos++;
     }
+}
+
+# Switch the packs for an existing game to that specified by $self->_deck.
+#
+# Process goes like this:
+#
+# 1. Empty all discard piles.
+# 2. Empty the decks for this game.
+# 3. Check if the current Black Card text already exists in the new Black deck.
+#    - Yes? Update Black Card index in games table to be index of existing card.
+#    - No? Append Black Card on end of deck, update Black Card index in games
+#          table to be new index.
+# 4. Update all rows in users_games_hands for this game to have NULL wcardidx
+#    so there won't be any constraint violations when we are fixing the
+#    wcardidx later.
+# 5. For each White Card that is in the hands of all players in this game:
+#    1. Does this White Card text already exist in the new White deck?
+#       - Yes? Update White Card index in users_games_hands to be index of
+#         existing card.
+#       - No? Append White Card on the end of deck, update White Card index in
+#         users_games_hands to be the new index.
+# 6. Re-populate game's decks (bcards and wcards tables).
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub db_switch_packs {
+    my ($self, $game) = @_;
+
+    my $schema        = $self->_schema;
+    my $deck          = $self->_deck;
+    my $current_packs = join(' ', $deck->packs);
+    my $their_deck    = PAH::Deck->new($game->packs);
+
+    debug("  Deleting all discard piles…");
+
+    my $count = $self->db_delete_discards($game);
+
+    debug("    …Deleted %u cards", $count) if ($count);
+
+    debug("  Deleting bcards…");
+    $schema->resultset('BCard')->search({ game => $game->id })->delete;
+    debug("  Deleting wcards…");
+    $schema->resultset('WCard')->search({ game => $game->id })->delete;
+
+    my $cur_bcardidx = $game->bcardidx;
+    my $cur_bcardtxt = $their_deck->black($cur_bcardidx);
+
+    my $new_bcardidx = $deck->find('Black', $cur_bcardtxt);
+
+    if (defined $new_bcardidx) {
+        if ($new_bcardidx != $cur_bcardidx) {
+            debug("  Their Black Card %u exists as %u in new deck; adjusting…",
+                $cur_bcardidx, $new_bcardidx);
+            $game->bcardidx($new_bcardidx);
+        } else {
+            debug("  Black Cards identical (%u)", $cur_bcardidx);
+        }
+    } else {
+        debug("  Their Black Card %u is not in new deck; appending…",
+            $cur_bcardidx);
+        $new_bcardidx = $deck->append('Black', $cur_bcardtxt);
+        $game->bcardidx($new_bcardidx);
+    }
+
+    my @usergames = $game->rel_usergames;
+    my @ug_ids = map { $_->id } @usergames;
+
+    debug("  Fixing up White Cards in hand for %u players…", scalar @ug_ids);
+
+    # Get the current mappings of ugh id to card text.
+    my $cards = $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    );
+
+    my %texts;
+
+    while (my $card = $cards->next) {
+        $texts{$card->id} = $their_deck->white($card->wcardidx);
+    }
+
+    debug("    Setting indices to NULL…");
+    $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    )->update({ wcardidx => undef });
+
+    $cards = $schema->resultset('UserGameHand')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        },
+        {
+            prefetch => {
+                'rel_usergame' => 'rel_user',
+            }
+        }
+    );
+
+    while (my $card = $cards->next) {
+        my $user         = $card->rel_usergame->rel_user;
+        my $cur_wcardtxt = $texts{$card->id};
+        my $new_wcardidx = $deck->find('White', $cur_wcardtxt);
+
+        my $nick = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
+
+        if (defined $new_wcardidx) {
+            debug("    %s has White Card that already exists as %u in new deck;"
+               . " adjusting…", $nick, $new_wcardidx);
+            $card->wcardidx($new_wcardidx);
+        } else {
+            debug("    %s has a White Card that is not in new deck; appending…",
+                $nick);
+            $new_wcardidx = $deck->append('White', $cur_wcardtxt);
+            $card->wcardidx($new_wcardidx);
+        }
+
+        $card->update;
+    }
+
+    $game->packs($current_packs);
+    $game->update;
+
+    debug("  Repopulating decks for this game…");
+    foreach my $color (qw/Black White/) {
+        $self->db_populate_cards($game, $color);
+    }
+}
+
+# Check that every game is using the current set of packs.
+#
+# If a game is not using the current pack then we'll have to hackishly fix
+# things up.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub db_sanity_check_packs {
+    my ($self) = @_;
+
+    my $schema        = $self->_schema;
+    my $deck          = $self->_deck;
+    my $current_packs = join(' ', $deck->packs);
+
+    my $games = $schema->resultset('Game')->search(
+        {
+            packs => { '!=' => $current_packs },
+        },
+        {
+            prefetch => 'rel_channel',
+        }
+    );
+
+    while (my $game = $games->next) {
+        debug("Game in %s has packs '%s' but we've loaded '%s'; fixing up…",
+            $game->rel_channel->disp_name, $game->packs, $current_packs);
+
+        # All this in a transaction.
+        $schema->txn_do(sub {
+            $self->db_switch_packs($game);
+        });
+    }
+}
+
+# Delete all discard piles for a given game.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# Number of cards (rows) deleted.
+sub db_delete_discards {
+    my ($self, $game) = @_;
+
+    my $schema    = $self->_schema;
+    my @usergames = $game->rel_usergames;
+    my @ug_ids    = map { $_->id } @usergames;
+
+    my $discard_rs = $schema->resultset('UserGameDiscard')->search(
+        {
+            user_game => { '-in' => \@ug_ids },
+        }
+    );
+
+    my $count = $discard_rs->count;
+
+    $discard_rs->delete if ($count);
+
+    return $count
 }
 
 1;
