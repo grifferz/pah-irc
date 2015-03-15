@@ -2,13 +2,19 @@
 
 ## What?
 
-It's another IRC bot for playing [Cards Against Humanity™](http://www.cardsagainsthumanity.com/). Cards Against Humanity is a trademark of Cards Against Humanity LLC.
+It's another IRC bot for playing [Cards Against
+Humanity™](http://www.cardsagainsthumanity.com/). Cards Against Humanity is a
+trademark of Cards Against Humanity LLC.
 
-[Wikipedia](http://en.wikipedia.org/wiki/Cards_Against_Humanity) describes it as:
+[Wikipedia](http://en.wikipedia.org/wiki/Cards_Against_Humanity) describes it
+as:
 
-> a party game using cards. It is available as a free download that players can print to create their own cards, and also available to purchase in published hardcopy.
+> a party game using cards. It is available as a free download that players can
+> print to create their own cards, and also available to purchase in published
+> hardcopy.
 
-Here's [some logs from a real game of Perpetually Against Humanity](http://grifferz.github.io/pah-irc/doc/logs.html).
+Here's [some logs from a real game of Perpetually Against
+Humanity](http://grifferz.github.io/pah-irc/doc/logs.html).
 
 ## Why?
 
@@ -230,15 +236,21 @@ $ cpanm --local-lib-contained=./pah-libs --installdeps .
 
 ### IRC nickname
 
-Now is a good time to register an IRC nickname for the bot to use. It can help with flooding to also make sure the bot is voiced in channels it's likely to be used in, but it will still work if not.
+Now is a good time to register an IRC nickname for the bot to use. It can help
+with flooding to also make sure the bot is voiced in channels it's likely to be
+used in, but it will still work if not.
 
 ### Configuration file
 
-The example configuration file at `etc/pah-irc.conf.example` should contain enough comments and the default values for you to be able to work this out. Just copy it to `etc/pah-irc.conf` and then edit it to suit.
+The example configuration file at `etc/pah-irc.conf.example` should contain
+enough comments and the default values for you to be able to work this out.
+Just copy it to `etc/pah-irc.conf` and then edit it to suit.
 
 ### Database
 
-The bot currently uses an SQLite database file. I've tried to use unexciting SQL though so it should be simple to make it work with other DB engines. Please submit an issue if you need that.
+The bot currently uses an SQLite database file. I've tried to use unexciting
+SQL though so it should be simple to make it work with other DB engines. Please
+submit an issue if you need that.
 
 Before your first run of the bot you'll need to create the database like so:
 
@@ -247,7 +259,8 @@ $ bin/upgrade_db
 DBIx::Class::Schema::Versioned::_on_connect(): Your DB is currently unversioned. Please call upgrade on your schema to sync the DB. at bin/upgrade_db line 41
 ```
 
-An empty [SQLite](http://www.sqlite.org/) 3 database file will then exist at `var/pah-irc.sqlite`, which you can examine with:
+An empty [SQLite](http://www.sqlite.org/) 3 database file will then exist at
+`var/pah-irc.sqlite`, which you can examine with:
 
 ```bash
 $ sqlite3 var/pah-irc.sqlite '.tables'
@@ -262,7 +275,10 @@ users
 
 #### Database upgrades
 
-If you've pulled new code or downloaded a newer release then the bot may refuse to start, telling you that your database schema is outdated. Running `bin/upgrade_db` again should upgrade you to the new schema without losing any data. Take backups, though!
+If you've pulled new code or downloaded a newer release then the bot may refuse
+to start, telling you that your database schema is outdated. Running
+`bin/upgrade_db` again should upgrade you to the new schema without losing any
+data. Take backups, though!
 
 ### Start / stop / restart
 
@@ -270,11 +286,13 @@ If you've pulled new code or downloaded a newer release then the bot may refuse 
 bin/pah-irc-init [start | stop | restart ]
 ```
 
-Logging will end up at `var/pah-irc.out`. The logging tries not to give spoilers so it's safe to look at even if you're one of the players.
+Logging will end up at `var/pah-irc.out`. The logging tries not to give
+spoilers so it's safe to look at even if you're one of the players.
 
 ### `/invite` it to a channel
 
-Once the bot is on IRC and identified to a nickname it can be `/invite`d to channels and issued a `start` command to get things going.
+Once the bot is on IRC and identified to a nickname it can be `/invite`d to
+channels and issued a `start` command to get things going.
 
 ## Flooding
 
@@ -369,7 +387,8 @@ but a later release should support additional packs.
 
 ## License
 
-This IRC bot is made available under the Artistic License, the same as Perl itself.
+This IRC bot is made available under the Artistic License, the same as Perl
+itself.
 
 Cards Against Humanity card content is used under a [Creative Commons BY-NC-SA license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
 
