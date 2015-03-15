@@ -409,8 +409,8 @@ sub user_joined {
     my $channel = $self->db_get_channel($chan);
 
     if (not defined $channel) {
-        debug("Somehow got a join event for a channel %s we have no knowledge of",
-            $chan);
+        debug("Somehow got a join event for a channel %s we have no knowledge"
+	       . " of", $chan);
         return;
     }
 
@@ -418,8 +418,8 @@ sub user_joined {
 
     if (not defined $game or 0 == $game->status) {
         # Game has never existed, so keep quiet.
-        debug("Not introducing %s to game at %s because it isn't running", $nick,
-            $chan);
+        debug("Not introducing %s to game at %s because it isn't running",
+		$nick, $chan);
         return;
     }
 
@@ -441,21 +441,21 @@ sub user_joined {
 
     if (2 == $game->status) {
         $irc->msg($nick,
-            sprintf(qq{Hi! I'm currently running a game of Perpetually Against}
-                . qq{ Humanity in %s. Are you interested in playing?}, $chan));
+            sprintf(qq{Hi! I'm currently running a game of}
+		   . qq{ Perpetually Against Humanity in %s. Are you}
+		   . qq{ interested in playing?}, $chan));
     } else {
         $irc->msg($nick,
             sprintf(qq{Hi! I'm currently gathering players for a game of}
-                . qq{ Perpetually Against Humanity in %s. Are you interested in}
-                . qq{ joining?}, $chan));
+                . qq{ Perpetually Against Humanity in %s. Are you}
+	        . qq{ interested in joining?}, $chan));
     }
 
     $irc->msg($nick,
         qq{If so then just type "$my_nick: deal me in" in the channel.});
     $irc->msg($nick,
-        qq{See https://github.com/grifferz/pah-irc for more info. I won't bother}
-       . qq{ you again if you're not interested!});
-
+        qq{See https://github.com/grifferz/pah-irc for more info. I won't}
+        . qq{ bother you again if you're not interested!});
 }
 
 # Mark a channel as no longer welcoming, for whatever reason. Usually because
@@ -802,13 +802,14 @@ sub do_priv_scores {
 
     # By now we either:
     #
-    # 1. Guessed the channel and have a channel object in $channel, channel name
-    #    in $chan.
+    # 1. Guessed the channel and have a channel object in $channel, channel
+    #    name in $chan.
     # 2. Couldn't guess the channel and have an undef $channel object, undef
     #    $chan.
-    # 3. Have a specified a channel in $chan, and we found the object in $channel.
-    # 4. Have a specified a channel in $chan but we couldn't find it, so $channel
-    #    is undef.
+    # 3. Have a specified a channel in $chan, and we found the object in
+    #    $channel.
+    # 4. Have a specified a channel in $chan but we couldn't find it, so
+    #    $channel is undef.
     if (not defined $channel) {
         # Cases 2 or 4.
         if (defined $chan) {
@@ -821,11 +822,11 @@ sub do_priv_scores {
         }
 
         # It's case #2.
-        debug("%s asked for game scores but I couldn't work out which channel they"
-           . " were interested in", $who);
+        debug("%s asked for game scores but I couldn't work out which channel"
+	   . "	they were interested in", $who);
         $irc->msg($who,
-            qq{Sorry, I can't work out which channel's game you're interested in.}
-           . qq{ Try again with "#channel scores".});
+            qq{Sorry, I can't work out which channel's game you're interested}
+	   . qq{ in. Try again with "#channel scores".});
         return;
     }
 
@@ -959,13 +960,14 @@ sub do_priv_status {
 
     # By now we either:
     #
-    # 1. Guessed the channel and have a channel object in $channel, channel name
-    #    in $chan.
+    # 1. Guessed the channel and have a channel object in $channel, channel
+    #    name in $chan.
     # 2. Couldn't guess the channel and have an undef $channel object, undef
     #    $chan.
-    # 3. Have a specified a channel in $chan, and we found the object in $channel.
-    # 4. Have a specified a channel in $chan but we couldn't find it, so $channel
-    #    is undef.
+    # 3. Have a specified a channel in $chan, and we found the object in
+    #    $channel.
+    # 4. Have a specified a channel in $chan but we couldn't find it, so
+    #    $channel is undef.
     if (not defined $channel) {
         # Cases 2 or 4.
         if (defined $chan) {
@@ -978,11 +980,11 @@ sub do_priv_status {
         }
 
         # It's case #2.
-        debug("%s asked for game status but I couldn't work out which channel they"
-           . " were interested in", $who);
+        debug("%s asked for game status but I couldn't work out which channel"
+	   . " they were interested in", $who);
         $irc->msg($who,
-            qq{Sorry, I can't work out which channel's game you're interested in.}
-           . qq{ Try again with "#channel status".});
+            qq{Sorry, I can't work out which channel's game you're interested}
+	   . qq{ in. Try again with "#channel status".});
         return;
     }
 
@@ -1009,23 +1011,25 @@ sub do_priv_status {
 
         if (defined $ug) {
             $irc->msg($who,
-                sprintf("A game exists in %s but we only have %u player%s "
-                    . "(%s). Find me %u more and we're on.", $chan,
-                    $num_players, 1 == $num_players ? '' : 's',
+                sprintf("A game exists in %s but we only have %u"
+		    . "	player%s (%s). Find me %u more and we're on.",
+		    $chan, $num_players, 1 == $num_players ? '' : 's',
                     1 == $num_players ? 'you' : 'including you',
                     4 - $num_players));
         } else {
             $irc->msg($who,
-                sprintf("A game exists in %s but we only have %u player%s."
-                   . " Find me %umore and we're on.", $chan, $num_players,
-                   1 == $num_players ? '' : 's', 4 - $num_players));
+                sprintf("A game exists in %s but we only have %u"
+		   . "	player%s. Find me %umore and we're on.", $chan,
+		   $num_players, 1 == $num_players ? '' : 's',
+		   4 - $num_players));
         }
     } elsif (0 == $game->status) {
         $irc->msg($who,
             "The game in $chan is paused but I don't know why!"
             . " Report this!");
     } else {
-        debug("Game for %s has an unexpected status (%u)", $chan, $game->status);
+        debug("Game for %s has an unexpected status (%u)", $chan,
+		$game->status);
         $irc->msg($who,
             "I'm confused about the state of the game in $chan, sorry!"
             . " Report this!");
@@ -1103,12 +1107,14 @@ sub do_pub_scores {
         my $last_scores = $self->_last->{$game->id}->{scores};
 
         if (($now - $last_scores) <= 60) {
-            # Last time we did scores in this channel was 60 seconds ago or less.
+	    # Last time we did scores in this channel was 60 seconds ago or
+	    # less.
             debug("%s tried to display scores for %s but it was already done %u"
                 . " secs ago; ignoring", $who, $chan, ($now - $last_scores));
             $irc->msg($chan,
-                sprintf("$who: Sorry, I'm ignoring your scores command because"
-                   . " I did one just %u secs ago.", ($now - $last_scores)));
+                sprintf("$who: Sorry, I'm ignoring your scores command"
+		   . "	because I did one just %u secs ago.",
+		   ($now - $last_scores)));
             return;
         }
 
@@ -1233,13 +1239,14 @@ sub do_pub_status {
         my $last_status = $self->_last->{$game->id}->{status};
 
         if (($now - $last_status) <= 120) {
-            # Last time we did status in this channel was 120 seconds ago or less.
+	    # Last time we did status in this channel was 120 seconds ago or
+	    # less.
             debug("%s tried to display status for %s but it was already done %u"
                . " secs ago; ignoring", $who, $chan, ($now - $last_status));
             $irc->msg($chan,
-                sprintf("$who: Sorry, I'm ignoring your status command because"
-                   . " I did one just %u secs ago.",
-                   ($now - $last_status)));
+                sprintf("$who: Sorry, I'm ignoring your status command"
+		   . " because I did one just %u secs ago.",
+		   ($now - $last_status)));
             return;
         }
     }
@@ -1269,18 +1276,20 @@ sub do_pub_status {
         if (defined $ug) {
             $irc->msg($chan,
                 sprintf("%s: A game exists but we only have %u player%s"
-                   . " (%s). Find me %u more and we're on.", $who, $num_players,
-                   1 == $num_players ? '' : 's',
-                   1 == $num_players ? 'you' : 'including you', 4 - $num_players));
+                   . " (%s). Find me %u more and we're on.", $who,
+		   $num_players, 1 == $num_players ? '' : 's',
+		   1 == $num_players ? 'you' : 'including you',
+		   4 - $num_players));
             $irc->msg($chan,
                 qq{Any takers? Just type "$my_nick: me" and you're in.});
         } else {
             $irc->msg($chan,
-                sprintf("%s: A game exists but we only have %u player%s. Find"
-                   . " me %u more and we're on.", $who, $num_players,
+                sprintf("%s: A game exists but we only have %u player%s."
+		   . " Find me %u more and we're on.", $who, $num_players,
                    1 == $num_players ? '' : 's', 4 - $num_players));
             $irc->msg($chan,
-                qq{$who: How about you? Just type "$my_nick: me" and you're in.});
+                qq{$who: How about you? Just type "$my_nick: me" and you're}
+	       . qq{ in.});
         }
     } elsif (0 == $game->status) {
         $irc->msg($chan,
@@ -2824,8 +2833,8 @@ sub notify_plays {
                 $self->build_waitstring($game)));
     } else {
         $irc->msg($channel->disp_name,
-            sprintf("%u %s recently played! We're currently waiting on plays from"
-               . " %u more people.", $new_plays,
+            sprintf("%u %s recently played! We're currently waiting on"
+               . " plays from %u more people.", $new_plays,
                $new_plays == 1 ? 'person' : 'people', $waiting_on));
     }
 
@@ -3310,7 +3319,8 @@ sub discard_hand {
     )->delete;
 }
 
-# The Game now has a full set of plays, so apply a random sequence number to them.
+# The Game now has a full set of plays, so apply a random sequence number to
+# them.
 # Update game activity timer so Tsar has the full turnclock to choose a winner.
 #
 # Arguments:
@@ -3391,8 +3401,9 @@ sub do_pub_winner {
             my $num_players = scalar $game->rel_active_usergames;
 
             $irc->msg($chan,
-                sprintf("We need %u more player%s before we can start playing.",
-                    4 - $num_players, (4 - $num_players) == 1 ? '' : 's'));
+                sprintf("We need %u more player%s before we can start"
+                   . " playing.", 4 - $num_players,
+                   (4 - $num_players) == 1 ? '' : 's'));
         }
 
         return;
@@ -3408,14 +3419,15 @@ sub do_pub_winner {
         $tsar_nick = $tsar->nick if (not defined $tsar_nick);
 
         $irc->msg($chan,
-            sprintf("%s: Sorry, you're not the Card Tsar – that's %s.", $who,
-                $tsar_nick));
+            sprintf("%s: Sorry, you're not the Card Tsar – that's %s.",
+                $who, $tsar_nick));
         return;
     }
 
     # Is the game's hand actually complete?
     if (not $self->hand_is_complete($game)) {
-        $irc->msg($chan, "$who: Sorry, not everyone has played their hand yet!");
+        $irc->msg($chan,
+            "$who: Sorry, not everyone has played their hand yet!");
         $irc->msg($chan, $self->build_waitstring($game));
         return;
     }
@@ -3446,7 +3458,8 @@ sub do_pub_winner {
     # If we got here then they gave us a winner number that doesn't exist in
     # the plays.
     $irc->msg($chan,
-        "$who: Sorry, I don't seem to have a record of a play with that number.");
+        "$who: Sorry, I don't seem to have a record of a play with that"
+       . " number.");
 }
 
 # The round has ended, we know the winner, so the scores need to be adjusted.
@@ -3588,9 +3601,9 @@ sub announce_winner {
         if ($ug->id == $winner->id) {
             # Congratulate winning user.
             $irc->msg($user_nick,
-                sprintf("[%s] Congrats, you won! You now have %u Awesome"
-                    . " Point%s! Your winning play was:", $chan, $winner->wins,
-                    $winner->wins == 1 ? '' : 's'));
+                sprintf("[%s] Congrats, you won! You now have %u"
+                   . " Awesome Point%s! Your winning play was:", $chan,
+                   $winner->wins, $winner->wins == 1 ? '' : 's'));
         } else {
             # Tell player about winner.
             my $pronoun = $winner->rel_user->pronoun;
@@ -3700,16 +3713,17 @@ sub pick_new_tsar {
 
          $nick = $winner->rel_user->nick if (not defined $nick);
 
-         my $winstring = sprintf("The winner is %s, who now has %u Awesome"
-            . " Point%s!", $nick, $winner->wins, 1 == $winner->wins ? '' : 's');
+         my $winstring = sprintf("The winner is %s, who now has %u"
+            . " Awesome Point%s!", $nick, $winner->wins,
+            1 == $winner->wins ? '' : 's');
 
          $irc->msg($chan,
-             sprintf("%s The new Card Tsar is %s. Time for the next Black Card:",
-                 $winstring, $tsar_nick));
+             sprintf("%s The new Card Tsar is %s. Time for the next Black"
+                . " Card:", $winstring, $tsar_nick));
      } else {
          $irc->msg($chan,
-             sprintf("The new Card Tsar is %s. Time for the next Black Card:",
-                 $tsar_nick));
+             sprintf("The new Card Tsar is %s. Time for the next Black"
+                . " Card:", $tsar_nick));
      }
 
      $self->deal_to_tsar($game);
@@ -3859,17 +3873,17 @@ sub force_resign {
         $channel->disp_name);
 
     $irc->msg($channel->disp_name,
-        sprintf("I'm forcibly resigning %s from the game due to idleness. Idle"
-           . " since %s.", $nick,
+        sprintf("I'm forcibly resigning %s from the game due to idleness."
+           . " Idle since %s.", $nick,
            strftime("%FT%T", localtime($ug->activity_time))));
 
     $irc->msg($user->nick,
-        sprintf("You've been forcibly resigned from the game in %s because you've"
-           . " been idle since %s!", $channel->disp_name,
+        sprintf("You've been forcibly resigned from the game in %s because"
+           . " you've been idle since %s!", $channel->disp_name,
            strftime("%FT%T", localtime($ug->activity_time))));
     $irc->msg($nick,
-        sprintf(qq{If you ever want to join in again, just type "%s: deal me in"}
-           . qq{ in %s!}, $my_nick, $channel->disp_name));
+        sprintf(qq{If you ever want to join in again, just type}
+           . qq{ "%s: deal me in" in %s!}, $my_nick, $channel->disp_name));
 
     $self->resign($ug);
 
@@ -3903,7 +3917,8 @@ sub db_get_nick_in_game {
     return undef;
 }
 
-# User wants to set a personal pronoun to be used instead of the default "their".
+# User wants to set a personal pronoun to be used instead of the default
+# "their".
 #
 # We will allow max five characters, a-zA-Z.
 sub do_priv_pronoun {
@@ -4011,9 +4026,9 @@ sub poke {
         if (1 == $ug->is_tsar) {
             debug("Poke %s into choosing a winner in %s.", $nick, $chan);
             $irc->msg($nick,
-                qq{Hi! We're waiting on you to pick the winner in $chan. Please}
-               . qq{ type "$my_nick: <number>" in the channel to do so. This is the}
-               . qq{ only reminder I'll send!});
+                qq{Hi! We're waiting on you to pick the winner in $chan.}
+               . qq{ Please type "$my_nick: <number>" in the channel to do so.}
+               . qq{ This is the only reminder I'll send!});
             $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
         }
     } else {
@@ -4040,10 +4055,11 @@ sub poke {
                 and 0 == $ug->is_tsar) {
             debug("Poke %s into making their play in %s.", $nick, $chan);
             $irc->msg($nick,
-                qq{Hi! We're waiting on you to make your play in $chan. Use the}
-               . qq{ play command to make your play, the hand command to}
-               . qq{ see your hand again, or the black command to see the Black}
-               . qq{ Card. This is the only reminder I'll send!});
+                qq{Hi! We're waiting on you to make your play in $chan.}
+               . qq{ Use the play command to make your play, the hand}
+               . qq{ command to see your hand again, or the black command}
+               . qq{ to see the Black Card. This is the only reminder I'll}
+               . qq{ send!});
             $self->_pokes->{$game->id}->{$ug->user} = { when => time() };
         }
     }
