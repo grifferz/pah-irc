@@ -381,23 +381,36 @@ going to be on IRC for a while) can be helpful by explicitly resigning.
 
 ## Card packs
 
-This will be initially supplied with the UK edition of Cards Against Humanity
-(because the first channels that will probably use it are UK-biased channels),
-but a later release should support additional packs.
+Current releases have:
+
+* The UK edition of the Cards Against Humanity base pack.
+* The 2nd expansion.
+* A 2nd expansion pack with UK modifications.
+
+(Emphasis on the UK because most of the IRC channels using this are UK-biased)
+
+If you are willing to type up more card content then please do so and send a
+pull request.
+
+The bot can use any combination of packs via the `packs` configuration
+directive. At the moment this is a global setting, so all games will need to
+use the same combination of packs. A per-game deck selection will follow in a
+later release.
 
 ## License
 
 This IRC bot is made available under the Artistic License, the same as Perl
 itself.
 
-Cards Against Humanity card content is used under a [Creative Commons BY-NC-SA license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
+Cards Against Humanity card content is used under a [Creative Commons BY-NC-SA
+license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
 
 ## Bugs
 
 Undoubtedly many.
 
 I don't really know what I am doing, programming-wise, but I know at least that
-having a single module file with 3,100 lines in it is not sane.
+having a single module file with 4,400 lines in it is not sane.
 
 So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
 
