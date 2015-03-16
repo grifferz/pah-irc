@@ -1356,11 +1356,21 @@ sub report_game_status {
         $chan    = $target;
     }
 
-    $irc->msg($target,
-        sprintf("%s%s Round started about %s ago. Idle punishment in about"
-           . " %s.", $is_nick ? "[$chan] " : '', $waitstring,
-           concise(duration($started_ago, 2)),
-           concise(duration($punishment_in, 2))));
+    # $punishment_in can actually go negative if several players have run out
+    # the turnclock. Since idling is only checked once per minute, in that case
+    # the next punishment will be in less than a minute.
+    if ($punishment_in < 60) {
+        $irc->msg($target,
+            sprintf("%s%s Round started about %s ago. Idle punishment in"
+               . " less than a minute.", $is_nick ? "[$chan] " : '',
+               $waitstring, concise(duration($started_ago, 2))));
+    } else {
+       $irc->msg($target,
+           sprintf("%s%s Round started about %s ago. Idle punishment in"
+              . " about %s.", $is_nick ? "[$chan] " : '', $waitstring,
+               concise(duration($started_ago, 2)),
+               concise(duration($punishment_in, 2))));
+    }
 
     my $user;
 
