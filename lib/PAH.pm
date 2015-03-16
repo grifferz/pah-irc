@@ -3591,7 +3591,7 @@ sub report_plays {
 
         $irc->msg($target,
             sprintf("%sThe hand isn't complete yet; %s",
-                $is_nick ? "[$chan]" : '', $waitstring));
+                $is_nick ? "[$chan] " : '', $waitstring));
         return;
     }
 
