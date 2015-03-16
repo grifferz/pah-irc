@@ -149,6 +149,11 @@ are all fine.
     This command can be simply abbreviated as a single digit, as it will be
     obvious from the context what is meant.
 
+*   `plays`
+
+    Repeat the list of plays for the completed hand, if for some reason you
+    missed it.
+
 ### Private commands
 
 These commands can be given in private message to the bot. Again there are some
@@ -206,6 +211,10 @@ time that can be left off and the bot will work it out.
 
     Where a channel will not be required, just saying one or two numbers
     (without the "play" prefix) is an acceptable shortcut.
+
+*   `plays`
+
+    Repeat the list of plays, if for some reason you missed it.
 
 *   `pronoun <pronoun>`
 
