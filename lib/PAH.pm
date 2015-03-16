@@ -784,9 +784,8 @@ sub do_unknown {
 sub do_priv_scores {
     my ($self, $args) = @_;
 
-    my $who     = $args->{nick};
-    my $irc     = $self->_irc;
-    my $my_nick = $irc->nick();
+    my $who = $args->{nick};
+    my $irc = $self->_irc;
 
     # This will be undef if a channel was not specified.
     my $chan = $args->{chan};
@@ -843,13 +842,7 @@ sub do_priv_scores {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $irc->msg($who,
-            "There's no game of Perpetually Against Humanity in $chan.");
-        $irc->msg($who,
-            "Want to start one? Anyone with a registered nickname can do so.");
-        $irc->msg($who,
-            qq{Just type "$my_nick: start" in $chan and find at least 3}
-           . qq{ friends.});
+        $self->no_such_game($who, $chan);
         return;
     }
 
@@ -942,9 +935,8 @@ sub guess_channel {
 sub do_priv_status {
     my ($self, $args) = @_;
 
-    my $who     = $args->{nick};
-    my $irc     = $self->_irc;
-    my $my_nick = $irc->nick();
+    my $who = $args->{nick};
+    my $irc = $self->_irc;
 
     # This will be undef if a channel was not specified.
     my $chan = $args->{chan};
@@ -1001,13 +993,7 @@ sub do_priv_status {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $irc->msg($who,
-            "There's no game of Perpetually Against Humanity in $chan.");
-        $irc->msg($who,
-            "Want to start one? Anyone with a registered nickname can do so.");
-        $irc->msg($who,
-            qq{Just type "$my_nick: start" in $chan and find at least 3}
-           . qq{ friends.});
+        $self->no_such_game($who, $chan);
     } elsif (2 == $game->status) {
         $self->report_game_status($game, $who);
     } elsif (1 == $game->status) {
@@ -1131,14 +1117,7 @@ sub do_pub_scores {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        my $my_nick = $irc->nick();
-
-        $irc->msg($chan,
-            "$who: There's no game of Perpetually Against Humanity in here.");
-        $irc->msg($chan,
-            "Want to start one? Anyone with a registered nickname can do so.");
-        $irc->msg($chan,
-            qq{Just type "$my_nick: start" and find at least 3 friends.});
+        $self->no_such_game($chan, $chan, $who);
         return;
     }
 
@@ -1219,11 +1198,10 @@ sub report_game_scores {
 sub do_pub_status {
     my ($self, $args) = @_;
 
-    my $chan    = $args->{chan};
-    my $who     = $args->{nick};
-    my $schema  = $self->_schema;
-    my $irc     = $self->_irc;
-    my $my_nick = $irc->nick();
+    my $chan   = $args->{chan};
+    my $who    = $args->{nick};
+    my $schema = $self->_schema;
+    my $irc    = $self->_irc;
 
     my $channel = $self->db_get_channel($chan);
 
@@ -1264,16 +1242,12 @@ sub do_pub_status {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $irc->msg($chan,
-            "$who: There's no game of Perpetually Against Humanity in here.");
-        $irc->msg($chan,
-            "Want to start one? Anyone with a registered nickname can do so.");
-        $irc->msg($chan,
-            qq{Just type "$my_nick: start" and find at least 3 friends.});
+        $self->no_such_game($chan, $chan, $who);
     } elsif (2 == $game->status) {
         $self->report_game_status($game, $chan);
     } elsif (1 == $game->status) {
         my $num_players = scalar $game->rel_active_usergames;
+        my $my_nick     = $irc->nick();
 
         # Game is still gathering players. Give different response depending on
         # whether they are already in it or not.
@@ -3541,12 +3515,7 @@ sub do_pub_plays {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $irc->msg($chan,
-            "$who: There's no game of Perpetually Against Humanity in here.");
-        $irc->msg($chan,
-            "Want to start one? Anyone with a registered nickname can do so.");
-        $irc->msg($chan,
-            qq{Just type "$my_nick: start" and find at least 3 friends.});
+        $self->no_such_game($chan, $chan, $who);
     } else {
         $self->report_plays($game, $chan);
     }
@@ -4155,13 +4124,7 @@ sub do_priv_plays {
 
     if (not defined $game) {
         # There's never been a game in this channel.
-        $irc->msg($who,
-            "There's no game of Perpetually Against Humanity in $chan.");
-        $irc->msg($who,
-            "Want to start one? Anyone with a registered nickname can do so.");
-         $irc->msg($who,
-             qq{Just type "$my_nick: start" in $chan and find at least 3}
-             . qq{ friends.});
+        $self->no_such_game($who, $chan);
      } else {
          $self->report_plays($game, $who);
      }
@@ -4559,6 +4522,50 @@ sub db_delete_discards {
     $discard_rs->delete if ($count);
 
     return $count
+}
+
+# Send a message explaining there is no such game.
+#
+# Arguments:
+#
+# - Nick or channel to send the message to, as a scalar string.
+#
+# - Channel name the message relates to, as a scalar string.
+#
+# - Who to mention in the first line, or undef if no one.
+#
+# Returns:
+#
+# Nothing.
+sub no_such_game {
+    my ($self, $target, $chan, $mention);
+
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick;
+
+    if (defined $mention) {
+        $irc->msg($target,
+            "$mention: There's no game of Perpetually Against Humanity in"
+           . " here.");
+    } else {
+        $irc->msg($target,
+            "There's no game of Perpetually Against Humanity in $chan.");
+    }
+
+    $irc->msg($target,
+        "Want to start one? Anyone with a registered nickname can do so.");
+
+    if (defined $mention) {
+        $irc->msg($target,
+            qq{Just type "$my_nick: start" in the channel and find at least 3}
+            . qq{ friends.});
+    } else {
+        $irc->msg($target,
+            qq{Just type "$my_nick: start" in $chan and find at least 3}
+            . qq{ friends.});
+    }
+
+    return;
 }
 
 1;
