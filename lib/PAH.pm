@@ -3949,9 +3949,6 @@ sub punish_idler {
 
 # Forcibly resign a player.
 #
-# The Game's activity timer will be updated if that happens, so that the
-# remaining UserGames have chance to perform their action.
-#
 # Arguments:
 #
 # - The UserGame object we're acting on.
@@ -3968,9 +3965,11 @@ sub force_resign {
     my $schema  = $self->_schema;
     my $irc     = $self->_irc;
     my $my_nick = $irc->nick();
-    my $nick    = $user->disp_nick;
 
-    $nick = $user->nick if (not defined $nick);
+    my $nick = do {
+        if (defined $user->disp_nick) { $user->disp_nick }
+        else                          { $user->nick }
+    };
 
     debug("Resigning %s from game at %s due to idleness", $nick,
         $channel->disp_name);
@@ -3980,7 +3979,7 @@ sub force_resign {
            . " Idle since %s.", $nick,
            strftime("%FT%T", localtime($ug->activity_time))));
 
-    $irc->msg($user->nick,
+    $irc->msg($nick,
         sprintf("You've been forcibly resigned from the game in %s because"
            . " you've been idle since %s!", $channel->disp_name,
            strftime("%FT%T", localtime($ug->activity_time))));
@@ -3989,9 +3988,6 @@ sub force_resign {
            . qq{ "%s: deal me in" in %s!}, $my_nick, $channel->disp_name));
 
     $self->resign($ug);
-
-    $game->activity_time(time());
-    $game->update;
 }
 
 # Find the UserGame for a given nickname in a Game.
