@@ -200,6 +200,10 @@ sub BUILD {
           sub        => \&do_pub_winner,
           privileged => 1,
       },
+      'plays'     => {
+          sub        => \&do_pub_plays,
+          privileged => 0,
+      },
   };
 
   $self->{_priv_dispatch} = {
@@ -233,6 +237,10 @@ sub BUILD {
       },
       'stats'    => {
           sub        => \&do_priv_scores,
+          privileged => 0,
+      },
+      'plays'    => {
+          sub        => \&do_priv_plays,
           privileged => 0,
       },
   };
@@ -1828,7 +1836,7 @@ sub resign {
             "Now that $who was dealt out, all the plays are in."
            . " No more changes!");
         $self->prep_plays($game);
-        $self->list_plays($game);
+        $self->list_plays($game, $chan);
     }
 }
 
@@ -2766,7 +2774,7 @@ sub do_priv_play {
         $self->prep_plays($game);
 
         # Tell the channel about the collection of plays.
-        $self->list_plays($game);
+        $self->list_plays($game, $channel->name);
 
     } elsif ($is_new) {
         # Only bother to tell the channel if this is a new play.
@@ -3032,22 +3040,30 @@ sub user_is_tsar {
     return $ug->is_tsar;
 }
 
-# Inform the channel about the (completed) set of plays.
+# Inform the channel or a nickname about the (completed) set of plays.
 #
 # Arguments:
 #
 # - The Game Schema object.
 #
+# - The target of the output, either a channel or a nick as a scalar string.
+#
 # Returns:
 #
 # Nothing.
 sub list_plays {
-    my ($self, $game) = @_;
+    my ($self, $game, $target) = @_;
 
     my $irc     = $self->_irc;
     my $channel = $game->rel_channel;
     my $tsar_ug = $game->rel_tsar_usergame;
     my $chan    = $channel->disp_name;
+
+    my $is_nick = 1;
+
+    if ($target =~ /^[#\&]/) {
+        $is_nick = 0;
+    }
 
     # Hash ref of User ids.
     my $plays = $self->_plays->{$game->id};
@@ -3064,16 +3080,34 @@ sub list_plays {
 
         my $seq       = $plays->{$uid}->{seq};
         my $text      = $plays->{$uid}->{play};
-        my $tsar_nick = $tsar_ug->rel_user->disp_nick;
-
-        $tsar_nick = $tsar_ug->rel_user->ncik if (not defined $tsar_nick);
+        my $tsar_user = $tsar_ug->rel_user;
+        my $tsar_nick = do {
+            if (defined $tsar_user->disp_nick) { $tsar_user->disp_nick }
+            else                               { $tsar_user->nick }
+        };
 
         if (1 == $seq) {
-            $header_length = length("$tsar_nick: Which is the best play?");
+            my $header;
 
-            $irc->msg($chan, "$tsar_nick: Which is the best play?");
-            $irc->msg($chan, '=' x $header_length);
+            if ($is_nick) {
+                $header = "[$chan] ";
 
+                if (lc($tsar_nick) eq lc($target)) {
+                    $header        .= "You're the Card Tsar.";
+                    $header_length = length($header) - 2; # bolds
+                    $irc->msg($target, $header);
+                } else {
+                    $header        .= "The Card Tsar is $tsar_nick.";
+                    $header_length = length($header) - 4; # bolds
+                    $irc->msg($target, $header);
+                }
+            } else {
+                $header        = "$tsar_nick: Which is the best play?";
+                $header_length = length($header);
+                $irc->msg($target, $header);
+            }
+
+            $irc->msg($target, '=' x $header_length);
         }
 
         foreach my $line (split(/\n/, $text)) {
@@ -3082,15 +3116,14 @@ sub list_plays {
 
             # Pad play number to two spaces if there's 10 or more of them.
             if ($num_plays > 9) {
-                $irc->msg($chan, sprintf("%2u → %s", $seq, $line));
+                $irc->msg($target, sprintf("%2u → %s", $seq, $line));
             } else {
-                $irc->msg($chan, "$seq → $line");
+                $irc->msg($target, "$seq → $line");
             }
         }
     }
 
-    $irc->msg($chan, '=' x $header_length);
-
+    $irc->msg($target, '=' x $header_length);
 }
 
 # Work out who is still left to make their play.
@@ -3460,6 +3493,109 @@ sub do_pub_winner {
     $irc->msg($chan,
         "$who: Sorry, I don't seem to have a record of a play with that"
        . " number.");
+}
+
+# User wants to call up a list of plays for the completed hand.
+sub do_pub_plays {
+    my ($self, $args) = @_;
+
+    my $irc     = $self->_irc;
+    my $chan    = $args->{chan};
+    my $who     = $args->{nick};
+    my $my_nick = $irc->nick();
+
+    my $channel = $self->db_get_channel($chan);
+
+    # It shouldn't be possible to not have a Channel row, because we wouldn't
+    # be inside the channel if we didn't know about it.
+    if (not defined $channel) {
+        $irc->msg($chan,
+            "$who: Sorry, I don't seem to have $chan in my database, which is"
+            . " a weird error that needs to be reported!");
+        return;
+    }
+
+    my $game = $channel->rel_game;
+
+    # How long ago did we last do this?
+    my $now = time();
+
+    if (defined $game and defined $self->_last->{$game->id}
+            and defined $self->_last->{$game->id}->{plays}) {
+        my $last_plays = $self->_last->{$game->id}->{plays};
+
+        if (($now - $last_plays) <= 120) {
+            # Last time we did plays in this channel was 120 seconds ago or less.
+            debug("%s tried to display plays for %s but it was already done %u"
+                . " secs ago; ignoring", $who, $chan, ($now - $last_plays));
+            $irc->msg($chan,
+                sprintf("$who: Sorry, I'm ignoring your plays command"
+                    . " because I did one just %u secs ago.",
+                    ($now - $last_plays)));
+            return;
+        }
+    }
+
+    # Record timestamp of when we did this.
+    if (defined $game) {
+        $self->_last->{$game->id}->{plays} = $now;
+    }
+
+    if (not defined $game) {
+        # There's never been a game in this channel.
+        $irc->msg($chan,
+            "$who: There's no game of Perpetually Against Humanity in here.");
+        $irc->msg($chan,
+            "Want to start one? Anyone with a registered nickname can do so.");
+        $irc->msg($chan,
+            qq{Just type "$my_nick: start" and find at least 3 friends.});
+    } else {
+        $self->report_plays($game, $chan);
+    }
+}
+
+# Report the plays for a completed hand to either a nick or a channel. If the
+# hand isn't completed yet then just giver an error.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# - The target of the output (nick or channel) as a scalar string.
+#
+# Returns:
+#
+# Nothing.
+sub report_plays {
+    my ($self, $game, $target) = @_;
+
+    my $irc  = $self->_irc;
+    my $chan = $game->rel_channel->name;
+
+    # If the target is a nickname then we need to prepend the channel so they
+    # know what we're talking about.
+    my $is_nick = 1;
+
+    if ($target =~ /^[#\&]/) {
+        $is_nick = 0;
+    }
+
+    if (! $self->hand_is_complete($game)) {
+        # Still waiting on plays to come in.
+        my @to_play     = $self->waiting_on($game);
+        my $num_waiting = scalar @to_play;
+
+        my $waitstring = sprintf("waiting on %u %s to make their play%s.",
+            $num_waiting, $num_waiting == 1 ? 'person' : 'people',
+            $num_waiting == 1 ? '' : 's');
+
+        $irc->msg($target,
+            sprintf("%sThe hand isn't complete yet; %s",
+                $is_nick ? "[$chan]" : '', $waitstring));
+        return;
+    }
+
+    $self->list_plays($game, $target);
 }
 
 # The round has ended, we know the winner, so the scores need to be adjusted.
@@ -3956,6 +4092,82 @@ sub do_priv_pronoun {
     $irc->msg($who, "Sorry, that doesn't look like a reasonable pronoun. I'll"
        . " accept up to five characters, a-z plus A-Z.");
 }
+
+# A user wants to privately list the plays of a completed hand. If the hand is
+# not completed then just give an error message.
+sub do_priv_plays {
+    my ($self, $args) = @_;
+
+    my $who     = $args->{nick};
+    my $irc     = $self->_irc;
+    my $my_nick = $irc->nick();
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    my $channel = undef;
+
+    if (not defined $chan) {
+        $channel = $self->guess_channel($who);
+
+        if (defined $channel) {
+            $chan = $channel->disp_name;
+        }
+    } else {
+        # They specified a channel, so try to get that one.
+        $channel = $self->db_get_channel($chan);
+
+        if (not defined $channel) {
+            $chan = undef;
+        }
+    }
+
+    # By now we either:
+    #
+    # 1. Guessed the channel and have a channel object in $channel, channel
+    #    name in $chan.
+    # 2. Couldn't guess the channel and have an undef $channel object, undef
+    #    $chan.
+    # 3. Have a specified a channel in $chan, and we found the object in
+    #    $channel.
+    # 4. Have a specified a channel in $chan but we couldn't find it, so
+    #    $channel is undef.
+    if (not defined $channel) {
+        # Cases 2 or 4.
+        if (defined $chan) {
+            # They specified the channel but it didn't exist (#4). Probably bot
+            # has never been in it.
+            debug("%s asked for plays for game in %s but I don't know anything"
+                . " about %s", $who, $chan, $chan);
+            $irc->msg($who, "Sorry, I have no knowledge of $chan.");
+            return;
+        }
+
+        # It's case #2.
+        debug("%s asked for plays list but I couldn't work out which channel"
+            . " they were interested in", $who);
+        $irc->msg($who,
+            qq{Sorry, I can't work out which channel's game you're interested}
+            . qq{ in. Try again with "#channel plays".});
+        return;
+    }
+
+    # Must be cases 1 or 3.
+    my $game = $channel->rel_game;
+
+    if (not defined $game) {
+        # There's never been a game in this channel.
+        $irc->msg($who,
+            "There's no game of Perpetually Against Humanity in $chan.");
+        $irc->msg($who,
+            "Want to start one? Anyone with a registered nickname can do so.");
+         $irc->msg($who,
+             qq{Just type "$my_nick: start" in $chan and find at least 3}
+             . qq{ friends.});
+     } else {
+         $self->report_plays($game, $who);
+     }
+ }
 
 # Clear out any record of pokes that have been made so that new pokes can be
 # sent if needed.
