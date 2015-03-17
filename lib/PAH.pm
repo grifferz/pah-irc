@@ -1376,7 +1376,8 @@ sub report_game_status {
 
     $user = $self->db_get_user($target) if ($is_nick);
 
-    if ($is_nick and defined $self->_plays and defined $self->_plays->{$game->id}
+    if ($is_nick and defined $self->_plays
+            and defined $self->_plays->{$game->id}
             and defined $self->_plays->{$game->id}->{$user->id}) {
         # This is a private status command and they've made a play in this
         # round, so tell them about it.
@@ -1462,7 +1463,8 @@ sub do_pub_start {
                . " play?");
             $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to!});
         } elsif (2 == $status) {
-            $irc->msg($chan, "$who: Sorry, there's already a game running here!");
+            $irc->msg($chan,
+                "$who: Sorry, there's already a game running here!");
         }
 
         return;
@@ -1586,7 +1588,8 @@ sub do_pub_dealin {
     if (2 == $game->status and $self->hand_is_complete($game)) {
         # TODO: Maybe keep track that they wanted to play, and deal them in as
         # soon as the current hand finishes?
-        debug("%s can't join game at %s because the hand is complete", $who, $chan);
+        debug("%s can't join game at %s because the hand is complete", $who,
+            $chan);
 
         my $tsar      = $game->rel_tsar_usergame->rel_user;
         my $tsar_nick = $tsar->disp_nick;
@@ -1594,8 +1597,9 @@ sub do_pub_dealin {
         $tsar_nick = $tsar->nick if (not defined $tsar_nick);
 
         $irc->msg($chan,
-            sprintf("%s: Sorry, this hand is complete and we're waiting on %s"
-               . " to pick the winner. Please try again later.", $who, $tsar_nick));
+            sprintf("%s: Sorry, this hand is complete and we're waiting on"
+               . " %s to pick the winner. Please try again later.", $who,
+               $tsar_nick));
         return;
     }
 
@@ -1603,8 +1607,8 @@ sub do_pub_dealin {
     my $num_players = scalar @active_usergames;
 
     if ($num_players >= 20) {
-        debug("%s can't join game at %s because there's already %s players", $who,
-            $chan, $num_players);
+        debug("%s can't join game at %s because there's already %s players",
+            $who, $chan, $num_players);
         $irc->msg($chan,
             "$who: Sorry, there's already $num_players players in this game and"
            . " that's the maximum. Try again once someone has resigned!");
@@ -1648,8 +1652,9 @@ sub do_pub_dealin {
             $prefix = 'The game begins!';
         }
 
-        $irc->msg($chan, "$prefix Give me a minute or two to tell everyone their"
-               . " hands without flooding myself off, please.");
+        $irc->msg($chan,
+            "$prefix Give me a minute or two to tell everyone their hands"
+           . " without flooding myself off, please.");
 
         # Get a chat window open with all the players.
         $self->brief_players($game);
@@ -1663,7 +1668,8 @@ sub do_pub_dealin {
             $self->notify_bcard($chan, $game);
         }
     } elsif (1 == $game->status) {
-        debug("Game at %s still requires %u more players", $chan, 4 - $num_players);
+        debug("Game at %s still requires %u more players", $chan,
+            4 - $num_players);
         $irc->msg($chan,
             "We've now got $num_players of minimum 4. Anyone else?");
         $irc->msg($chan, qq{Type "$my_nick: me" if you'd like to play too.});
@@ -1699,8 +1705,8 @@ sub do_pub_resign {
 
     if (not defined $channel) {
         $irc->msg($chan,
-            "$who: I can't seem to find a Channel object for this channel. That's"
-           . " weird and shouldn't happen. Report this!");
+            "$who: I can't seem to find a Channel object for this channel."
+           . " That's weird and shouldn't happen. Report this!");
         return;
     }
 
@@ -1727,8 +1733,8 @@ sub do_pub_resign {
     # Is the user active in the game?
     if (not defined $usergame or 0 == $usergame->active) {
         # No.
-        debug("%s tried to resign from game in %s but they weren't active", $who,
-            $chan);
+        debug("%s tried to resign from game in %s but they weren't active",
+            $who, $chan);
         $irc->msg($chan, "$who: You're not playing!");
         return;
     }
@@ -1758,7 +1764,8 @@ sub resign {
         debug("%s was Tsar for %s", $who, $chan);
 
         if (2 == $game->status and $self->hand_is_complete($game)) {
-            debug("Played cards in %s have been seen so must be discarded", $chan);
+            debug("Played cards in %s have been seen so must be discarded",
+                $chan);
             $self->cleanup_plays($game);
         } else {
             # Just delete everyone's plays.
@@ -1798,16 +1805,19 @@ sub resign {
     if ($player_count < 4) {
         my $my_nick = $irc->nick();
 
-        debug("Resignation of %s in %s has brought the game down to %u player%s",
-            $who, $chan, $player_count, 1 == $player_count ? '' : 's');
+        debug("Resignation of %s in %s has brought the game down to %u"
+           . " player%s", $who, $chan, $player_count,
+           1 == $player_count ? '' : 's');
         $game->status(1);
         $game->update;
 
         $irc->msg($chan,
-            sprintf("That's taken us down to %u player%s. Game paused until we get"
-                . " back up to 4.", $player_count, 1 == $player_count ? '' : 's'));
+            sprintf("That's taken us down to %u player%s. Game paused until we"
+               . " get back up to 4.", $player_count,
+               1 == $player_count ? '' : 's'));
         $irc->msg($chan,
-            qq{Would anyone else would like to play? If so type "$my_nick: me"});
+            qq{Would anyone else would like to play? If so type}
+           . qq{ "$my_nick: me"});
     }
 
     # Has this actually completed the hand (i.e. we were waiting on the user who
@@ -2009,7 +2019,8 @@ sub db_populate_cards {
 
         # Make an array of card indices of the cards in every player's hands.
         foreach my $ug (@players) {
-            push(@hand_card_indices, map { $_->wcardidx } $ug->rel_usergamehands);
+            push(@hand_card_indices,
+                map { $_->wcardidx } $ug->rel_usergamehands);
         }
 
         # Remove the hand cards from the deck's cards.
@@ -2055,12 +2066,13 @@ sub brief_players {
             "Hi! The game's about to start. You may find it easier to keep this"
            . " window open for sending me game commands.");
         $irc->msg($who,
-            sprintf("Turns in this game can take around %s (mostly done within"
-               . " %s though), so there's no need to rush.",
+            sprintf("Turns in this game can take around %s (mostly done"
+               . " within %s though), so there's no need to rush.",
                duration($turnclock * 2), duration($turnclock)));
         $irc->msg($who,
-            qq{If you need to stop playing though, please type "$my_nick: resign"}
-           . qq{ in $chan so the others aren't kept waiting.});
+            qq{If you need to stop playing though, please type}
+           . qq{ "$my_nick: resign" in $chan so the others aren't kept}
+           . qq{ waiting.});
     }
 }
 
@@ -2110,8 +2122,8 @@ sub topup_hand {
     # Sanity check that the number of available positions is the same as the
     # number of cards needed.
     if (scalar @avail_pos != $needed) {
-        debug("%s has %u available hand positions but needs %u cards", $user->nick,
-            scalar @avail_pos, $needed);
+        debug("%s has %u available hand positions but needs %u cards",
+            $user->nick, scalar @avail_pos, $needed);
         return;
     }
 
@@ -2122,8 +2134,8 @@ sub topup_hand {
         my $num_discards    = scalar @discards;
         my $discards_needed = $num_discards > $needed ? $needed : $num_discards;
 
-        debug("There's %u cards on the discard pile for this user/game; taking %u"
-           . " from there", $num_discards, $discards_needed);
+        debug("There's %u cards on the discard pile for this user/game; taking"
+           . " %u from there", $num_discards, $discards_needed);
 
         my @discard_insert;
 
@@ -2288,15 +2300,15 @@ sub topup_hands {
 sub notify_new_wcards {
     my ($self, $ug, $new) = @_;
 
-    my $who = $ug->rel_user->nick;
-    my $irc = $self->_irc;
+    my $who  = $ug->rel_user->nick;
+    my $chan = $ug->rel_game->rel_channel->disp_name;
+    my $irc  = $self->_irc;
 
     my $num_added = scalar @{ $new };
 
     $irc->msg($who,
-        sprintf("%u new White Card%s been dealt to you in %s:", $num_added,
-            1 == $num_added ? ' has' : 's have',
-            $ug->rel_game->rel_channel->disp_name));
+        sprintf("%u new White Card%s been dealt to you in %s:",
+            $num_added, 1 == $num_added ? ' has' : 's have', $chan));
 
     $self->notify_wcards($ug, $new);
 
@@ -2304,10 +2316,9 @@ sub notify_new_wcards {
         my @active_usergames = $ug->rel_user->rel_active_usergames;
 
         if (scalar @active_usergames > 1) {
-            # They're in more than one game, so they need to specify the channel.
-            $irc->msg($who,
-                sprintf(qq{To see your full hand, type "%s hand".},
-                    $ug->rel_game->rel_channel->disp_name));
+            # They're in more than one game, so they need to specify the
+            # channel.
+            $irc->msg($who, qq{To see your full hand, type "$chan hand".});
         } else {
             $irc->msg($who, qq{To see your full hand, type "hand".});
         }
@@ -2399,7 +2410,8 @@ sub deal_to_tsar {
     $game->round_time($now);
     $game->update;
 
-    # Discard the Black Card off the deck (because it's now part of the Game round).
+    # Discard the Black Card off the deck (because it's now part of the Game
+    # round).
     $schema->resultset('BCard')->find({ id => $new->id })->delete;
 
     # Notify every player about the new black card, so they don't have to leave
@@ -2495,17 +2507,17 @@ sub do_priv_black {
             # They aren't active in any game, and they didn't specify a
             # channel, so no way to know which channel they meant.
             $irc->msg($who,
-                "Sorry, you're going to have to tell me which channel's game you're"
-               . " interested in.");
+                "Sorry, you're going to have to tell me which channel's game"
+               . " you're interested in.");
             $irc->msg($who, "Try again with \"/msg $my_nick #channel black\"");
             return;
         } else {
             # They're in more than one game so again no way to tell which one
             # they mean.
             $irc->msg($who,
-                "Sorry, you appear to be in multiple games so you're going to have"
-               . " to specify which one you mean.");
-            $irc->msg($who, "Try again with \"/msg $my_nick #channel black\"");
+                "Sorry, you appear to be in multiple games so you're going to"
+               . " have to specify which one you mean.");
+            $irc->msg($who, qq{Try again with "/msg $my_nick #channel black"});
             return;
         }
     }
@@ -2607,8 +2619,8 @@ sub do_priv_play {
     # Is the game actually active?
     if ($game->status != 2) {
         $irc->msg($who,
-            sprintf("Sorry, the game in %s isn't active at the moment, so no plays"
-               . " are being accepted.", $channel->disp_name));
+            sprintf("Sorry, the game in %s isn't active at the moment, so no"
+               . " plays are being accepted.", $channel->disp_name));
         return;
     }
 
@@ -2616,8 +2628,8 @@ sub do_priv_play {
     # changes are allowed.
     if ($self->hand_is_complete($game)) {
         $irc->msg($who,
-            sprintf("All plays have already been made for this game, so no changes"
-               . " now! We're now waiting on the Card Tsar (%s).",
+            sprintf("All plays have already been made for this game, so no"
+               . " changes now! We're now waiting on the Card Tsar (%s).",
                $game->rel_tsar_usergame->rel_user->nick));
         return;
     }
@@ -2625,8 +2637,8 @@ sub do_priv_play {
     # Are they the Card Tsar? The Tsar doesn't get to play!
     if (1 == $ug->is_tsar) {
         $irc->msg($who,
-            sprintf("You're currently the Card Tsar for %s; you don't get to play"
-               . " any White Cards yet!", $channel->disp_name));
+            sprintf("You're currently the Card Tsar for %s; you don't get to"
+               . " play any White Cards yet!", $channel->disp_name));
        return;
     }
 
@@ -2645,8 +2657,8 @@ sub do_priv_play {
         } else {
             $irc->msg($who,
                 qq{I need two answers and you've given me none! Try}
-               . qq{ "/msg $my_nick play 1 2" where "1" and "2" are the White Card}
-               . qq{ numbers from your hand.});
+               . qq{ "/msg $my_nick play 1 2" where "1" and "2" are the White}
+               . qq{ Card numbers from your hand.});
         }
         return;
     }
@@ -2655,9 +2667,10 @@ sub do_priv_play {
         if ($params =~ /^\s*(\d+)\s*$/ and $1 > 0) {
             $first = $1;
         } else {
-            $irc->msg($who, "Sorry, this Black Card needs one White Card and"
-               . " \"$params\" doesn't look like a single, positive integer. Try"
-               . " again!");
+            $irc->msg($who,
+                qq{Sorry, this Black Card needs one White Card and "$params"}
+               . qq{ doesn't look like a single, positive integer. Try}
+               . qq{ again!});
             return;
         }
     } elsif (2 == $cards_needed) {
@@ -2667,14 +2680,16 @@ sub do_priv_play {
             $second = $2;
         } else {
             $irc->msg($who,
-                "Sorry, this Black Card needs two White Cards. Do it like this:");
+                "Sorry, this Black Card needs two White Cards. Do it like"
+               . " this:");
             $irc->msg($who, qq{/msg $my_nick play 1 2});
             return;
         }
 
         if ($first == $second) {
             debug("%s tried to play two identical cards.", $who);
-            $irc->msg($who, "You must play two different cards! Try again.");
+            $irc->msg($who,
+                "You must play two different cards! Try again.");
             return;
         }
     } else {
@@ -2714,7 +2729,8 @@ sub do_priv_play {
     }
 
     $irc->msg($who,
-        sprintf("Thanks. So this is your play for %s:", $channel->disp_name));
+        sprintf("Thanks. So this is your play for %s:",
+            $channel->disp_name));
 
     $play = $self->build_play($ug, $bcardidx, \@cards);
 
@@ -3507,7 +3523,8 @@ sub do_pub_plays {
         my $last_plays = $self->_last->{$game->id}->{plays};
 
         if (($now - $last_plays) <= 120) {
-            # Last time we did plays in this channel was 120 seconds ago or less.
+            # Last time we did plays in this channel was 120 seconds ago or
+            # less.
             debug("%s tried to display plays for %s but it was already done %u"
                 . " secs ago; ignoring", $who, $chan, ($now - $last_plays));
             $irc->msg($chan,
