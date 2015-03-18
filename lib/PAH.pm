@@ -2551,7 +2551,7 @@ sub do_priv_black {
         $tsar_nick = $tsar->nick if (not defined $tsar_nick);
 
         $self->_irc->msg($who,
-            sprintf("The current Card Tsar is %s", $tsar_nick));
+            sprintf("The current Card Tsar is %s.", $tsar_nick));
 
         # Are they in a position to play a move?
         if (defined $usergame) {
