@@ -338,7 +338,14 @@ sub joined {
     debug("Joined %s", $chan);
 
     # Is there a game for this channel already in existence?
-    my $channel = $schema->resultset('Channel')->find({ name => $name });
+    my $channel = $schema->resultset('Channel')->find(
+        {
+            name => $name,
+        },
+        {
+            prefetch => 'rel_game',
+        },
+    );
 
     return unless (defined $channel);
 
@@ -2792,11 +2799,6 @@ sub do_priv_play {
                 cb    => sub { $self->notify_plays($game); },
             );
         }
-    } else {
-        # Hand isn't complete, we got a play but it wasn't a *new* play. So,
-        # treat it as already notified.
-        $self->_plays->{$game->id}->{$user->id}->{notified} = 1;
-        $self->write_tallyfile;
     }
 }
 
