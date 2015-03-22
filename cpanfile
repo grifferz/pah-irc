@@ -8,6 +8,7 @@ requires 'Try::Tiny';
 requires 'Cpanel::JSON::XS';
 requires 'JSON::MaybeXS';
 requires 'DBIx::Class';
+requires 'DBIx::Class::UnicornLogger';
 requires 'DBD::SQLite';
 requires 'SQL::Translator', '>= 0.11018';
 requires 'Storable';
