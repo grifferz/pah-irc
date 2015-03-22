@@ -2307,9 +2307,13 @@ sub topup_hands {
 sub notify_new_wcards {
     my ($self, $ug, $new) = @_;
 
-    my $who  = $ug->rel_user->nick;
+    my $user = $ug->rel_user;
     my $chan = $ug->rel_game->rel_channel->disp_name;
     my $irc  = $self->_irc;
+    my $who  = do {
+        if (defined $user->disp_nick) { $user->disp_nick }
+        else                          { $user->nick }
+    };
 
     my $num_added = scalar @{ $new };
 
@@ -2320,7 +2324,7 @@ sub notify_new_wcards {
     $self->notify_wcards($ug, $new);
 
     if ($num_added < 10) {
-        my @active_usergames = $ug->rel_user->rel_active_usergames;
+        my @active_usergames = $user->rel_active_usergames;
 
         if (scalar @active_usergames > 1) {
             # They're in more than one game, so they need to specify the
@@ -2345,9 +2349,13 @@ sub notify_new_wcards {
 sub notify_wcards {
     my ($self, $ug, $cards) = @_;
 
-    my $who  = $ug->rel_user->nick;
+    my $user = $ug->rel_user;
     my $deck = $self->_deck;
     my $irc  = $self->_irc;
+    my $who  = do {
+        if (defined $user->disp_nick) { $user->disp_nick }
+        else                          { $user->nick }
+    };
 
     foreach my $wcard (@{ $cards }) {
         my $index;
@@ -2427,9 +2435,15 @@ sub deal_to_tsar {
         # Not if they're the Tsar though.
         next if (1 == $ug->is_tsar);
 
-        $irc->msg($ug->rel_user->nick,
+        my $user = $ug->rel_user;
+        my $who  = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
+
+        $irc->msg($who,
             sprintf("[%s] Time for the next Black Card:", $chan));
-        $self->notify_bcard($ug->rel_user->nick, $game);
+        $self->notify_bcard($who, $game);
     }
 
     # Notify the channel about the new Black Card.
@@ -2548,7 +2562,10 @@ sub do_priv_black {
     my ($usergame) = grep { $_->rel_user->id == $user->id } @active_usergames;
     my ($tsar)     = grep { 1 == $_->is_tsar } @active_usergames;
 
-    if ($tsar->rel_user->nick eq $who) {
+    my $tsar_user = $tsar->rel_user;
+
+    if ((defined $tsar_user->disp_nick and $tsar_user->disp_nick eq $who)
+            or ($tsar_user->nick eq $who)) {
         # They're the Card Tsar.
         $irc->msg($who, "You're the current Card Tsar!");
     } else {
@@ -2634,10 +2651,16 @@ sub do_priv_play {
     # Is there already a full set of plays for this game? If so then no more
     # changes are allowed.
     if ($self->hand_is_complete($game)) {
+        my $tsar_user = $game->rel_tsar_usergame->rel_user;
+        my $tsar_nick = do {
+            if (defined $tsar_user->disp_nick) { $tsar_user->disp_nick }
+            else                               { $tsar_user->nick }
+        };
+
         $irc->msg($who,
             sprintf("All plays have already been made for this game, so no"
                . " changes now! We're now waiting on the Card Tsar (%s).",
-               $game->rel_tsar_usergame->rel_user->nick));
+               $tsar_nick));
         return;
     }
 
