@@ -1,5 +1,14 @@
 # Change log
 
+## v0.5
+### 2015-03-22
+* Implemented support for multiple card packs (currently a bot-wide setting): [#75](https://github.com/grifferz/pah-irc/issues/75).
+* Added `plays` public and private commands to repeat the list of played cards for the completed hand: [#10](https://github.com/grifferz/pah-irc/issues/10).
+* Fixed bug where changing your play would cause the wrong number of plays to be reported: [#89](https://github.com/grifferz/pah-irc/issues/89).
+* Fixed bug where a full `turnclock` would be allowed to pass between each forced resignation: [#84](https://github.com/grifferz/pah-irc/issues/84).
+* Fixed bug where some long Black Card content would have a spuriour extra newline at the end: [#90](https://github.com/grifferz/pah-irc/issues/90).
+* Fixed many instances of incorrect downcasing of nicknames: [#1](https://github.com/grifferz/pah-irc/issues/1).
+
 ## v0.4
 ### 2015-03-03
 * Now keeps cards in hands in the same order and shows the position of new cards as they are dealt: [#4](https://github.com/grifferz/pah-irc/issues/4).
@@ -15,7 +24,7 @@
 * Channel is now informed about the winning play before players' hands are topped up, avoiding long pause: [#83](https://github.com/grifferz/pah-irc/issues/83).
 * Players are now also informed of the winner and their play in private message: [#80](https://github.com/grifferz/pah-irc/issues/80).
 * Mixed case nicknames are now preserved: [#1](https://github.com/grifferz/pah-irc/issues/1).
-* Fix bug where Card Tsar could be forcibly resigned even while waiting for other players: [#64](https://github.com/grifferz/pah-irc/issues/64).
+* Fixed bug where Card Tsar could be forcibly resigned even while waiting for other players: [#64](https://github.com/grifferz/pah-irc/issues/64).
 * Cards Against Humanity 2nd expansion added (not actually in use yet though) (Douglas Gardner): [#49](https://github.com/grifferz/pah-irc/pull/73).
 
 ## v0.3
