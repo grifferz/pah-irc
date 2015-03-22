@@ -20,35 +20,34 @@ Get Cards Against Humanity here!
 
 =cut
 
-package PAH::Schema;
-use base qw/DBIx::Class::Schema/;
+package PAH::UnicornLogger;
+use base qw/DBIx::Class::UnicornLogger/;
 
 use warnings;
 use strict;
-our $VERSION = '0.0011';
 
-use PAH::UnicornLogger;
-my $pp = PAH::UnicornLogger->new(
-    {
-        tree             => { profile => 'console' },
-        profile          => 'console',
-        format           => '%d ** %m',
-        multiline_format => '   %m',
-    }
-);
-
-sub connection {
+sub query_start {
     my $self = shift;
 
-    my $ret = $self->next::method(@_);
+    my $i = 0;
+    my @caller;
+    my @parent;
 
-    $self->storage->debugobj($pp);
+    while (@caller = caller($i)) {
+        if ($caller[1] =~ m#^lib/#) {
+            @parent = caller($i + 1);
+            last;
+        }
 
-    $ret
-};
+        $i++;
+    }
 
-__PACKAGE__->load_namespaces();
+    if (scalar @caller) {
+        $self->print(
+            sprintf("%s %s:%u", $parent[3], $caller[1], $caller[2]));
+    }
 
-__PACKAGE__->load_components(qw/Schema::Versioned/);
+    $self->SUPER::query_start(@_);
+}
 
 1;
