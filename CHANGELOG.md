@@ -6,7 +6,7 @@
 * Added `plays` public and private commands to repeat the list of played cards for the completed hand: [#10](https://github.com/grifferz/pah-irc/issues/10).
 * Fixed bug where changing your play would cause the wrong number of plays to be reported: [#89](https://github.com/grifferz/pah-irc/issues/89).
 * Fixed bug where a full `turnclock` would be allowed to pass between each forced resignation: [#84](https://github.com/grifferz/pah-irc/issues/84).
-* Fixed bug where some long Black Card content would have a spuriour extra newline at the end: [#90](https://github.com/grifferz/pah-irc/issues/90).
+* Fixed bug where some long Black Card content would have a spurious extra newline at the end: [#90](https://github.com/grifferz/pah-irc/issues/90).
 * Fixed many instances of incorrect downcasing of nicknames: [#1](https://github.com/grifferz/pah-irc/issues/1).
 
 ## v0.4
