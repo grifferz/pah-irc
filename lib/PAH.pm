@@ -1010,7 +1010,7 @@ sub do_priv_status {
         # whether they are already in it or not.
         my $ug = $self->db_get_nick_in_game($who, $game);
 
-        if (defined $ug) {
+        if (defined $ug and 1 == $ug->active) {
             $irc->msg($who,
                 sprintf("A game exists in %s but we only have %u"
                     . " player%s (%s). Find me %u more and we're on.",
