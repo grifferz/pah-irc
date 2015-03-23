@@ -358,7 +358,7 @@ sub joined {
     if (0 == $game->status) {
         debug("…and it's currently paused so I'm going to activate it");
 
-        my $num_players = scalar $game->rel_active_usergames;
+        my $num_players = $game->rel_active_usergames->count;
 
         if ($num_players < 4) {
             $game->status(1); # Waiting for players.
@@ -1004,7 +1004,7 @@ sub do_priv_status {
     } elsif (2 == $game->status) {
         $self->report_game_status($game, $who);
     } elsif (1 == $game->status) {
-        my $num_players = scalar $game->rel_active_usergames;
+        my $num_players = $game->rel_active_usergames->count;
 
         # Game is still gathering players. Give different response depending on
         # whether they are already in it or not.
@@ -1253,7 +1253,7 @@ sub do_pub_status {
     } elsif (2 == $game->status) {
         $self->report_game_status($game, $chan);
     } elsif (1 == $game->status) {
-        my $num_players = scalar $game->rel_active_usergames;
+        my $num_players = $game->rel_active_usergames->count;
         my $my_nick     = $irc->nick();
 
         # Game is still gathering players. Give different response depending on
@@ -1462,7 +1462,7 @@ sub do_pub_start {
                 "$who: Sorry, there's already a game for this channel, though"
                . " it seems to be paused when it shouldn't be! Ask around?");
         } elsif (1 == $status) {
-            my $count = scalar ($game->rel_active_usergames);
+            my $count = $game->rel_active_usergames->count;
 
             $irc->msg($chan,
                 "$who: Sorry, there's already a game here but we only have"
@@ -1640,7 +1640,7 @@ sub do_pub_dealin {
     $irc->msg($chan, "$who: Nice! You're in!");
 
     # Does the game have enough players to start yet?
-    $num_players = scalar $game->rel_active_usergames;
+    $num_players = $game->rel_active_usergames->count;
 
     if ($num_players >= 4 and 1 == $game->status) {
         debug("Game at %s now has enough players to proceed", $chan);
@@ -1807,7 +1807,7 @@ sub resign {
     }
 
     # Has this taken the number of players too low for the game to continue?
-    my $player_count = scalar $game->rel_active_usergames;
+    my $player_count = $game->rel_active_usergames->count;
 
     if ($player_count < 4) {
         my $my_nick = $irc->nick();
@@ -2837,7 +2837,7 @@ sub do_priv_play {
 sub notify_plays {
     my ($self, $game) = @_;
 
-    my $num_players = scalar $game->rel_active_usergames;
+    my $num_players = $game->rel_active_usergames->count;
     my $num_plays   = $self->num_plays($game);
     my $waiting_on  = $num_players - $num_plays - 1;
     my $tally       = $self->_plays->{$game->id};
@@ -3031,7 +3031,7 @@ sub hand_is_complete {
     my ($self, $game) = @_;
 
     my $num_plays   = $self->num_plays($game);
-    my $num_players = scalar $game->rel_active_usergames;
+    my $num_players = $game->rel_active_usergames->count;
 
     return ($num_plays == ($num_players - 1));
 }
@@ -3175,7 +3175,7 @@ sub waiting_on {
     # Some number of players have not yet made their play.
 
     my $tally       = $self->_plays->{$game->id};
-    my $num_players = scalar $game->rel_active_usergames;
+    my $num_players = $game->rel_active_usergames->count;
     my $num_plays   = $self->num_plays($game);
     my $waiting_num = $num_players - 1 - $num_plays;
 
@@ -3394,7 +3394,7 @@ sub prep_plays {
 
     my $tally = $self->_plays->{$game->id};
 
-    my $num_players = scalar $game->rel_active_usergames;
+    my $num_players = $game->rel_active_usergames->count;
 
     # Assign random sequence order to the plays just in case Perl's
     # ordering of hash keys is predictable.
@@ -3454,7 +3454,7 @@ sub do_pub_winner {
 
         # Maybe it needs more players.
         if (1 == $game->status) {
-            my $num_players = scalar $game->rel_active_usergames;
+            my $num_players = $game->rel_active_usergames->count;
 
             $irc->msg($chan,
                 sprintf("We need %u more player%s before we can start"
