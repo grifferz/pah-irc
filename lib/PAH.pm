@@ -1020,7 +1020,7 @@ sub do_priv_status {
         } else {
             $irc->msg($who,
                 sprintf("A game exists in %s but we only have %u"
-                    . " player%s. Find me %umore and we're on.", $chan,
+                    . " player%s. Find me %u more and we're on.", $chan,
                     $num_players, 1 == $num_players ? '' : 's',
                     4 - $num_players));
         }
