@@ -69,17 +69,23 @@ __PACKAGE__->add_unique_constraint('users_disp_nick_idx' => ['disp_nick']);
 
 # Relationships.
 
-# A User has zero or more UserGames
+# A User has zero or more UserGames.
 __PACKAGE__->has_many(
     rel_usergames => 'PAH::Schema::Result::UserGame', 
     { 'foreign.user' => 'self.id' }
 );
 
-# A User has zero or more active UserGames
+# A User has zero or more active UserGames.
 __PACKAGE__->has_many(
     rel_active_usergames => 'PAH::Schema::Result::UserGame',
     { 'foreign.user'   => 'self.id' },
     { where => { 'active' => 1 } }
+);
+
+# A User has zero or more Waiters.
+__PACKAGE__->has_many(
+    rel_waiters => 'PAH::Schema::Result::Waiter',
+    { 'foreign.user'   => 'self.id' }
 );
 
 1;

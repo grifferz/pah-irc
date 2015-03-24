@@ -134,6 +134,12 @@ __PACKAGE__->belongs_to(
     { where => { 'is_tsar' => 1 } }
 );
 
+# A Game has zero or more Waiters.
+__PACKAGE__->has_many(
+    rel_waiters => 'PAH::Schema::Result::Waiter',
+    { 'foreign.game' => 'self.id' }
+);
+
 # On deploy add some indexes.
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

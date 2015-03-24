@@ -25,7 +25,7 @@ use base qw/DBIx::Class::Schema/;
 
 use warnings;
 use strict;
-our $VERSION = '0.0011';
+our $VERSION = '0.0012';
 
 use PAH::UnicornLogger;
 my $pp = PAH::UnicornLogger->new(
