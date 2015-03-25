@@ -4425,24 +4425,26 @@ sub db_switch_packs {
     debug("  Deleting wcards…");
     $schema->resultset('WCard')->search({ game => $game->id })->delete;
 
-    my $cur_bcardidx = $game->bcardidx;
-    my $cur_bcardtxt = $their_deck->black($cur_bcardidx);
+    if (defined $cur_bcardidx) {
+        my $cur_bcardidx = $game->bcardidx;
+        my $cur_bcardtxt = $their_deck->black($cur_bcardidx);
 
-    my $new_bcardidx = $deck->find('Black', $cur_bcardtxt);
+        my $new_bcardidx = $deck->find('Black', $cur_bcardtxt);
 
-    if (defined $new_bcardidx) {
-        if ($new_bcardidx != $cur_bcardidx) {
-            debug("  Their Black Card %u exists as %u in new deck; adjusting…",
-                $cur_bcardidx, $new_bcardidx);
-            $game->bcardidx($new_bcardidx);
+        if (defined $new_bcardidx) {
+            if ($new_bcardidx != $cur_bcardidx) {
+                debug("  Their Black Card %u exists as %u in new deck;"
+                   . " adjusting…", $cur_bcardidx, $new_bcardidx);
+                $game->bcardidx($new_bcardidx);
+            } else {
+                debug("  Black Cards identical (%u)", $cur_bcardidx);
+            }
         } else {
-            debug("  Black Cards identical (%u)", $cur_bcardidx);
+            debug("  Their Black Card %u is not in new deck; appending…",
+                $cur_bcardidx);
+            $new_bcardidx = $deck->append('Black', $cur_bcardtxt);
+            $game->bcardidx($new_bcardidx);
         }
-    } else {
-        debug("  Their Black Card %u is not in new deck; appending…",
-            $cur_bcardidx);
-        $new_bcardidx = $deck->append('Black', $cur_bcardtxt);
-        $game->bcardidx($new_bcardidx);
     }
 
     my @usergames = $game->rel_usergames;
