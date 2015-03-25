@@ -4737,7 +4737,12 @@ sub add_user_to_game {
 
     if ($is_tsar) {
         $usergame->is_tsar(1);
-        $usergame->tsarcount($usergame->tsarcount + 1);
+
+        if (defined $usergame->tsarcount) {
+            $usergame->tsarcount($usergame->tsarcount + 1);
+        } else {
+            $usergame->tsarcount(1);
+        }
     }
 
     # Update player activity timer.
