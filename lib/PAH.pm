@@ -4660,6 +4660,12 @@ sub dealin_waiters {
 
         debug("%s is waiting to join game in %s", $nick, $channel->disp_name);
 
+        if (! $self->user_is_in_channel($user, $channel->disp_name)) {
+            debug("%s isn't present in %s, so not adding", $nick,
+                $channel->disp_name);
+            next;
+        }
+
         $self->add_user_to_game(
             {
                 user => $user,
@@ -4770,6 +4776,53 @@ sub user_is_in_game {
             active => 1,
         }
     );
+}
+
+# Is a User (Schema object) present in an IRC channel?
+#
+# Checks both the $user->nick and the $user->disp_nick if they are different.
+#
+# Arguments:
+#
+# - User Schema object.
+#
+# - IRC channel as a scalar string.
+#
+# Returns:
+#
+# 1 if present, undef otherwise.
+sub user_is_in_channel {
+    my ($self, $user, $chan) = @_;
+
+    my $irc = $self->_irc;
+
+    my $names = $irc->channel_list($chan);
+
+    if (not defined $names) {
+        debug("Tried to get a list of nicks in %s but got undef; am I even in"
+           . " the channel?", $chan);
+       return undef;
+    }
+
+    my %search;
+
+    $search{lc($user->nick)} = 1;
+
+    if (defined $user->disp_nick) {
+        $search{lc($user->disp_nick)} = 1;
+    }
+
+    my %lc_names = map { lc($_) => $names->{$_} } keys %{ $names };
+
+    foreach my $nick (keys %search) {
+        if (exists $lc_names{$nick}) {
+            # Found 'em.
+            return 1;
+        }
+    }
+
+    # Didn't find 'em.
+    return undef;
 }
 
 1;
