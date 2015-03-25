@@ -40,6 +40,7 @@ use PAH::IRC;
 use PAH::Log;
 use PAH::Schema;
 use PAH::Deck;
+use PAH::JoinQ;
 
 has config_file => (
     isa     => 'Str',
@@ -113,6 +114,12 @@ has _intro => (
 # Tally of who has been poked to perform their game duties.
 has _pokes => (
     is => 'ro',
+);
+
+# Queue of users waiting to join games.
+has _joinq => (
+    isa => 'PAH::JoinQ',
+    is  => 'ro',
 );
 
 sub BUILD {
@@ -262,6 +269,7 @@ sub BUILD {
   $self->{_pn_timers} = {};
   $self->{_intro}     = {};
   $self->{_pokes}     = {};
+  $self->{_joinq}     = undef;
 }
 
 # The "main"
@@ -269,6 +277,7 @@ sub start {
     my ($self) = @_;
 
     $self->db_connect;
+    $self->{_joinq} = PAH::JoinQ->new($self->_schema);
     $self->{_plays} = $self->load_tallyfile;
 
     $self->db_sanity_check_hands;
@@ -1586,23 +1595,31 @@ sub do_pub_dealin {
     }
 
     # Is the game's current hand complete (waiting on Card Tsar)? If so then no
-    # new players can join, because then everyone would know who the extra play
-    # was from. Tell them to try again after the current hand.
+    # new players can immediately join, because then everyone would know who
+    # the extra play was from. They will be dealt in to the next hand.
     if (2 == $game->status and $self->hand_is_complete($game)) {
-        # TODO: Maybe keep track that they wanted to play, and deal them in as
-        # soon as the current hand finishes?
-        debug("%s can't join game at %s because the hand is complete", $who,
-            $chan);
+        debug("%s can't immediately join game at %s because the hand is"
+           . " complete", $who, $chan);
 
         my $tsar      = $game->rel_tsar_usergame->rel_user;
-        my $tsar_nick = $tsar->disp_nick;
+        my $tsar_nick = do {
+            if (defined $tsar->disp_nick) { $tsar->disp_nick }
+            else                          { $tsar->nick }
+        };
 
-        $tsar_nick = $tsar->nick if (not defined $tsar_nick);
+        my $joinq = $self->_joinq;
+
+        $joinq->push(
+            {
+                user => $user,
+                game => $game,
+            }
+        );
 
         $irc->msg($chan,
             sprintf("%s: Sorry, this hand is complete and we're waiting on"
-               . " %s to pick the winner. Please try again later.", $who,
-               $tsar_nick));
+               . " %s to pick the winner. Stay on IRC and you'll be dealt"
+               . " in to the next round automatically.", $who, $tsar_nick));
         return;
     }
 
@@ -2437,6 +2454,10 @@ sub deal_to_tsar {
 
     # Notify the channel about the new Black Card.
     $self->notify_bcard($chan, $game);
+
+    # Deal in any users who were waiting (as long as they're still in the
+    # channel).
+    $self->dealin_waiters($game);
 }
 
 # Tell a channel or nick about the Black Card that has just been dealt.
