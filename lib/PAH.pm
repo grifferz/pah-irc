@@ -4833,4 +4833,37 @@ sub user_is_in_channel {
     return undef;
 }
 
+# NickServ has just told us that we're identified to a nickname, so now we can
+# do some things that require a registered nickname. So far this will be:
+#
+# - Ask ChanServ for voice in every channel we are currently in.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub identified_to_nick {
+    my ($self) = @_;
+
+    my $irc = $self->_irc;
+
+    my $my_nick = $irc->nick;
+
+    my $list = $irc->channel_list;
+
+    foreach my $chan (keys $list) {
+        my $modes = $list->{$chan}->{$my_nick};
+
+        if (defined $modes->{v}) {
+            debug("I'm already voiced on $chan…");
+        } else {
+            debug("Asking for voice in %s…", $chan);
+            $irc->msg("ChanServ", "voice $chan");
+        }
+    }
+}
+
 1;

@@ -237,27 +237,31 @@ sub on_irc_433 {
 }
 
 sub on_irc_notice {
-  my($self, $msg) = @_;
+    my($self, $msg) = @_;
 
-  if(lc prefix_nick($msg) eq 'nickserv') {
-    local $_ = $msg->{params}->[-1];
+    if(lc prefix_nick($msg) eq 'nickserv') {
+        local $_ = $msg->{params}->[-1];
 
-    if (/This nick is owned by someone else/ ||
-        /This nickname is registered/i) {
-      debug("ID to NickServ at request of NickServ");
-      $self->msg("NickServ", "IDENTIFY $self->{args}->{nick_pass}");
+        if (/This nick is owned by someone else/ ||
+            /This nickname is registered/i) {
+            debug("ID to NickServ at request of NickServ");
+            $self->msg("NickServ", "IDENTIFY $self->{args}->{nick_pass}");
 
-    } elsif (/Your nick has been recovered/i) {
-      debug("NickServ told me I recovered my nick, RELEASE'ing now");
-      $self->msg("NickServ", "RELEASE $self->{args}->{nick} $self->{args}->{nick_pass}");
+        } elsif (/Your nick has been recovered/i) {
+            debug("NickServ told me I recovered my nick, RELEASE'ing now");
+            $self->msg("NickServ",
+                "RELEASE $self->{args}->{nick} $self->{args}->{nick_pass}");
 
-    } elsif (/Your nick has been released from custody/i) {
-      debug("NickServ told me my nick is released, /nick'ing now");
-      $self->send_srv(NICK => $self->{args}->{nick});
-    } else {
-      debug("Ignoring NickServ notice: %s", $_);
+        } elsif (/Your nick has been released from custody/i) {
+            debug("NickServ told me my nick is released, /nick'ing now");
+            $self->send_srv(NICK => $self->{args}->{nick});
+        } elsif (/You are now identified for/i) {
+            debug("NickServ told me I was identified for a nickname");
+            $self->{parent}->identified_to_nick();
+        } else {
+            debug("Ignoring NickServ notice: %s", $_);
+        }
     }
-  }
 }
 
 sub on_irc_invite {
