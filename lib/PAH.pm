@@ -1501,17 +1501,13 @@ sub do_pub_start {
 
     my $user = $self->db_get_user($who);
 
-    # "Let the User see the Game!" Ahem. Add the User to the Game.
+    # "Let the User see the Game!" Ahem. Add the User to the Game as the Tsar.
     # In the absence of being able to know who pooped last, the starting user
     # will be the first Card Tsar.
-    my $usergame = $schema->resultset('UserGame')->create(
-        {
-            user          => $user->id,
-            game          => $game->id,
-            is_tsar       => 1,
-            tsarcount     => 1,
-            active        => 1,
-            activity_time => time(),
+    my $usergame = $self->add_user_to_game({
+            user => $user,
+            game => $game,
+            tsar => 1
         }
     );
 
@@ -1623,20 +1619,13 @@ sub do_pub_dealin {
     }
 
     # "Let the User see the Game!" Ahem. Add the User to the Game.
-    my $usergame = $schema->resultset('UserGame')->update_or_create(
+    my $usergame = $self->add_user_to_game(
         {
-            user          => $user->id,
-            game          => $game->id,
-            active        => 1,
-            activity_time => time(),
+            user => $user,
+            game => $game,
         }
     );
 
-    # Update player activity timer.
-    $usergame->activity_time(time());
-    $usergame->update;
-
-    debug("%s was added to game at %s", $who, $chan);
     $irc->msg($chan, "$who: Nice! You're in!");
 
     # Does the game have enough players to start yet?
@@ -4614,6 +4603,152 @@ sub no_such_game {
     }
 
     return;
+}
+
+# If the game has any users waiting to join it then deal them in now, as long
+# as they are still in the channel.
+#
+# Arguments:
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# Nothing.
+sub dealin_waiters {
+    my ($self, $game) = @_;
+
+    my $irc = $self->_irc;
+
+    my $player_count = $game->rel_active_usergames->count;
+    my $channel      = $game->rel_channel;
+
+    if ($player_count >= 20) {
+        debug("There's users waiting to join the game at %s but it already has"
+           . " %u players", $channel->disp_name, $player_count);
+        return;
+    }
+
+    my $joinq = $self->_joinq;
+
+    while (my $user = $joinq->pop($game)) {
+        my $nick = do {
+            if (defined $user->disp_nick) { $user->disp_nick }
+            else                          { $user->nick }
+        };
+
+        debug("%s is waiting to join game in %s", $nick, $channel->disp_name);
+
+        $self->add_user_to_game(
+            {
+                user => $user,
+                game => $game,
+            }
+        );
+
+        $irc->msg($channel->disp_name, "$nick: You're in now, too!");
+    }
+}
+
+# Add the specified user to a game.
+#
+# Arguments:
+#
+# - A hash ref containing keys/vals:
+#
+#   - user => User Schema object.
+#
+#   - game => Game Schema object.
+#
+#   - tsar => 1 if the user is the new Card Tsar, 0 otherwise.
+#
+# Returns:
+#
+# The resulting UserGame Schema object.
+sub add_user_to_game {
+    my ($self, $args) = @_;
+
+    foreach my $key (qw(user game)) {
+        if (not defined $args->{$key}) {
+            die "Argument $key must be supplied!";
+        }
+    }
+
+    my $user    = $args->{user};
+    my $game    = $args->{game};
+    my $is_tsar = do {
+        if (defined $args->{tsar} and 1 == $args->{tsar}) { 1 }
+        else                                              { 0 }
+    };
+
+    my $schema = $self->_schema;
+
+    my $channel = $game->rel_channel;
+
+    my $who = do {
+        if (defined $user->disp_nick) { $user->disp_nick }
+        else                          { $user->nick }
+    };
+
+    my $usergame;
+
+    if ($usergame = $self->user_is_in_game($user, $game)
+            and 1 == $usergame->active) {
+        debug("%s is somehow already participating in game at %s", $who,
+            $channel->disp_name);
+        return $usergame;
+    }
+
+    $usergame = $schema->resultset('UserGame')->update_or_create(
+        {
+            user          => $user->id,
+            game          => $game->id,
+            active        => 1,
+            activity_time => time(),
+        }
+    );
+
+    if ($is_tsar) {
+        $usergame->is_tsar(1);
+        $usergame->tsarcount($usergame->tsarcount + 1);
+    }
+
+    # Update player activity timer.
+    $usergame->activity_time(time());
+    $usergame->update;
+
+    debug("%s was added to game at %s%s", $who, $channel->disp_name,
+        $is_tsar ? ' as Card Tsar' : '');
+
+    return $usergame;
+}
+
+# Check whether a given User Schema object is present in a Game. If so return
+# the UserGame Schema object. If not then return undef.
+#
+# Note that a User can be in a Game but not currently active.
+#
+# Arguments:
+#
+# - User Schema object.
+#
+# - Game Schema object.
+#
+# Returns:
+#
+# The corresponding UserGame Schema object, or undef.
+sub user_is_in_game {
+    my ($self, $user, $game) = @_;
+
+    my $schema = $self->_schema;
+
+    return $schema->resultset('UserGame')->find(
+        {
+            user   => $user->id,
+            game   => $game->id,
+            active => 1,
+        }
+    );
 }
 
 1;
