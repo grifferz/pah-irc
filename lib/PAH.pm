@@ -4425,8 +4425,9 @@ sub db_switch_packs {
     debug("  Deleting wcards…");
     $schema->resultset('WCard')->search({ game => $game->id })->delete;
 
+    my $cur_bcardidx = $game->bcardidx;
+
     if (defined $cur_bcardidx) {
-        my $cur_bcardidx = $game->bcardidx;
         my $cur_bcardtxt = $their_deck->black($cur_bcardidx);
 
         my $new_bcardidx = $deck->find('Black', $cur_bcardtxt);
