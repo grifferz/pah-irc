@@ -366,8 +366,8 @@ There's only two responsibilities in Perpetually Against Humanity:
 * If you're not the Card Tsar then you need to make your play.
 
 If that doesn't happen in a reasonable amount of time—and for now we'll go with
-24 hours being a reasonable amount of time—then the player responsible has
-timed out of the game. For now we'll treat that like resigning.
+~~24~~72 hours being a reasonable amount of time—then the player responsible
+has timed out of the game. For now we'll treat that like resigning.
 
 For a Card Tsar that means:
 
@@ -389,6 +389,10 @@ So, a person who goes unresponsive can hold up a game for a while, but games
 aren't necessarily meant to be quick-fire anyway because *they are never going
 to end*. Players who know they need to stop playing (e.g. because they aren't
 going to be on IRC for a while) can be helpful by explicitly resigning.
+
+We tried for a while with 24 hours as the turnclock, but we found that some
+regular weekday players who don't IRC at weekends ended up getting kicked out.
+So, now we're trying 72 hours (3 days).
 
 ## Card packs
 
