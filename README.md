@@ -125,6 +125,8 @@ are all fine.
 
     `retire`
 
+    `quit`
+
     Resign from the currently-active game. Your scores will still be kept and
     you can join in to the game again later on. If this takes the number of
     active players below 4 then the game will be paused until someone joins

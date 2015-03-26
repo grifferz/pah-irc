@@ -203,6 +203,10 @@ sub BUILD {
           sub        => \&do_pub_resign,
           privileged => 1,
       },
+      'quit'      => {
+          sub        => \&do_pub_resign,
+          privileged => 1,
+      },
       'winner'    => {
           sub        => \&do_pub_winner,
           privileged => 1,
