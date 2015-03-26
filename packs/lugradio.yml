@@ -1,0 +1,63 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Lugradio Community Against Humanity
+License:        Public Domain
+Copyright:      Bruno Bord
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - >
+        How can I describe _____? He's basically _____.
+    - >
+        Lugradio - full of sub-par _____ gags.
+    - >
+        _____.cx.
+    - >
+        Let's start a _____.
+    - >
+        Apple users? Bunch of _____ wearing _____.
+    - >
+        _____.org/_____.
+    - >
+        I've started running Ubuntu because of _____.
+    - >
+        I was listening to Lugradio because of _____.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - beard
+    - chin
+    - basically french
+    - knob
+    - maniacs
+    - orange sunglasses
+    - mass debate
+    - community
+    - Aq
+    - Jono
+    - Matt
+    - Sparkes
+    - Mr Ben
+    - popey
+    - Schwuk
+    - Ubuntu
+    - Desert Island Disk
+    - the gorilla joke
+    - spunky pie
+    - National Lottery
+    - get involved
+    - chinny raccoon
