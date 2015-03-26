@@ -3079,6 +3079,10 @@ sub user_is_tsar {
         }
     );
 
+    if (not defined $ug) {
+        return 0;
+    }
+
     return $ug->is_tsar;
 }
 
