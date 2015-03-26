@@ -8,12 +8,10 @@ Description:    Lugradio Community Against Humanity
 License:        Public Domain
 Copyright:      Bruno Bord
 
-# Once entries have been added and are in use they shouldn't be changed or
-# re-ordered, because the bot is only storing indices into the Black and White
-# arrays.
-#
-# If you need to change the deck in use or add more cards then at the moment
-# the best way is to create a new deck file.
+###############################################################################
+# This pack looks like it will need some work/additions before it would be
+# usable in a game!
+###############################################################################
 
 # Five or more underscores (_____) denote placeholder text. Maximum two per
 # text.
