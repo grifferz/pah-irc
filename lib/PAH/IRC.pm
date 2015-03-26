@@ -107,6 +107,9 @@ sub on_registered {
 
     $self->enable_ping(90);
 
+    # But do we have our proper nickname?
+    $self->{parent}->check_my_nick;
+
     $self->{_msg_queue} = [ ];
 
     $self->{msg_timer} = AnyEvent->timer(
@@ -126,6 +129,15 @@ sub on_registered {
     );
 
     $self->{parent}->join_welcoming_channels;
+
+    # Do sanity checks like do I have my nick, am I in the right channels etc.
+    $self->{sanity_timer} = AnyEvent->timer(
+        after    => 60,
+        interval => 300,
+        cb       => sub {
+            $self->{parent}->check_irc_sanity;
+        },
+    );
 }
 
 # If there are IRC messages in the send queue and the token bucket says we can
@@ -229,11 +241,16 @@ sub on_kick {
 
 # Nick in use
 sub on_irc_433 {
-  my ($self) = @_;
+    my ($self) = @_;
 
-  $self->send_srv(NICK => $self->{nick} . $$);
-  $self->msg("NickServ",
-      "RECOVER $self->{args}->{nick} $self->{args}->{nick_pass}");
+    # We don't have our nick then. Try a NickServ GHOST command.
+    debug("Issuing NickServ GHOST command to get my nickname back");
+    $self->send_srv(
+        NickServ => "GHOST $self->{args}->{nick} $self->{args}->{nick_pass}"
+    );
+
+    # NickServ should send us a NOTICE saying the interloper was GHOSTed, at
+    # which point we'll switch nicks.
 }
 
 sub on_irc_notice {
@@ -246,6 +263,13 @@ sub on_irc_notice {
             /This nickname is registered/i) {
             debug("ID to NickServ at request of NickServ");
             $self->msg("NickServ", "IDENTIFY $self->{args}->{nick_pass}");
+
+        } elsif (/(\S+) has been ghosted\.$/i) {
+            my $their_nick = $1;
+
+            debug("NickServ told me that someone using my nick %s got ghosted."
+               . " Getting it back now!", $their_nick);
+            $self->send_srv(NICK => $self->{args}->{nick});
 
         } elsif (/Your nick has been recovered/i) {
             debug("NickServ told me I recovered my nick, RELEASE'ing now");

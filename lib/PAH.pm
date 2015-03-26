@@ -4879,4 +4879,52 @@ sub identified_to_nick {
     }
 }
 
+# Check if we're currently on our configured nickname, and if not then take
+# steps to get it back.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# 1 if we already had the correct nickname, 0 if steps had to be taken to
+# recover it.
+sub check_my_nick {
+    my ($self) = @_;
+
+    my $irc = $self->_irc;
+
+    my $my_nick      = $irc->nick;
+    my $desired_nick = $irc->{args}->{nick};
+
+    if (lc($my_nick) eq lc($desired_nick)) {
+        return 1;
+    }
+
+    # Just try to change to it. If we get a collision then on_irc_433 will
+    # handle a GHOSTing for us.
+    debug("Switching back to nick $desired_nick…");
+    $irc->send_srv(NICK => $desired_nick);
+
+    return 0;
+}
+
+# Periodic checks for sane state of the IRC connection such as:
+#
+# - Do I have my correct nickname?
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub check_irc_sanity {
+    my ($self) = @_;
+
+    $self->check_my_nick;
+}
+
 1;
