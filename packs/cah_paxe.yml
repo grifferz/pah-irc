@@ -1,0 +1,76 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity PAX East 2013
+License:        CC-BY-NC-SA
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+        I have an idea even better than Kickstarter,
+        and it's called _____ starter.
+    - >
+        In the final round of this year's Omegathon,
+        Omeganauts must face off in a game of _____.
+    - >
+        I don't know exactly how I got the PAX plague,
+        but I suspect it had something to do with _____.
+    - You have been waylaid by _____ and must defend yourself.
+    - >
+        Action stations! Action stations!
+        Set condition one throughout the fleet and brace for _____!
+    - >
+        Press [down arrow] [down arrow] [left arrow] [right arrow] [B]
+        to unleash _____.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - paying the iron price
+    - reloading from a previous save
+    - the Klobb
+    - jiggle physics
+    - sharpening a foam broadsword on a foam whetstone
+    - Wil Wheaton crashing an actual spaceship
+    - running out of stamina
+    - the rocket launcher
+    - forgetting to eat, and consequently dying
+    - an immediately regrettable $9 hot dog from the Boston Convention Center
+    - the depression that ensues after catching 'em all
+    - achieving 500 actions per minute
+    - casting magic missile at a bully
+    - violating the First Law of Robotics
+    - smashing all the pottery in a Pottery Barn in search of rupees
+    - getting bitch slapped by Dhalsim
+    - >
+        getting inside the Horadric Cube with a hot babe
+        and pressing the transmute button
+    - >
+        judging elves by the color of their skin
+        and not by the content of their character
+    # Embedded colons (":") mess things up by becoming an errant hash key
+    # so a pipe character is needed
+    - |
+        Firefly: Season 2
+    - punching a tree to gather wood
+    - charging up all the way
+    - >
+        rotating shapes in mid-air so that they
+        fit into other shapes when they fall
+    - spending the year's insulin budget on Warhammer 40k figurines
+    - vespene gas

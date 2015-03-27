@@ -1,0 +1,148 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity Third Expansion
+License:        Unspecified
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - In the seventh circle of Hell, sinners must enjoy _____ for all eternity.
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+        Call the law offices of Goldstein & Goldstein, because no one should
+        have to tolerate _____ in the workplace.
+    - >
+        After months of practice with _____,
+        I think I'm finally ready for _____.
+    - >
+        A successful job interview begins with
+        a firm handshake and ends with _____.
+    - When you get right down to it, _____ is just _____.
+    - >
+        To prepare for his upcoming role,
+        Daniel Day-Lewis immersed himself in the world of _____.
+    - Lovin' you ins easy 'cause you're _____.
+    - Turns out that _____-Man was neither the hero we needed or wanted.
+    - Finally! A service that delivers _____ right to your door.
+    - My life is ruled by a vicious cycle of _____ and _____.
+    - >
+        As part of his daily regimen,
+        Anderson Cooper sets aside 15 minutes for _____.
+    - My gym teacher got fired for addding _____ to the obstacle course.
+    - >
+        The blind date was going horribly
+        until we discovered our shared interest in _____.
+    - Money can't buy me love, but it can buy me _____.
+    - Having problems with _____? Try _____!
+    - _____. Awesome in theory, kind of a mess in practice.
+    - With enough time and pressure, _____ will turn into _____.
+    - >
+        As part of his contract,
+        Prince won't perform without _____ in his dressing room.
+    - I'm not like the rest of you. I'm too rich and busy for _____.
+    - And what did you bring for show and tell?
+    - >
+        Listen, son. If you want to get involved with _____, I won't stop you.
+        Just steer clear of _____.
+    # Embedded colons (":") will mess things up by becoming an errant hash key,
+    # so a pipe is needed.
+    - |
+        _____: Hours of fun. Easy to use. Perfect for _____!
+    - During high school I never really fit in until I found _____ club.
+    - What left this stain on my couch?
+    - Hey baby, come back to my place and I'll show you _____.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - that ass
+    - having sex on top of a pizza
+    - three months in the holl
+    - nothing
+    - indescribable loneliness
+    - a botched circumcision
+    - shutting the fuck up
+    - an ass disaster
+    - the Land of Chocolate
+    - the primal, ball-slapping sex your parents are having right now
+    - all my friends dying
+    - slapping a racist old lady
+    - >
+        a cat video so cute that your eyes roll back
+        and your spine slides out of your anus
+    - putting an entire peanut putter and jelly sandwich into the VCR
+    - a lamprey swimming up the toilet and latching onto your taint
+    - cock
+    - spending lots of money
+    - jumping out at people
+    - a cop who is also a dog
+    - some douche with an acoustic guitar
+    - a black male in his early 20s, last seen wearing a hoodie
+    - dying alone and in pain
+    - flying robots that kill people
+    - Mufasa's death scene
+    - gay aliens
+    - a greased up Matthew McConaughey
+    - Bill Clinton, naked on a bearskin rug with a saxophone
+    - the way white people is
+    - an unstoppable wave of fire ants
+    - demonic possession
+    - reverse cowgirl
+    - not contributing in society in any meaningful way
+    - the Harlem Globetrotters
+    - the Quesadilla Explosion Salad from Chili's
+    - an all midget production of Shakespeare's Richard III
+    - vomiting mid-blowjob
+    - actually getting shot, for real
+    - screaming like a maniac
+    - my manservant, Claude
+    - not having sex
+    - the moist, demanding chasm of his mouth
+    - having shotguns for legs
+    - Vietnam flashbacks
+    - filling every orifice with butterscotch pudding
+    - letting everyone down
+    - running naked through a mall, pissing and shitting everywhere
+    - unlimited soup, salad, and breadsticks
+    - a spontaneous conga line
+    - warm, velvety muppet sex
+    - crying into the pages of Sylvia Plath
+    - a vagina that leads to another dimension
+    - self-flagellation
+    - velcro
+    - disco fever
+    - the sytematic destruction of an entire people and their way of life
+    - a PowerPoint presentation
+    - getting your dick stuck in a Chinese finger trap with another dick
+    - Samuel L. Jackson
+    - a surprising amount of hair
+    - fisting
+    - a boo-boo
+    - eating Tom Selleck's mustache to gain his powers
+    - the thiin veneer of situational causality that underlines porn
+    - going around punching people
+    - Roland the Farter, flatulist to the king
+    - girls that always be textin'
+    - the entire Internet
+    - a pile of squirming bodies
+    - blowing some dudes in an alley
+    - some kind of bird-man
+    - buying the right pants to be cool
+    - drinking ten 5-hour ENERGYs to get fifty continuous hours of energy
+    - chugging a lava lamp
+    - blood farts
+    - sneezing, farting and coming at the same time
