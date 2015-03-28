@@ -1,0 +1,92 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity PAX Prime 2013
+License:        CC-BY-NC-SA
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - no Enforcer wants to manage the panel on _____.
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+        the most controversial game at PAX this year
+        is an 8-bit indie platformer about _____.
+    - |
+        _____: Achievement unlocked.
+    - >
+        In the new DLC for Mass Effect,
+        Shepard must save the galaxy from _____.
+    - What made Spock cry?
+    - |
+        There was a riot at the Gearbox panel
+        when they gave the attendees _____.
+    - What's the latest bullshit that's troubling this quaint fantasy town?
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - full HD
+    - Mario Kart rage
+    - tapping Serra Angel
+    - the gravity gun
+    - nude-modding Super Mario World
+    - Charles Barkley Shut Up and Jam!
+    - reading the comments
+    - an angry stone head that stomps on the floor every three seconds
+    - Legendary Creature - Robert Khoo
+    - 70,000 gamers sweating and farting inside an airtight steel dome
+    - Yoshi's huge egg-laying cloaca
+    - >
+          winning the approval of Cooking Mama
+          that you never got from actual mama
+    - >
+        allowing nacho cheese to curdle in your beard
+        while you creep in League of Legends
+    - the Cock Ring of Alacrity
+    - eating a pizza that's lying in the street to gain health
+    - >
+        achieving the manual dexterity and tactical brilliance
+        of a 12-year-old Korean boy
+    - offering sexual favors for an ore and a sheep
+    - getting into a situation with an owlbear
+    - rolling a D20 to save a failing marriage
+    - a homemade, cum-stained Star Trek uniform
+    - |
+        Grand Theft Auto: Fort Lauderdale
+    - >
+        the collective wail of every Magic: The Gathering player
+        suddenly realizing that they've spent hundreds of dollars
+        on pieces of cardboard
+    - unlocking a new sex position
+    - a madman who lives in a policebox and kidnaps women
+    - being an attractive elf trapped in an unattractive human's body
+    - the boner hatch in the Iron Man suit
+    - SNES cartridge cleaning fluid
+    - temporary invincibility
+    - never watching, discussing, or thinking about My Little Pony
+    - |
+        Google Glass + e-cigarette: Ultimate Combo!
+    - the Sarlaac
+    - turn-of-the-century sky racists
+    - >
+        buying virtual clothes for a Sim family
+        instead of real clothes for a real family
+    - filling every pouch of a UtiliKilt™ with pizza
+    - the decade of legal inquests following a single hour of Grand Theft Auto
+    - Bowser's aching heart
+    - a fully-dressed female videogame character
+
