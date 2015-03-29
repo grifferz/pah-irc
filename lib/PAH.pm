@@ -550,16 +550,20 @@ sub join_welcoming_channels {
     my ($self) = @_;
 
     my $schema = $self->_schema;
+    my $irc    = $self->_irc;
 
-    my $welcoming_chans = $schema->resultset('Channel')->search(
-        {
-            welcome => 1,
-        }
-    );
+    my @welcoming_chans = $schema->resultset('Channel')->search(
+        { welcome => 1 }
+    )->all;
 
-    for my $channel ($welcoming_chans->all) {
+    my $already_in = $irc->channel_list;
+
+    foreach my $channel (@welcoming_chans) {
+        # Are we already in it?
+        next if (defined $already_in->{$channel->name});
+
         debug("Looks like I'm welcome in %s; joining…", $channel->disp_name);
-        $self->_irc->send_srv(JOIN => $channel->name);
+        $irc->send_srv(JOIN => $channel->name);
     }
 }
 

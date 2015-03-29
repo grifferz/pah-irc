@@ -281,7 +281,10 @@ sub on_irc_notice {
             $self->send_srv(NICK => $self->{args}->{nick});
         } elsif (/You are now identified for/i) {
             debug("NickServ told me I was identified for a nickname");
-            $self->{parent}->identified_to_nick();
+            $self->{parent}->identified_to_nick;
+            # Make sure we are in the right channels (may be some that we
+            # needed to be identified to get in to).
+            $self->{parent}->join_welcoming_channels;
         } else {
             debug("Ignoring NickServ notice: %s", $_);
         }
