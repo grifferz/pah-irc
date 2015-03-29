@@ -4918,6 +4918,8 @@ sub check_my_nick {
 #
 # - Do I have my correct nickname?
 #
+# - Am I in all the channels I should be?
+#
 # Arguments:
 #
 # None.
@@ -4929,6 +4931,7 @@ sub check_irc_sanity {
     my ($self) = @_;
 
     $self->check_my_nick;
+    $self->join_welcoming_channels;
 }
 
 1;
