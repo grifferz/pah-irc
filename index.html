@@ -15,6 +15,32 @@
         <script src="resources/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
 
         <script>
+            var hash = location.hash.substring(1);
+
+            function getIntFromAnchor(accordion, anchor) {
+                id = anchor.substring(1);
+
+                parent = document.getElementById(accordion);
+                children = parent.children;
+                max = children.length;
+
+                var hcount = 0;
+
+                for (var i = 0; i < max; i++) {
+                    if (children[i].tagName == "H3") {
+                        // console.log(id + " = " + children[i].id + "?");
+
+                        if (children[i].id == id) {
+                            // console.log("Found " + id + " as " + hcount + "th header");
+                            return hcount;
+                        }
+                        hcount++;
+                    }
+                }
+
+                return false;
+            }
+
             function prefixHeaders(tag) {
                 var element = document.getElementsByTagName(tag);
                 var max = element.length;
@@ -28,7 +54,7 @@
             $(function() {
                 $( "#faq_accordion" ).accordion({
                     collapsible: true,
-                    active: false,
+                    active: getIntFromAnchor("faq_accordion", location.hash),
                     heightStyle: content,
                 });
             });
@@ -36,10 +62,15 @@
             $(function() {
                 $( "#gloss_accordion" ).accordion({
                     collapsible: true,
-                    active: false,
+                    active: getIntFromAnchor("gloss_accordion", location.hash),
                     heightStyle: content,
                 });
             });
+
+            $(window).on('hashchange', function() {
+                $( "#faq_accordion" ).accordion("option", "active", getIntFromAnchor("faq_accordion", location.hash));
+                $( "#gloss_accordion" ).accordion("option", "active", getIntFromAnchor("gloss_accordion", location.hash));
+            })
         </script>
 
         <title>Perpetually Against Humanity, Player Documentation</title>
