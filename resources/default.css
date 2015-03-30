@@ -1,0 +1,113 @@
+body {
+    color: white;
+    background-color: black;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 1.1em;
+}
+
+h1, h2, h3, h4 {
+    color: #51f0f3;
+}
+
+a:link, a:visited {
+    text-decoration: none;
+}
+
+a:link {
+    color: #e700ea;
+}
+
+a:visited {
+    color: #990095;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#content {
+}
+
+#navbox {
+    width: 20%;
+    float: right;
+    border-top: 4px solid #0000aa;
+    border-bottom: 4px solid #0000aa;
+    margin-right: 75px;
+}
+
+#navbox ul {
+    padding-left: 16px;
+}
+
+.right .github-fork-ribbon {
+    background-color: #f80;
+}
+
+.dash {
+    color: grey;
+}
+
+.pling {
+    color: white;
+}
+
+.dash, .pling {
+    font-weight: normal;
+}
+
+.cmd, .cfg {
+    font-weight: bold;
+}
+
+.chan {
+    font-weight: bold;
+}
+
+.rightnow {
+    font-size: larger;
+    margin-left: 64px;
+    font-weight: bold;
+}
+
+/* IRC logs. */
+
+.chanlog, .privlog {
+    border-top: solid 4px #0000aa;
+    border-bottom: solid 4px #0000aa;
+    margin-left: 16px;
+}
+
+.chanlog td.nick, .privlog td.nick {
+    text-align: right;
+}
+
+.chanlog td.msg, .privlog td.msg {
+    padding-left: 8px;
+}
+
+.chanlog span.ang, .privlog span.ang {
+    color: #554e3b;
+}
+
+/* Nick colors */
+
+.p_a_h {
+    color: #8300aa;
+}
+
+.privlog .p_a_h {
+    color: #de2f11;
+}
+
+.diglett {
+    color: #815100;
+}
+
+.charmander {
+    color: #4355ff;
+}
+
+.againsthumanity {
+    color: #009795;
+}

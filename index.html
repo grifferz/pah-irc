@@ -1,1 +1,903 @@
-<a href="doc/">Documentation</a>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="resources/jquery-ui-1.11.4.custom/jquery-ui.css" />
+
+        <link rel="stylesheet" href="resources/default.css" />
+        <link rel="stylesheet" href="resources/gh-fork-ribbon.min.css" />
+
+        <!--[if lt IE 9]>
+        <link rel="stylesheet" href="resources/gh-fork-ribbon.ie.min.css" />
+        <![endif]--> 
+
+        <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+        <script src="resources/jquery-ui-1.11.4.custom/jquery-ui.min.js"></script>
+
+        <script>
+            function prefixHeaders(tag) {
+                var element = document.getElementsByTagName(tag);
+                var max = element.length;
+
+                for (var i=0; i < max; i++) {
+                    var header = element[i].innerHTML;
+                    element[i].innerHTML = "<span class='dash'>-</span><span class='pling'>!</span><span class='dash'>-</span>&nbsp;" + header;
+                }
+            }
+
+            $(function() {
+                $( "#faq_accordion" ).accordion({
+                    collapsible: true,
+                    active: false,
+                    heightStyle: content,
+                });
+            });
+
+            $(function() {
+                $( "#gloss_accordion" ).accordion({
+                    collapsible: true,
+                    active: false,
+                    heightStyle: content,
+                });
+            });
+        </script>
+
+        <title>Perpetually Against Humanity, Player Documentation</title>
+    </head>
+    <body onLoad="prefixHeaders('h1'); prefixHeaders('h2');">
+    <div id="content">
+        <div class="github-fork-ribbon-wrapper right">
+            <div class="github-fork-ribbon">
+                <a href="https://github.com/grifferz/pah-irc">Fork me on
+                    GitHub</a>
+            </div>
+        </div>
+
+        <h1>Perpetually Against Humanity, Player Documentation</h1>
+
+        <div id="navbox">
+            <ul>
+                <li><a href="#cah">Cards Against Humanity</a></li>
+                <li>
+                <a href="#playdocs">Player Documentation</a>
+                <ul>
+                    <li><a href="#basic">Basic Rules</a></li>
+                    <li><a href="#joining">Joining an existing game</a></li>
+                    <li><a href="#seehand">Seeing your hand</a></li>
+                    <li><a href="#makeplay">Making your play</a></li>
+                    <li><a href="#choosewinner">Choosing a winner</a></li>
+                    <li><a href="#leavegame">Leaving the game</a></li>
+                    <li><a href="#remindblack">Getting a reminder of the Black Card</a></li>
+                </li>
+                <li>
+                <a href="#complete">Complete List of Commands</a>
+                <ul>
+                    <li>
+                    <a href="#pubcmd">Public channel commands</a>
+                    <ul>
+                        <li><a href="#pubcmd_status">status</a></li>
+                        <li><a href="#pubcmd_scores">scores</a></li>
+                        <li><a href="#pubcmd_dealmein">dealmein</a></li>
+                        <li><a href="#pubcmd_resign">resign</a></li>
+                        <li><a href="#pubcmd_winner">winner</a></li>
+                        <li><a href="#pubcmd_plays">plays</a></li>
+                    </ul>
+                    </li>
+                    <li>
+                    <a href="#privcmd">Private commands</a>
+                    <ul>
+                        <li><a href="#privcmd_status">status</a></li>
+                        <li><a href="#privcmd_scores">scores</a></li>
+                        <li><a href="#privcmd_black">black</a></li>
+                        <li><a href="#privcmd_hand">hand</a></li>
+                        <li><a href="#privcmd_play">play</a></li>
+                        <li><a href="#privcmd_plays">plays</a></li>
+                        <li><a href="#privcmd_pronoun">pronoun</a></li>
+                    </ul>
+                    </li>
+                </ul>
+                </li>
+                <li>
+                <a href="#glossary">Glossary</a>
+                <ul>
+                    <li><a href="#gloss_black">Black Card</a></li>
+                    <li><a href="#gloss_white">White Card</a></li>
+                    <li><a href="#gloss_tsar">Card Tsar</a></li>
+                    <li><a href="#gloss_point">Awesome Point</a></li>
+                    <li><a href="#gloss_hand">Hand</a></li>
+                    <li><a href="#gloss_play">Play</a></li>
+                    <li><a href="#gloss_winner">Winner</a></li>
+                    <li><a href="#gloss_pack">Pack</a></li>
+                    <li><a href="#gloss_deck">Deck</a></li>
+                </ul>
+                </li>
+                <li>
+                <a href="#faq">Frequently Asked Questions</a>
+                <ul>
+                    <li><a href="#faq_ownchan">Can I have this in my own channel?</a></li>
+                    <li><a href="#faq_runown">Can I run this myself?</a></li>
+                    <li><a href="#faq_lagged">Why is the bot sometimes so lagged?</a></li>
+                    <li><a href="#faq_faster">Can the game be played faster?</a></li>
+                    <li><a href="#faq_status">Can the bot be made to regularly tell me the game status?</a></li>
+                    <li><a href="#faq_quitirc">If I quit IRC will it resign me automatically?</a></li>
+                    <li><a href="#faq_notice">IRC bots should use NOTICE! Why doesn't this use NOTICE!?</a></li>
+                </ul>
+                </li>
+            </ul>
+        </div>
+
+        <p style="margin-right: 75px">Perpetually Against Humanity is an <a
+        href="http://en.wikipedia.org/wiki/Internet_Relay_Chat"><abbr
+        title="Internet Relay Chat">IRC</abbr></a> game based upon the card
+        game <a href="https://cardsagainsthumanity.com/">Cards Against
+        Humanity™</a>, but designed to be played over a long period of time
+        (forever) with a changeable group of people.</p>
+
+        <h2 id="cah">Cards Against Humanity</h2>
+        <p>Cards Against Humanity is:</p>
+
+        <ul>
+            <li>A trademark of Cards Against Humanity LLC;
+            their content is licensed under a <a
+            href="https://creativecommons.org/licenses/by-nc-sa/2.0/">Creative
+            Commons license</a> which is what allows this IRC game to exist.
+            This project is otherwise completely unrelated to Cards Against
+            Humanity and is not endorsed by Cards Against Humanity LLC.</li>
+
+            <li>A party game for horrendous people. In order to win you pretty
+            much have to construct outrageous politically incorrect plays. If
+            that is likely to upset you then you won't like the IRC version
+            either.</li>
+
+            <li>A great game which is much more fun in person than any IRC
+            version can ever be, so if you like this then <a
+            href="https://store.cardsagainsthumanity.com/">you should definitely
+            buy it</a>.</li>
+        </ul>
+
+        <h2 id="playdocs">Player Documentation</h2>
+        <p>This page is aimed at people who are wanting to <i>play</i>
+        Perpetually Against Humanity (PAH).</p>
+
+        <p class="rightnow">You can play right now by joining us in <a
+        href="irc://chat.freenode.net/#pah">##pah</a> on <a
+        href="https://freenode.net/">Freenode</a>.</p>
+
+        <p>If you're wanting to
+        <i>install it</i> in order to run your own then please refer to <a
+        href="https://github.com/grifferz/pah-irc">the GitHub
+        repository</a> for downloads and full instructions.</p>
+
+        <p>Throughout this documentation we will assume that:</p>
+
+        <ul>
+            <li>The bot's IRC nickname is <span class="p_a_h">P_A_H</span>
+            (which is what it is on Freenode). If you're playing in someone
+            else's game then it will be a different nickname.</li>
+
+            <li>The channel we're playing in is <span class="chan"><a
+            href="irc://chat.freenode.net/#pah">##pah</a></span> (which is one
+            of the channels on Freenode). If you see the bot in a different
+            channel then just use that one.</li>
+        </ul>
+
+        <p>This section covers all the commands you will need to use to play
+        the game. See the <a href="#complete">Complete List of Commands</a> for
+        a few more commands that may be useful.</p>
+
+        <h3 id="basic">Basic rules</h3>
+        <p>It's very much like <a
+        href="http://s3.amazonaws.com/cah/CAH_Rules.pdf">Cards Against
+        Humanity</a>. If you aren't familiar with Cards Against Humanity,
+        however, this is how it goes:</p>
+
+        <ul>
+            <li>There's a Black Card with some text on it.</li>
+            <li>Each player has ten White Cards, each of which have an answer
+            on them.</li>
+            <li>Players choose which White Card(s) they think will go with the
+            Black card to make the funniest play.</li>
+            <li>One player is called the Card Tsar; they do not get to play a
+            White Card. Instead they get to pick the funniest play once
+            everyone else has made their play.</li>
+            <li>Whoever was responsible for the funniest play wins one Awesome
+            Point.</li>
+            <li>Someone else becomes Card Tsar, everyone's hands are topped
+            back up to ten White Cards, and a new Black Card is drawn.</li>
+        </ul>
+
+        <p>There's <a href="doc/logs.html">some logs of a real game</a> to give
+        you more of an idea.</p>
+
+        <p>This game is meant to be played <i>slowly</i>, while you are on IRC
+        anyway. If you want a real-time IRC game of Cards Against Humnaity then
+        you should run one of the many bots that already exist for this, or <a
+        href="https://github.com/grifferz/pah-irc">download your own copy of
+        PAH</a> and <a href="#faq_faster">configure it for quick games</a>.</p>
+
+        <h3 id="joining">Joining an existing game</h3>
+        <p>Use the <span class="cmd">deal me in</span> command in the
+        channel:</p>
+
+        <table class="chanlog">
+            <tr>
+                <td class="ts">16:28:17</td>
+                <td class="nick"><span class="ang">&lt;</span>&nbsp;<span class="diglett">Diglett</span><span class="ang">&gt;</span></td>
+                <td class="msg">P_A_H: deal me in</td>
+            </tr>
+            <tr>
+                <td class="ts">16:28:18</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Diglett: Nice! You're in!</td>
+            </tr>
+        </table>
+
+        <p>You can be in multiple games at once.</p>
+
+        <h3 id="seehand">Seeing your hand</h3>
+        <p>There should always be 10 White Cards in your hand. To get a list
+        of them at any time use the <span class="cmd">hand</span> command in
+        private message with <span class="p_a_h">P_A_H</span>:</p>
+
+        <table class="privlog">
+            <tr>
+                <td class="ts">11:31:24</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="diglett">Diglett</span><span class="ang">&gt;</span></td>
+                <td class="msg">hand</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:31</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Your White Cards in ##pah:</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:32</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>1</b>. A stray pube.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:33</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>2</b>. Peeing a little bit.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:34</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>3</b>. Children on leashes.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:35</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>4</b>. Ed Balls.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:36</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>5</b>. A foul mouth.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:37</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>6</b>. A mating display.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:38</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>7</b>. Being rich.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:39</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>8</b>. A pyramid of severed heads.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:40</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;<b>9</b>. Buckfast Tonic Wine.</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:41</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg"><b>10</b>. Coat hanger abortions.</td>
+            </tr>
+        </table>
+
+        <h3 id="makeplay">Making your play</h3>
+        <p>Use the <span class="cmd">play</span> command in private message
+        with <span class="p_a_h">P_A_H</span>:</p>
+
+        <table class="privlog">
+            <tr>
+                <td class="ts">11:31:44</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="diglett">Diglett</sp an><span class="ang">&gt;</span></td>
+                    <td class="msg">play 10</td>
+                </tr>
+            <tr>
+                <td class="ts">11:31:58</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Thanks. So this is your play for <b>##pah</b>:</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:59</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">→ Why am I sticky? <b>Coat hanger abortions</b>.</td>
+            </tr>
+        </table>
+
+        <p>You can miss off the "play " part and just give a number between 1
+        and 10.</p>
+
+        <p>If The Black Card has two blanks then you'll need to specify two
+        White Cards in the order you want them to appear:</p>
+
+        <table class="privlog">
+            <tr>
+                <td class="ts">11:31:44</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="diglett">Diglett</sp an><span class="ang">&gt;</span></td>
+                    <td class="msg">7 3</td>
+                </tr>
+            <tr>
+                <td class="ts">11:31:58</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Thanks. So this is your play for <b>##pah</b>:</td>
+            </tr>
+            <tr>
+                <td class="ts">11:31:59</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">→ If God didn't want us to enjoy <b>being rich</b>, he wouldn't have given us <b>children on leashes</b>.</td>
+            </tr>
+        </table>
+
+        <p>You can keep changing your play until the last person has made their
+        play.</p>
+
+        <h3 id="choosewinner">Choosing a winner</h3>
+        <p>Use the <span class="cmd">winner</span> command in the channel:</p>
+
+        <table class="chanlog">
+            <tr>
+                <td class="ts">16:26:37</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">All plays are in. No more changes!</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:37</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">charmander: Which is the best play?</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:38</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">==================================</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:38</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;1 → Why am I sticky? <b>The milk man</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:38</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;2 → Why am I sticky? <b>The sudden appearance of the Go Compare man</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:38</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;3 → Why am I sticky? <b>Extremely tight trousers</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:38</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;4 → Why am I sticky? <b>A gassy antelope</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:39</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;5 → Why am I sticky? <b>Chunks of dead hitchhiker</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:39</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;6 → Why am I sticky? <b>Christopher Walken</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:40</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;7 → Why am I sticky? <b>72 virgins</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:40</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;8 → Why am I sticky? <b>Leprosy</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:41</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">&nbsp;9 → Why am I sticky? <b>Smegma</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:42</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">10 → Why am I sticky? <b>Lockjaw</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:43</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">11 → Why am I sticky? <b>The Big Bang</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:44</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">12 → Why am I sticky? <b>A Chelsea smile</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:45</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">13 → Why am I sticky? <b>Not reciprocating oral sex</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:46</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">14 → Why am I sticky? <b>Firing a rifle into the air while balls deep in a squealing hog</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:47</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">15 → Why am I sticky? <b>Yeast</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:48</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">16 → Why am I sticky? <b>Coat hanger abortions</b>.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:26:49</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">==================================</td>
+            </tr>
+            <tr>
+                <td class="ts">16:41:10</td>
+                <td class="nick"><span class="ang">&lt;</span> <span class="charmander">charmander</span><span class="ang">&gt;</span></td>
+                <td class="msg">P_A_H: 9</td>
+            </tr>
+            <tr>
+                <td class="ts">16:41:12</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">The winner is <b>durant</b>, who now has <b>3</b> Awesome Points! The new Card Tsar is <b>lairon</b>. Time for the next Black Card:</td>
+            </tr>
+            <tr>
+                <td class="ts">16:41:12</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">→ <b>What will always get you laid?</b></td>
+            </tr>
+        </table>
+
+        <h3 id="leavegame">Leaving the game</h3>
+        <p>As long as you can do your duty (make a play or pick the winner)
+        within the game's <span class="cfg">turnclock</span> then there is no
+        need to resign. The <span class="cfg">turnclock</span> in <span
+        class="chan">##pah</span> is <span class="cfg">3 days</span>.</p>
+
+        <p>If you know you'll be gone from the game for longer than this then
+        it is polite to resign, so as not to hold the game up for everyone
+        else.</p>
+
+        <p>To resign, use the <span class="cmd">resign</span> command in the
+        channel:</p>
+
+        <table class="chanlog">
+            <tr>
+                <td class="ts">17:31:49</td>
+                <td class="nick"><span class="ang">&lt;</span>&nbsp;<span class="diglett">Diglett</span><span class="ang">&gt;</span></td>
+                <td class="msg">P_A_H, resign</td>
+            </tr>
+            <tr>
+                <td class="ts">17:31:50</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Diglett: Okay, you've been dealt out of the game.</td>
+            </tr>
+            <tr>
+                <td class="ts">17:31:50</td>
+                <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Diglett: If you want to join in again later then type "P_A_H: deal me in"</td>
+            </tr>
+        </table>
+
+        <p>If you don't do your duty before the <span
+        class="cfg">turnclock</span> expires then
+        <span class="p_a_h">P_A_H</span> will forcibly resign you from the
+        game.</p>
+
+        <h3 id="remindblack">Getting a reminder of the Black Card</h3>
+
+        <p><span class="p_a_h">P_A_H</span> tells you the Black Card every time
+        it changes but if you've forgotten then you can get a reminder at any
+        time by using the <span class="cmd">black</span> command in private
+        message with <span class="p_a_h">P_A_H</span>:</p>
+
+        <table class="privlog">
+            <tr>
+                <td class="ts">16:37:15</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="graveler">graveler</sp an><span class="ang">&gt;</span></td>
+                    <td class="msg">black</td>
+                </tr>
+            <tr>
+                <td class="ts">16:37:15</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Current Black Card for game in ##pah:</td>
+            </tr>
+            <tr>
+                <td class="ts">16:37:15</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">→ <b>In his newest and most difficult stunt, David Blaine must escape from _____.</b></td>
+            </tr>
+            <tr>
+                <td class="ts">16:37:15</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">The current Card Tsar is Diglett.</td>
+            </tr>
+            <tr>
+                <td class="ts">16:37:15</td>
+                <td class="nick"><span class="ang">&lt;</span><span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                <td class="msg">Use the "Play" command to make your play!</td>
+            </tr>
+        </table>
+
+        <h2 id="complete">Complete List of Commands</h2>
+
+        <h3 id="pubcmd">Public channel commands</h3>
+
+        <ul>
+            <li id="pubcmd_status">
+            <p><span class="cmd">status</span></p>
+            <p>Report the status of the game currently playing in the channel,
+            if any.</p>
+            <p>If a game is currently playing then this will say:</p>
+            <ul>
+                <li>Who we're waiting on (either to play their turn, or to pick the winner if they're the Card Tsar);</li>
+                <li>Who the current Card Tsar is;</li>
+                <li>The text of the current Black Card.</li>
+            </ul>
+            </li>
+            <li id="pubcmd_scores">
+            <p><span class="cmd">scores</span></p>
+            <p><span class="cmd">stats</span></p>
+            <p>Displays:</p>
+            <ul>
+                <li>Who's active in the game and what their scores are;</li>
+                <li>The top three all-time points-scorers for this game,
+                including ties.</li>
+            </ul>
+            </li>
+            <li id="pubcmd_dealmein">
+            <p><span class="cmd">dealmein</span></p>
+            <p><span class="cmd">deal me in</span></p>
+            <p>Join in to the currently-active game. You'll immediately receive
+            a hand and a reminder of the current Black Card by private message.
+            You can play your hand immediately.</p>
+            <p>If the game already has 20 players then you will need to wait
+            until one of them resigns.</p>
+            <p>If the game now has enough players to start then it will
+            start.</p>
+            </li>
+            <li id="pubcmd_resign">
+            <p><span class="cmd">resign</span></p>
+            <p><span class="cmd">dealmeout</span></p>
+            <p><span class="cmd">deal me out</span></p>
+            <p><span class="cmd">retire</span></p>
+            <p><span class="cmd">quit</span></p>
+            <p>Resign from the currently-active game. Your scores will still be
+            kept and you can join in to the game again later on. If this takes
+            the number of active players below 4 then the game will be paused
+            until someone joins again.</p>
+            <p>Your hand of White Cards including any White Cards you already
+            played are discarded.</p>
+            <p>If you are the current round's Card Tsar then play will move on
+            without any Awesome Points being awarded. If the hand was complete
+            (all players made their play and plays were announced in the
+            channel) then these White Cards will be discarded and new White
+            Cards drawn. Otherwise played White Cards will be returned to
+            players' hands.</p>
+            </li>
+            <li id="pubcmd_winner">
+            <p><span class="cmd">winner</span></p>
+            <p>Used by the Card Tsar to indicate that the play numbered is the
+            one they think is best.</p>
+            <p>This command can be simply abbreviated as a single digit, as it
+            will be obvious from the context what is meant.</p>
+            </li>
+            <li id="pubcmd_plays">
+            <p><span class="cmd">plays</span></p>
+            <p>Repeat the list of plays for the completed hand, if for some
+            reason you missed it.</p>
+        </ul>
+
+        <h3 id="privcmd">Private commands</h3>
+
+        <ul>
+            <li id="privcmd_status">
+            <p><span class="cmd">[#channel] status</span></p>
+            <p>Identical to the public <span class="cmd">status</span> command,
+            but in private in case you don't want to bother the channel with
+            the output.</p>
+            </li>
+            <li id="privcmd_scores">
+            <p><span class="cmd">[#channel] scores</span></p>
+            <p><span class="cmd">[#channel] stats</span></p>
+            <p>Identical to the public <span class="cmd">scores</span> command,
+            but in private in case you don't want to bother the channel with
+            the output.</p>
+            </li>
+            <li id="privcmd_black">
+            <p><span class="cmd">[#channel] black</span></p>
+            <p>Repeat the text of the current Black Card.</p>
+            </li>
+            <li id="privcmd_hand">
+            <p><span class="cmd">[#channel] hand</span></p>
+            <p><span class="cmd">[#channel] list</span></p>
+            <p>Provides a numbered list of the White Cards in your hand.</p>
+            </li>
+            <li id="privcmd_play">
+            <p><span class="cmd">[#channel] play &lt;number&gt;</span></p>
+            <p><span class="cmd">[#channel] play &lt;number&gt; &lt;number&gt;</span></p>
+            <p><span class="cmd">[#channel] play &lt;number&gt;,&lt;number&gt;</span></p>
+            <p><span class="cmd">[#channel] play &lt;number&gt; and &lt;number&gt;</span></p>
+            <p><span class="cmd">[#channel] play &lt;number&gt; &amp; &lt;number&gt;</span></p>
+            <p><span class="cmd">&lt;number&gt;</span></p>
+            <p><span class="cmd">&lt;number&gt; &amp; &lt;number&gt;</span></p>
+            <p>Play the numbered White Card for this round. Some rounds require
+            two White Cards, so they will be played in the order specified.</p>
+            <p>The bot will repeat back to you the current Black Card and your
+            proposed answer.</p>
+            <p>You may alter your play as many times as you like until every
+            active player has made their play, at which point the plays will be
+            revealed to the channel and may not be changed.</p>
+            <p>Where a channel will not be required, just saying one or two
+            numbers (without the "play" prefix) is an acceptable shortcut.</p>
+            </li>
+            <li id="privcmd_plays">
+            <p><span class="cmd">[#channel] plays</span></p>
+            <p>Repeat the list of plays, if for some reason you missed it.</p>
+            </li>
+            <li id="privcmd_pronoun">
+            <p><span class="cmd">pronoun &lt;pronounm&gt;</span></p>
+            <p>By default the bot uses the "their" pronoun:</p>
+
+            <table class="chanlog">
+                <tr>
+                    <td class="ts">16:26:37</td>
+                    <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                    <td class="msg">dutchie: We're just waiting on <b>dave2</b> to make their play.</td>
+                </tr>
+                <tr>
+                    <td class="ts">17:16:47</td>
+                    <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                    <td class="msg"><b>3</b> people just played! We're just waiting on <b>dg</b> to make their play.</td>
+                </tr>
+            </table>
+
+            <p>If you would prefer for the bot to use a different pronoun in
+            relation to you, use this command to set it. This will apply in all
+            games that you are in.</p>
+        </ul>
+
+        <h2 id="glossary">Glossary</h2>
+
+        <div id="gloss_accordion">
+            <h3 id="gloss_black">Black Card</h3>
+            <div>
+                <p>There's one Black Card per round, which everone sees. It
+                will have zero, one or two blank spaces on it which players
+                fill by choosing from their White Cards. If the Black Card has
+                zero blanks then there's an implicit blank right at the
+                end.</p>
+            </div>
+
+            <h3 id="gloss_white">White Card</h3>
+            <div>
+                <p>Each player has ten White Cards at all times. Also called
+                answer cards. White Cards are chosen to fill in the blanks on
+                the Black Cards.</p>
+            </div>
+
+            <h3 id="gloss_tsar">Card Tsar</h3>
+            <div>
+                <p>One player is the Card Tsar. The Card Tsar does not play
+                White Cards. Instead, the Card Tsar chooses which play is the
+                funniest.</p>
+                <p>A different player becomes Card Tsar at the start of the
+                next round.</p>
+            </div>
+
+            <h3 id="gloss_point">Awesome Point</h3>
+            <div>
+                <p>You get an Awesome Point when you win. Go you, you're
+                awesome.</p>
+            </div>
+
+            <h3 id="gloss_hand">Hand</h3>
+            <div>
+                <p>Your set of 10 White Cards.</p>
+            </div>
+
+            <h3 id="gloss_play">Play</h3>
+            <div>
+                <p>The string of text made from the Black Card and the White
+                Card(s) you chose.</p>
+            </div>
+
+            <h3 id="gloss_winner">Winner</h3>
+            <div>
+                <p>The player whose play is chosen as funniest by the Card Tsar
+                is the winner, and receives an Awesome Point.</p>
+            </div>
+
+            <h3 id="gloss_pack">Pack</h3>
+            <div>
+                <p>A set of Black Cards and White Cards, often on a particular
+                theme. One or more packs form a deck.</p>
+            </div>
+
+            <h3 id="gloss_pack">Deck</h3>
+            <div>
+                <p>The game's Black and White Cards are drawn randomly from the
+                deck. A deck is made from one or more packs.</p>
+                <p>As of version v0.5 all games must use the same deck. There's
+                <a href="https://github.com/grifferz/pah-irc/issues/100">an
+                open issue to have a unique deck per game</a>.</p>
+            </div>
+        </div>
+
+        <h2 id="faq">Frequently Asked Questions</h2>
+
+        <div id="faq_accordion">
+            <h3 id="faq_ownchan">Can I have this in my own channel?</h3>
+            <div>
+                <p>Yes! Just <span class="cmd">/invite</span> the bot to your
+                channel. <span class="cmd">/kick</span> it out again to make it
+                go away.</p>
+                <p>On Freenode the bot is called <span
+                class="p_a_h">P_A_H</span>.</p>
+                <p>On Blitzed the bot is called <span
+                class="againsthumanity">AgainstHumanity</span>.</p>
+                <p>You'll be stuck with certain bot-wide configurations when
+                you use someone else's bot. As of version v0.5 these include
+                things like the <span class="cfg">turnclock</span> and the
+                selection of card packs. If you want for those settings to be
+                different then you'll need to <a href="#faq_runown">run your
+                own bot</a>.</p>
+            </div>
+
+            <h3 id="faq_runown">Can I run this myself?</h3>
+            <div>
+                <p>Yes! Download it from <a
+                href="https://github.com/grifferz/pah-irc">the GitHub
+                repository</a>. You'll need Perl and SQLite and the ability to
+                install some Perl modules.</p>
+            </div>
+            <h3 id="faq_lagged">Why is the bot sometimes so lagged?</h3>
+            <div>
+                <p>The bot rate limits its own messages so it doesn't get
+                flooded off.</p>
+                <p>The bot sends a lot of text, and if it didn't rate limit
+                itself then the IRC daemon would fairly quickly start applying
+                anti-flood measures to it. You know that's happening because
+                some messages just don't arrive. Eventually the IRC daemon
+                disconnects the boot for flooding.</p>
+                <p>This can get a little confusing when the bot is saying
+                things in the channel but appears to not be responding to
+                commands you type in private to it. It actually has responded,
+                but just hasn't got around to sending that message to you
+                yet.</p>
+                <p>Please just be patient and the bot will eventually get
+                through it all.</p>
+                <p>We're working on finding out how far we can push things. We
+                know that having the bot voiced in the channel "helps" but
+                don't know specifically how much. As of version v0.5 the bot
+                sends a burst of 10 messages at one per 0.2seconds and then
+                after that one per second until it hasn't sent any for a while
+                again.</p>
+            </div>
+
+            <h3 id="faq_faster">Can the game be played faster?</h3>
+            <div>
+                <p>This game is designed to be slow so you can play it while
+                you do whatever else it is you do while you're on IRC. So, if
+                you're not the one running the bot then chances are you're
+                using a bot configured with a <span
+                class="cfg">turnclock</span> of several days. This is set on
+                purpose so that everyone playing can, if necessary, take
+                several days to do their duty.</p>
+                <p>If you <a href="#faq_runown">run your own bot</a> then you
+                can have a faster game by setting a much shorter <span
+                class="cfg">turnclock</span>, such as 1 hour. This works
+                well; in fact that was how we tested this bot in the first
+                days. The game will go as fast as the slowest player present.
+                The main problem with it is that you need to do the work to get
+                people all together at once and ready to play.</p>
+                <p>If no one is making the effort to organise play times then
+                the natural asynchronous nature of IRC will eventually mean
+                that you can't get a quorum of four players in the same place
+                at the same time within one hour, and your game will never
+                proceed.</p>
+                <p>That's why we run with a big <span
+                class="cfg">turnclock</span>: to make it work on IRC as a
+                background activity with no need to organise.</p>
+            </div>
+
+            <h3 id="faq_status">Can the bot be made to regularly tell me the
+                game status?</h3>
+            <div>
+                <p>In short, no: it's not necessary.</p>
+                <p>Players new to this game are often not used to the idea of
+                playing a game that mostly involves waiting for other people to
+                do things. This is understandable; the traditional concept of
+                <i>playing a game</i> tends to conjure up images of people
+                together doing things in real time.</p>
+                <p>PAH is not like that. PAH is more like a play by mail sort
+                of thing. It's asynchronous and event-driven, the events being
+                the players taking their actions. Like IRC itself.</p>
+                <p>But it's the urge to "play this game now, come on, <i>play
+                it</i>," that leads people to ask</p>
+                <blockquote>
+                    <p><i>What's happening?</i></p>
+                    <p><i>What's happening?</i></p>
+                    <p><i>What's happening?</i></p>
+                    <p><i>What's happening <b>now</b>?</i></p>
+                </blockquote>
+                <p>You can of course periodically use the <a
+                href="#privcmd_status"><span class="cmd">status</span></a>
+                command in private to interrogate the bot about the status of
+                the game. And so, people concerned with <i>just what is going
+                on here?</i> ask for the bot to regularly spew out a status
+                update without them having to ask for one.</p>
+                <p>Relax. Go about your serious IRC business. You were on IRC
+                before this game existed. Continue doing that, whatever it
+                was.</p>
+                <p>In fact the bot <i>does</i> inform you periodically of what
+                is going on, it's just that it informs you only when something
+                has actually happened. Repeatedly giving you information you
+                already have would be unwelcome to most people, so you most
+                likely do not <i>really</i> want a regular status update.</p>
+                <p>That is not to say that further features designed to gently
+                encourage players who need to take their turn to do so would
+                not be welcome, because they would. If they make sense and are
+                compatible with the idea of not being hassled until you need to
+                be hassled.. Please <a
+                href="https://github.com/grifferz/pah-irc/issues">submit an
+                issue</a>!</p>
+            </div>
+
+            <h3 id="faq_quitirc">If I quit IRC will it resign me automatically?</h3>
+            <div>
+                <p>No. Asking to be resigned or being forcibly resigned due to
+                timeout are the only ways.</p>
+                <p>This is intentional so that people are able to quit IRC (or
+                get disconnected), some back and carry on playing. Apart from
+                doing your duty, the only thing you need to do is idle in the
+                channel.</p>
+            </div>
+
+            <h3 id="faq_notice">IRC bots should use NOTICE! Why doesn't this
+                use NOTICE!?</h3>
+            <div>
+                <p>I know, I know. I'm a big believer in bots using NOTICE even
+                though it seems to have fallen out of fashion these days. All
+                my <a href="https://github.com/dgl/TwitFolk">other</a> <a
+                href="https://github.com/bitfolk/enoch">bots</a> try to use
+                NOTICE exclusively.</p>
+                <p>So why not PAH? It's because it relies on the hilight
+                feature of your IRC client to notify you when you need to do
+                something, and hilights (in irssi) don't work in NOTICEs.</p>
+                <p>There's <a
+                href="https://github.com/grifferz/pah-irc/issues/50">an issue
+                open</a> that asks for a mode where extra private messages in
+                place of channel messages that would hilight people, and all
+                other channel messags to be NOTICEs. It hasn't been tried yet,
+                but it will be eventually, if people are still playing this
+                game.</p>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>
