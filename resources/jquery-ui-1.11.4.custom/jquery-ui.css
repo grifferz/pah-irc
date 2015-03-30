@@ -117,7 +117,7 @@
 ----------------------------------*/
 .ui-widget {
 	font-family: "Lucida Console", Monaco, monospace;
-	font-size: 1.1em;
+/*	font-size: 1.1em; */
 }
 .ui-widget .ui-widget {
 	font-size: 1em;
