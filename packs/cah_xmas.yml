@@ -1,0 +1,63 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Humanity Christmas 2013
+License:        CC BY-NC-SA 2.0
+Copyright:      Cards Against Humanity LLC
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - After blacking out during New Year's Eve, I was awoken by _____.
+    # If it's a single line that you want to wrap for editing purposes then you
+    # can use '>' like so:
+    - >
+        This holiday season, Tim Allen must overcome his fear of _____
+        to save Christmas.
+    - What keeps me warm during the cold, cold winter?
+    - Every Christmas, my uncle gets drunk and tells the story about _____.
+    - >
+        On the third day of Christmas, my true love gave to me:
+        three French hends, two turtle doves and _____.
+    - Jesus is _____.
+    - >
+        Wake up, America.
+        Christmas is under attack by secular liberals and their _____.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - elf cum
+    - gift-wrapping a live hamster
+    - a Hungry-Man Frozen Christmas Dinner for One
+    - several intertwining love stories featuring Hugh Grant
+    - Mall Santa
+    - whatever Kwanzaa is supposed to be about
+    - clearing a bloody path through Walmart with a scimitar
+    - Santa's heavy sack
+    - Krampus, the Austrian Christmas monster
+    - another shitty year
+    - my hot cousin
+    - a Christmas stocking full of coleslaw
+    - a visually arresting turtleneck
+    - fucking up "Silent Night" in front of 300 parents
+    - Space Jam on VHS
+    - a toxic family environment
+    - taking down Santa with a surface-to-air missile
+    - immaculate conception
+    - socks
+    - the tiny calloused hands of the Chinese children that made this card
+    - the Star Wars Holiday Special
+    - pretending to be happy
+    - eating an entire snowman
