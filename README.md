@@ -230,6 +230,16 @@ time that can be left off and the bot will work it out.
     you, use this command to set it. This will apply in all games that you are
     in.
 
+*   `[#channel] deck`
+
+    Returns information about the deck in use:
+
+    * List of card packs of which it is comprised.
+
+    * Total Black and White Card count.
+
+    * How many Black/White cards are left before reshuffle.
+
 ## Installation
 
 You can find the dependencies in the **cpanfile**, but you may find it simpler
