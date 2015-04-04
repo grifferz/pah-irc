@@ -399,8 +399,13 @@ So, now we're trying 72 hours (3 days).
 Current releases have:
 
 * The UK edition of the Cards Against Humanity base pack.
-* The 2nd expansion.
-* A 2nd expansion pack with UK modifications.
+* The Cards Against Humanity 2nd Expansion.
+* A CAH 2nd Expansion pack with UK modifications.
+* The Cards Against Humanity 3rd Expansion.
+* Cards Against Humanity PAX East.
+* Cards Against Humanity PAX Prime.
+* Cards Against Humanity Holiday 2013.
+* Lugradio (not yet really usable).
 
 (Emphasis on the UK because most of the IRC channels using this are UK-biased)
 
@@ -425,7 +430,7 @@ license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
 Undoubtedly many.
 
 I don't really know what I am doing, programming-wise, but I know at least that
-having a single module file with 4,400 lines in it is not sane.
+having a single module file with 5,000 lines in it is not sane.
 
 So, I'd appreciate any bug reports, assistance or advice. Please be gentle!
 
