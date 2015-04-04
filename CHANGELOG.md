@@ -1,5 +1,21 @@
 # Change log
 
+## v0.6
+### 2015-04-04
+* Cards Against Humanity Holiday 2013 Expansion added (Douglas Gardner): [#127](https://github.com/grifferz/pah-irc/pull/127).
+* Cards Against Humanity 3rd Expansion, PAX East and PAX Prime added (Douglas Gardner): [#123](https://github.com/grifferz/pah-irc/pull/123).
+* Added Lugradio-themed card pack from Bruno Bord, though it will need work before it's usable: [#120](https://github.com/grifferz/pah-irc/issues/120).
+* Bot now checks it's in the correct channels whenever it has identified to its nickname and again periodically. This solves the problem where it tries to join channels before it's identified to its nick, fails for those that require a registered nickname, and never tries again: [#122](https://github.com/grifferz/pah-irc/issues/122).
+* Bot is now able to kick someone off that is using its nick, and take its nick back: [#94](https://github.com/grifferz/pah-irc/issues/94).
+* Added `quit` command as an alias for `resign`: [#119](https://github.com/grifferz/pah-irc/issues/119).
+* Batched notification of plays made now happens after a maximum of 30 minutes. Previously this was `turnclock` divided by 60 (24 minutes per day of `turnclock`), or 72 minutes for a game with a `turnclock` of 3 days, which was felt to be too long: [#117](https://github.com/grifferz/pah-irc/issues/117).
+* Bot now asks ChanServ for voice whenever it joins a channel, as having the bot voiced is required to avoid flood-limiting: [#116](https://github.com/grifferz/pah-irc/issues/116).
+* Players who try to join the game while it's waiting for the Tsar to pick the winner are now automatically added at the next round, instead of being told to try again later: [#39](https://github.com/grifferz/pah-irc/issues/39).
+* Fixed bug where someone resigning after the round has already been completed could potentially extend the round time out by another full `turnclock`: [#126](https://github.com/grifferz/pah-irc/issues/126).
+* Fixed cosmetic bug where nothing would appear to happen when a non-player tried to pick the winner: [#121](https://github.com/grifferz/pah-irc/issues/121).
+* Fixed minor bug in the `status` command where it said you were already playing even if you weren't: [#112](https://github.com/grifferz/pah-irc/issues/112).
+* Fixed some more places where a lowercased version of a player's nickname would be used: [#101](https://github.com/grifferz/pah-irc/issues/101).
+
 ## v0.5
 ### 2015-03-22
 * Implemented support for multiple card packs (currently a bot-wide setting): [#75](https://github.com/grifferz/pah-irc/issues/75).
