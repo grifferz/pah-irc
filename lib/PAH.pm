@@ -2819,6 +2819,9 @@ sub do_priv_play {
 
         $self->prep_plays($game);
 
+        $game->activity_time(time());
+        $game->update;
+
         # Tell the channel about the collection of plays.
         $self->list_plays($game, $channel->name);
 
@@ -3415,9 +3418,6 @@ sub discard_hand {
 # Nothing.
 sub prep_plays {
     my ($self, $game) = @_;
-
-    $game->activity_time(time());
-    $game->update;
 
     my $tally = $self->_plays->{$game->id};
 
