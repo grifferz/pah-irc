@@ -1,9 +1,6 @@
 package PAH::Deck;
 use YAML qw/LoadFile/;
 
-use parent "Exporter";
-our @EXPORT = qw/pack_descs packs black white append find/;
-
 # Attempt to load a YAML file that describes a pack of cards. For now will be
 # found in packs/ and named $name.yml.
 # TODO: Sanity check the structure of the pack.
