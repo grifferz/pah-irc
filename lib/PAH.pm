@@ -42,6 +42,23 @@ use PAH::Schema;
 use PAH::Deck;
 use PAH::JoinQ;
 
+if (eval "use Git::Repository; 1") {
+    my $r;
+
+    eval {
+        no warnings 'all';
+        $r = Git::Repository->new;
+    };
+
+    if (defined $r) {
+        my $tip = $r->run(qw/rev-parse --short HEAD/);
+
+        if (defined $tip and length $tip) {
+            $VERSION .= " ($tip)";
+        }
+    }
+}
+
 has config_file => (
     isa     => 'Str',
     is      => 'ro',
