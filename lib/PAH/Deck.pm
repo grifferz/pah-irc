@@ -33,6 +33,10 @@ sub new {
             description => $yaml->{Description},
             license     => $yaml->{License},
             copyright   => $yaml->{Copyright},
+            counts      => {
+                Black => scalar @{ $yaml->{Black} },
+                White => scalar @{ $yaml->{White} },
+            },
         };
 
         $self->{_packs}->{$name} = $pack;
