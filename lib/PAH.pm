@@ -29,7 +29,7 @@ use Moose;
 use MooseX::Getopt;
 with 'MooseX::Getopt';
 use Try::Tiny;
-use List::Util qw/shuffle/;
+use List::Util qw/reduce shuffle/;
 use POSIX qw/strftime/;
 use Storable qw/nstore retrieve/;
 use Time::Duration;
@@ -252,6 +252,10 @@ sub BUILD {
       },
       'plays'    => {
           sub        => \&do_priv_plays,
+          privileged => 0,
+      },
+      'deck'    => {
+          sub        => \&do_priv_deck,
           privileged => 0,
       },
   };
@@ -4203,7 +4207,104 @@ sub do_priv_plays {
      } else {
          $self->report_plays($game, $who);
      }
- }
+}
+
+# A user wants to know about the deck that's in use.
+sub do_priv_deck {
+    my ($self, $args) = @_;
+
+    my $who    = $args->{nick};
+    my $irc    = $self->_irc;
+    my $schema = $self->_schema;
+
+    # This will be undef if a channel was not specified.
+    my $chan = $args->{chan};
+
+    my $channel = undef;
+
+    if (not defined $chan) {
+        $channel = $self->guess_channel($who);
+
+        if (defined $channel) {
+            $chan = $channel->disp_name;
+        }
+    } else {
+        # They specified a channel, so try to get that one.
+        $channel = $self->db_get_channel($chan);
+
+        if (not defined $channel) {
+            $chan = undef;
+        }
+    }
+
+    # By now we either:
+    #
+    # 1. Guessed the channel and have a channel object in $channel, channel
+    #    name in $chan.
+    # 2. Couldn't guess the channel and have an undef $channel object, undef
+    #    $chan.
+    # 3. Have a specified a channel in $chan, and we found the object in
+    #    $channel.
+    # 4. Have a specified a channel in $chan but we couldn't find it, so
+    #    $channel is undef.
+    if (not defined $channel) {
+        # Cases 2 or 4.
+        if (defined $chan) {
+            # They specified the channel but it didn't exist (#4). Probably bot
+            # has never been in it.
+            debug("%s asked for deck info for game in %s but I don't know"
+                . " anything about %s", $who, $chan, $chan);
+            $irc->msg($who, "Sorry, I have no knowledge of $chan.");
+            return;
+        }
+
+        # It's case #2.
+        debug("%s asked for deck info but I couldn't work out which channel"
+            . " they were interested in", $who);
+        $irc->msg($who,
+            qq{Sorry, I can't work out which channel's game you're interested}
+            . qq{ in. Try again with "#channel plays".});
+        return;
+    }
+
+    # Must be cases 1 or 3.
+    my $game = $channel->rel_game;
+
+    if (not defined $game) {
+        # There's never been a game in this channel.
+        $self->no_such_game($who, $chan);
+     } else {
+         my $deck = $self->_deck;
+
+         my @packs = $deck->packs;
+
+         # Find the longest name so we can line things up nicely.
+         my $longest = reduce { length($a) > length($b) ? $a : $b } @packs;
+         my $length = length($longest);
+
+         $irc->msg($who, "Card packs in use (# Black/White):");
+
+         foreach my $p (@packs) {
+             $irc->msg($who,
+                 sprintf("  %-${length}s (%3u/%3u) %s", $p,
+                     $deck->pack_count($p, 'Black'),
+                     $deck->pack_count($p, 'White'), $deck->pack_desc($p)));
+         }
+
+         my $black_left = $schema->resultset('BCard')->search(
+             { game => $game->id }
+         )->count;
+
+         my $white_left = $schema->resultset('WCard')->search(
+             { game => $game->id }
+         )->count;
+
+         $irc->msg($who,
+             sprintf("[%s] %u Black, %u White Cards. %u/%u"
+                 . " before reshuffle.", $chan, $deck->count('Black'),
+                 $deck->count('White'), $black_left, $white_left));
+     }
+}
 
 # Clear out any record of pokes that have been made so that new pokes can be
 # sent if needed.
