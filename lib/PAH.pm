@@ -1784,11 +1784,15 @@ sub resign {
 
     $who = $user->nick if (not defined $who);
 
+    my $was_complete = $self->round_is_complete($game);
+
+    my $now = time();
+
     # Are they the Card Tsar?
     if (1 == $ug->is_tsar) {
         debug("%s was Tsar for %s", $who, $chan);
 
-        if (2 == $game->status and $self->round_is_complete($game)) {
+        if (2 == $game->status and $was_complete) {
             debug("Played cards in %s have been seen so must be discarded",
                 $chan);
             $self->cleanup_plays($game);
@@ -1802,7 +1806,7 @@ sub resign {
         $self->discard_hand($ug);
 
         # Mark them as inactive.
-        $ug->activity_time(time());
+        $ug->activity_time($now);
         $ug->active(0);
         $ug->update;
 
@@ -1848,6 +1852,14 @@ sub resign {
     # Has this actually completed the round (i.e. we were waiting on the user
     # who just resigned)?
     if (2 == $game->status and $self->round_is_complete($game)) {
+        if (! $was_complete) {
+            # Before this resignation the round wasn't complete, but now it is,
+            # so update the game timer. Otherwise the Card Tsar will only get a
+            # very short time to pick a winner!
+            $game->activity_time($now);
+            $game->update;
+        }
+
         debug("Resignation of %s in %s has completed the round", $who, $chan);
         $irc->msg($chan,
             "Now that $who was dealt out, all the plays are in."
