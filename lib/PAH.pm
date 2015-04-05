@@ -1335,7 +1335,7 @@ sub report_game_status {
 
     $tsar_nick = $tsar->rel_user->nick if (not defined $tsar_nick);
 
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         # Waiting on Card Tsar.
         $waitstring = sprintf("Waiting on %s to pick the winning play.",
             $tsar_nick);
@@ -1606,11 +1606,11 @@ sub do_pub_dealin {
         return;
     }
 
-    # Is the game's current hand complete (waiting on Card Tsar)? If so then no
+    # Is the game's current round complete (waiting on Card Tsar)? If so then no
     # new players can immediately join, because then everyone would know who
     # the extra play was from. They will be dealt in to the next hand.
-    if (2 == $game->status and $self->hand_is_complete($game)) {
-        debug("%s can't immediately join game at %s because the hand is"
+    if (2 == $game->status and $self->round_is_complete($game)) {
+        debug("%s can't immediately join game at %s because the round is"
            . " complete", $who, $chan);
 
         my $tsar      = $game->rel_tsar_usergame->rel_user;
@@ -1629,7 +1629,7 @@ sub do_pub_dealin {
         );
 
         $irc->msg($chan,
-            sprintf("%s: Sorry, this hand is complete and we're waiting on"
+            sprintf("%s: Sorry, this round is complete and we're waiting on"
                . " %s to pick the winner. Stay on IRC and you'll be dealt"
                . " in to the next round automatically.", $who, $tsar_nick));
         return;
@@ -1788,7 +1788,7 @@ sub resign {
     if (1 == $ug->is_tsar) {
         debug("%s was Tsar for %s", $who, $chan);
 
-        if (2 == $game->status and $self->hand_is_complete($game)) {
+        if (2 == $game->status and $self->round_is_complete($game)) {
             debug("Played cards in %s have been seen so must be discarded",
                 $chan);
             $self->cleanup_plays($game);
@@ -1845,10 +1845,10 @@ sub resign {
            . qq{ "$my_nick: me"});
     }
 
-    # Has this actually completed the hand (i.e. we were waiting on the user who
-    # just resigned)?
-    if (2 == $game->status and $self->hand_is_complete($game)) {
-        debug("Resignation of %s in %s has completed the hand", $who, $chan);
+    # Has this actually completed the round (i.e. we were waiting on the user
+    # who just resigned)?
+    if (2 == $game->status and $self->round_is_complete($game)) {
+        debug("Resignation of %s in %s has completed the round", $who, $chan);
         $irc->msg($chan,
             "Now that $who was dealt out, all the plays are in."
            . " No more changes!");
@@ -2672,7 +2672,7 @@ sub do_priv_play {
 
     # Is there already a full set of plays for this game? If so then no more
     # changes are allowed.
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         my $tsar_user = $game->rel_tsar_usergame->rel_user;
         my $tsar_nick = do {
             if (defined $tsar_user->disp_nick) { $tsar_user->disp_nick }
@@ -2815,7 +2815,7 @@ sub do_priv_play {
     $ug->update;
 
     # Tell the channel that the user has made their play.
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         # Kill any timer that might be about to notify of plays.
         undef $self->_pn_timers->{$game->id};
 
@@ -3046,8 +3046,8 @@ sub num_plays {
     }
 }
 
-# Is a game's hand currently complete? A hand is complete when we have a play
-# from every active user except the Card Tsar.
+# Is a game's current round now complete? A round is complete when we have a
+# play from every active user except the Card Tsar.
 #
 # Arguments:
 #
@@ -3057,7 +3057,7 @@ sub num_plays {
 #
 # - 0: Not yet complete.
 #   1: Complete.
-sub hand_is_complete {
+sub round_is_complete {
     my ($self, $game) = @_;
 
     my $num_plays   = $self->num_plays($game);
@@ -3202,7 +3202,7 @@ sub waiting_on {
         return undef;
     }
 
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         return undef;
     }
 
@@ -3244,8 +3244,8 @@ sub build_waitstring {
 
     my $waitstring = "We're currently waiting on ";
 
-    if ($self->hand_is_complete($game)) {
-        # If the hand is complete then we must be waiting on the Card Tsar.
+    if ($self->round_is_complete($game)) {
+        # If the round is complete then we must be waiting on the Card Tsar.
         my $tsar = $game->rel_tsar_usergame;
 
         my $tsar_nick = $tsar->rel_user->disp_nick;
@@ -3511,8 +3511,8 @@ sub do_pub_winner {
         return;
     }
 
-    # Is the game's hand actually complete?
-    if (not $self->hand_is_complete($game)) {
+    # Is the round actually complete?
+    if (not $self->round_is_complete($game)) {
         $irc->msg($chan,
             "$who: Sorry, not everyone has played their hand yet!");
         $irc->msg($chan, $self->build_waitstring($game));
@@ -3604,8 +3604,8 @@ sub do_pub_plays {
     }
 }
 
-# Report the plays for a completed hand to either a nick or a channel. If the
-# hand isn't completed yet then just giver an error.
+# Report the plays for a completed round to either a nick or a channel. If the
+# round isn't completed yet then just giver an error.
 #
 # Arguments:
 #
@@ -3630,7 +3630,7 @@ sub report_plays {
         $is_nick = 0;
     }
 
-    if (! $self->hand_is_complete($game)) {
+    if (! $self->round_is_complete($game)) {
         # Still waiting on plays to come in.
         my @to_play     = $self->waiting_on($game);
         my $num_waiting = scalar @to_play;
@@ -3640,7 +3640,7 @@ sub report_plays {
             $num_waiting == 1 ? '' : 's');
 
         $irc->msg($target,
-            sprintf("%sThe hand isn't complete yet; %s",
+            sprintf("%sThe round isn't complete yet; %s",
                 $is_nick ? "[$chan] " : '', $waitstring));
         return;
     }
@@ -3999,7 +3999,7 @@ sub punish_idler {
 
     my $idler;
 
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         # Punish Card Tsar.
         $idler = $game->rel_tsar_usergame;
         debug("Punishing idle Card Tsar in %s", $game->rel_channel->disp_name);
@@ -4369,7 +4369,7 @@ sub poke {
         return;
     }
 
-    if ($self->hand_is_complete($game)) {
+    if ($self->round_is_complete($game)) {
         # If the hand is complete then we must be waiting on the card Tsar. Are
         # they the Card Tsar?
         if (1 == $ug->is_tsar) {
