@@ -92,6 +92,67 @@ sub pack_descs {
     return @descs;
 }
 
+# Return the description for a particular pack name.
+#
+# Arguments:
+#
+# - Name of the pack as a scalar string. The name is the file name within the
+#   "packs/" directory, without the ".yml" suffix.
+#
+# Returns:
+#
+# The description of the pack as a scalar string, or undef if the pack wasn't
+# found.
+sub pack_desc {
+    my ($self, $name) = @_;
+
+    if (not defined $name) {
+        die "A pack name must be provided";
+    }
+
+    my $packs = $self->{_packs};
+
+    if (defined $packs->{$name}) {
+        return $packs->{$name}->{description};
+    }
+
+    return undef;
+}
+
+# Return a count of how many cards of a particular color are available in a
+# particular card pack.
+#
+# Arguments:
+#
+# - Name of the pack as a scalar string. The name is the file name within the
+#   "packs/" directory, without the ".yml" suffix.
+#
+# - Color of the card as a scalar string, so either 'Black' or 'White'.
+#
+# Returns:
+#
+# The count of the cards of the specified color, or undef if the card pack
+# wasn't found.
+sub pack_count {
+    my ($self, $name, $color) = @_;
+
+    if (not defined $name) {
+        die "A pack name must be provided";
+    }
+
+    my $packs = $self->{_packs};
+
+    if ($color ne 'Black' and $color ne 'White') {
+        die "Card color must be either 'Black' or 'White'";
+    }
+
+    if (defined $packs->{$name}) {
+        return $packs->{$name}->{counts}->{$color};
+    }
+
+    return undef;
+}
+
 # Return a count of how many cards are available in a particular color of deck.
 #
 # Arguments:
