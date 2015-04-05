@@ -13,7 +13,7 @@ sub new {
     my $self = {
         _Black => [],
         _White => [],
-        _packs => [],
+        _packs => {},
     };
 
     my @packlist = split(/\s+/, $packs);
@@ -35,7 +35,7 @@ sub new {
             copyright   => $yaml->{Copyright},
         };
 
-        push(@{ $self->{_packs} }, $pack);
+        $self->{_packs}->{$name} = $pack;
     }
 
     bless $self, $class;
@@ -55,7 +55,9 @@ sub new {
 sub packs {
     my ($self) = @_;
 
-    return map { $_->{name} } @{ $self->{_packs} };
+    my $packs = $self->{_packs};
+
+    return map { $packs->{$_}->{name} } keys %{ $packs };
 }
 
 # Return a list of strings describing the packs that have been loaded.
@@ -77,9 +79,11 @@ sub packs {
 sub pack_descs {
     my ($self) = @_;
 
+    my $packs = $self->{_packs};
+
     my @descs = map {
-        $_->{name} . ' ['. $_->{description} . ']'
-    } @{ $self->{_packs} };
+        $packs->{$_}->{name} . ' ['. $packs->{$_}->{description} . ']'
+    } keys %{ $packs };
 
     return @descs;
 }
