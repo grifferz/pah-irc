@@ -227,13 +227,18 @@ sub BUILD {
   }
 
   # Privileged commands.
-  foreach my $cmd (qw/hand play pronoun/) {
+  foreach my $cmd (qw/hand play config/) {
       $dpriv->add_cmd($cmd, \&{ 'PAH::Command::Priv::' . $cmd }, 1);
   }
 
   # 'hand' aliases.
   foreach my $cmd (qw/list/) {
       $dpriv->add_cmd($cmd, \&PAH::Command::Priv::hand, 1);
+  }
+
+  # 'config' aliases.
+  foreach my $cmd (qw/set setting settings/) {
+      $dpriv->add_cmd($cmd, \&PAH::Command::Priv::config, 1);
   }
 
   $self->{_whois_queue} = {};
@@ -590,6 +595,18 @@ sub process_priv_command {
     } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
         $cmd  = $1;
         $rest = $2;
+    }
+
+    if ($cmd =~ /pronoun/i) {
+        # "pronoun" command was moved under "config pronoun", so change $cmd to
+        # "config" and stuff "pronoun" onto the start of $rest.
+        $cmd = 'config';
+
+        if (defined $rest) {
+            $rest = "pronoun $rest";
+        } else {
+            $rest = 'pronoun';
+        }
     }
 
     # Strip off any leading/trailing whitespace.

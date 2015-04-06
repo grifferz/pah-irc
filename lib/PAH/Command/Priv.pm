@@ -8,11 +8,14 @@ Copyright ©2015 Andy Smith <andy-pah-irc@strugglers.net>
 Artistic license same as Perl.
 =cut
 
+use warnings;
+use strict;
 use utf8;
 
 use PAH::Log;
 
 use List::Util qw/reduce/;
+use Scalar::Util qw/looks_like_number/;
 
 sub scores {
     my ($self, $args) = @_;
@@ -603,6 +606,56 @@ sub play {
                 cb    => sub { $self->notify_plays($game); },
             );
         }
+    }
+}
+
+# User wants to query or set personal configuration.
+sub config {
+    my ($self, $args) = @_;
+
+    my $params  = $args->{params};
+    my $who     = $args->{nick};
+    my $user    = $self->db_get_user($who);
+    my $setting = $user->rel_setting;
+    my $schema  = $self->_schema;
+    my $irc     = $self->_irc;
+
+    if (not defined $setting) {
+        debug("User %s doesn't have any settings; creating…", $user->nick);
+        $setting = $schema->resultset('Setting')->create({ user => $user->id });
+    }
+
+    # If they didn't specify any config key then just list off the current
+    # settings of all config keys.
+    if (not defined $params or $params =~ /^\s*$/) {
+        $irc->msg($who, "Your configuration:");
+
+        my @keys = qw/chatpoke pronoun/;
+
+        my $longest = reduce { length($a) > length($b) ? $a : $b } @keys;
+        my $key_len = length($longest);
+
+        foreach my $key (@keys) {
+            my $val = $setting->$key;
+
+            if ($key eq 'pronoun' and not defined $val) {
+                $val = "their";
+            }
+
+            if (not defined $val) {
+                $val = "";
+            } elsif (looks_like_number($val)) {
+                if (0 == $val) {
+                    $val = "Off";
+                } else {
+                    $val = "On";
+                }
+            }
+
+            $irc->msg($who, sprintf("  %-${key_len}s  %s", uc($key), $val));
+        }
+    } else {
+        $irc->msg($who, "Configuration setting not implemented yet.");
     }
 }
 
