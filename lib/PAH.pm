@@ -1036,9 +1036,12 @@ sub report_game_status {
         if ($num_waiting == 1) {
             # Only one person, so shame them.
             my $user    = $to_play[0]->rel_user;
-            my $pronoun = $user->pronoun;
-
-            $pronoun = 'their' if (not defined $pronoun);
+            my $setting = $user->rel_setting;
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
             my $nick = $user->disp_nick;
 
@@ -2190,12 +2193,19 @@ sub build_waitstring {
         my @to_play = $self->waiting_on($game);
 
         if (1 == scalar @to_play) {
-            my $pronoun = $to_play[0]->rel_user->pronoun;
-            my $nick    = $to_play[0]->rel_user->disp_nick;
+            my $user    = $to_play[0]->rel_user;
+            my $setting = $user->rel_setting;
 
-            $nick = $to_play[0]->rel_user->nick if (not defined $nick);
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
-            $pronoun = "their" if (not defined $pronoun);
+            my $nick = do {
+                if (defined $user->disp_nick) { $user->disp_nick }
+                else                          { $user->nick }
+            };
 
             $waitstring = sprintf("We're just waiting on %s to make %s"
                . " play.", $nick, $pronoun);
@@ -2563,8 +2573,13 @@ sub announce_winner {
                    $winner->wins, $winner->wins == 1 ? '' : 's'));
         } else {
             # Tell player about winner.
-            my $pronoun = $winner->rel_user->pronoun;
-            $pronoun = 'their' if (not defined $pronoun);
+            my $user    = $winner->rel_user;
+            my $setting = $user->rel_setting;
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
             $irc->msg($user_nick,
                 sprintf("[%s] The winner was %s, who now has %u"
