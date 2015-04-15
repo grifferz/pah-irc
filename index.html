@@ -123,7 +123,13 @@
                         <li><a href="#privcmd_hand">hand</a></li>
                         <li><a href="#privcmd_play">play</a></li>
                         <li><a href="#privcmd_plays">plays</a></li>
-                        <li><a href="#privcmd_pronoun">pronoun</a></li>
+                        <li>
+                        <a href="#privcmd_config">config</a>
+                        <ul>
+                            <li><a href="#privcmd_config_chatpoke">chatpoke</a></li>
+                            <li><a href="#privcmd_config_pronoun">pronoun</a></li>
+                        </ul>
+                        </li>
                     </ul>
                     </li>
                 </ul>
@@ -691,26 +697,46 @@
             <p><span class="cmd">[#channel] plays</span></p>
             <p>Repeat the list of plays, if for some reason you missed it.</p>
             </li>
-            <li id="privcmd_pronoun">
-            <p><span class="cmd">pronoun &lt;pronounm&gt;</span></p>
-            <p>By default the bot uses the "their" pronoun:</p>
+            <li id="privcmd_config">
+            <p><span class="cmd">config [key] [value]</span></p>
+            <p><span class="cmd">settings [key] [value]</span></p>
+            <p><span class="cmd">setting [key] [value]</span></p>
+            <p><span class="cmd">set [key] [value]</span></p>
+            <p>View or change a personal configuration setting. With no
+            arguments, this displays the current value of all configuration
+            settings. Specify a key to view just that key. Specify a key and a
+            value to change the key to that value.</p>
+            <p>Available configuration:</p>
+            <ul>
+                <li id="privcmd_config_chatpoke">
+                <p><span class="cmd">chatpoke [Yes|1|On|0|Off]</span></p>
+                <p>By default if the bot sees you chatting and knows you have
+                yet to do your duty it will send you a message to poke you in
+                to action. If you don't like that then you can turn it off
+                here.</p>
+                </li>
+                <li id="privcmd_config_pronoun">
+                <p><span class="cmd">pronoun &lt;pronoun&gt;</span></p>
+                <p>By default the bot uses the "their" pronoun:</p>
 
-            <table class="chanlog">
-                <tr>
-                    <td class="ts">16:26:37</td>
-                    <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
-                    <td class="msg">dutchie: We're just waiting on <b>dave2</b> to make their play.</td>
-                </tr>
-                <tr>
-                    <td class="ts">17:16:47</td>
-                    <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
-                    <td class="msg"><b>3</b> people just played! We're just waiting on <b>dg</b> to make their play.</td>
-                </tr>
-            </table>
+                <table class="chanlog">
+                    <tr>
+                        <td class="ts">16:26:37</td>
+                        <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                        <td class="msg">dutchie: We're just waiting on <b>dave2</b> to make their play.</td>
+                    </tr>
+                    <tr>
+                        <td class="ts">17:16:47</td>
+                        <td class="nick"><span class="ang">&lt;</span>+<span class="p_a_h">P_A_H</span><span class="ang">&gt;</span></td>
+                        <td class="msg"><b>3</b> people just played! We're just waiting on <b>dg</b> to make their play.</td>
+                    </tr>
+                </table>
 
-            <p>If you would prefer for the bot to use a different pronoun in
-            relation to you, use this command to set it. This will apply in all
-            games that you are in.</p>
+                <p>If you would prefer for the bot to use a different pronoun
+                in relation to you, use this command to set it. This will apply
+                in all games that you are in.</p>
+                </li>
+            </ul>
         </ul>
 
         <h2 id="glossary">Glossary</h2>
