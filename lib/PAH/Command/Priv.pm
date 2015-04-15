@@ -677,7 +677,7 @@ sub config {
     # If we got this far then it's an unknown config key.
     $irc->msg($who,
         "Sorry, that's not a config key I recognise. See"
-        . "https://github.com/grifferz/pah-irc#usage for more info.");
+        . " https://github.com/grifferz/pah-irc#usage for more info.");
 }
 
 
