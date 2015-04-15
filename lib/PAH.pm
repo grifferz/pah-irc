@@ -3289,6 +3289,30 @@ sub db_delete_discards {
     return $count
 }
 
+# Create a row in the "settings" table for a specified user, with default
+# values.
+#
+# Arguments:
+#
+# - User Schema object.
+#
+# Returns:
+#
+# Setting Schema object.
+sub db_create_usetting {
+    my ($self, $user) = @_;
+
+    my $schema = $self->_schema;
+
+    debug("User %s doesn't have any settings; creating…", $user->nick);
+    $schema->resultset('Setting')->create({ user => $user->id });
+
+    # Refresh the relationship.
+    $user->discard_changes;
+
+    return $user->rel_setting;
+}
+
 # Send a message explaining there is no such game.
 #
 # Arguments:

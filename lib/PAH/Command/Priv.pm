@@ -617,13 +617,9 @@ sub config {
     my $who     = $args->{nick};
     my $user    = $self->db_get_user($who);
     my $setting = $user->rel_setting;
-    my $schema  = $self->_schema;
     my $irc     = $self->_irc;
 
-    if (not defined $setting) {
-        debug("User %s doesn't have any settings; creating…", $user->nick);
-        $setting = $schema->resultset('Setting')->create({ user => $user->id });
-    }
+    $setting = $self->db_create_usetting($user) if (not defined $setting);
 
     # If they didn't specify any config key then just list off the current
     # settings of all config keys.
