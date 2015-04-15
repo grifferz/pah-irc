@@ -680,44 +680,45 @@ sub config {
         . "https://github.com/grifferz/pah-irc#usage for more info.");
 }
 
-# User wants to set a personal pronoun to be used instead of the default
-# "their".
-#
-# We will allow max five characters, a-zA-Z.
-sub pronoun {
+
+# User wants to view or update their pronoun.
+sub config_pronoun {
     my ($self, $args) = @_;
 
     my $params  = $args->{params};
     my $who     = $args->{nick};
-    my $user    = $self->db_get_user($who);
+    my $user    = $args->{user};
+    my $setting = $user->rel_setting;
     my $irc     = $self->_irc;
-
 
     # If they didn't specify a pronoun then just tell them what their current
     # pronoun is.
     if (not defined $params or $params =~ /^\s*$/) {
-        my $pronoun = $user->pronoun;
+        my $pronoun = do {
+            if (defined $setting->pronoun) { $setting->pronoun }
+            else                           { 'their' }
+        };
 
-        $pronoun = 'their' if (not defined $pronoun);
-
-        $irc->msg($who, sprintf("Your current pronoun is %s.", $pronoun));
+        $irc->msg($who, "Your current pronoun is $pronoun.");
         return;
     }
+
+    # Otherwise set it.
 
     # Remove trailing/leading white space.
     chomp($params);
     $params =~ s/^\s*//;
 
     if ($params =~ /^[a-zA-Z]{1,5}$/) {
-        $user->pronoun($params);
-        $user->update;
+        $setting->pronoun($params);
+        $setting->update;
         $irc->msg($who, "Your pronoun has been updated to $params.");
         return;
     }
 
     # It was invalid.
     $irc->msg($who, "Sorry, that doesn't look like a reasonable pronoun. I'll"
-       . " accept up to five characters, a-z plus A-Z.");
+        . " accept up to five characters, a-z plus A-Z.");
 }
 
 # A user wants to privately list the plays of a completed hand. If the hand is
