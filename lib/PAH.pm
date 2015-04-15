@@ -187,9 +187,11 @@ sub BUILD {
 
   $self->{_pub_dispatch}  = PAH::Dispatch->new;
   $self->{_priv_dispatch} = PAH::Dispatch->new;
+  $self->{_conf_dispatch} = PAH::Dispatch->new;
 
   my $dpub  = $self->{_pub_dispatch};
   my $dpriv = $self->{_priv_dispatch};
+  my $dconf = $self->{_conf_dispatch};
 
   # Unprivileged commands.
   foreach my $cmd (qw/status scores plays/) {
@@ -239,6 +241,11 @@ sub BUILD {
   # 'config' aliases.
   foreach my $cmd (qw/set setting settings/) {
       $dpriv->add_cmd($cmd, \&PAH::Command::Priv::config, 1);
+  }
+
+  # Config sub-commands.
+  foreach my $cmd (qw/chatpoke pronoun/) {
+      $dconf->add_cmd($cmd, \&{ 'PAH::Command::Priv::config_' . $cmd }, 0);
   }
 
   $self->{_whois_queue} = {};

@@ -654,9 +654,34 @@ sub config {
 
             $irc->msg($who, sprintf("  %-${key_len}s  %s", uc($key), $val));
         }
-    } else {
-        $irc->msg($who, "Configuration setting not implemented yet.");
+
+        return;
     }
+
+    # $params contains something, so parse it into key and value.
+    my ($key, $val) = split(/\s+/, $params);
+
+    my $conf_args = {
+        nick   => $who,
+        user   => $user,
+        params => $val,
+    };
+
+    my $disp = $self->{_conf_dispatch};
+
+    # Did they specify a config key that exists?
+    if ($disp->cmd_exists($key)) {
+        my $sub = $disp->get_cmd($key);
+
+        $sub->($self, $conf_args);
+
+        return;
+    }
+
+    # If we got this far then it's an unknown config key.
+    $irc->msg($who,
+        "Sorry, that's not a config key I recognise. See"
+        . "https://github.com/grifferz/pah-irc#usage for more info.");
 }
 
 # User wants to set a personal pronoun to be used instead of the default
