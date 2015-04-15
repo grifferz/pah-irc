@@ -680,6 +680,19 @@ sub config {
         . " https://github.com/grifferz/pah-irc#usage for more info.");
 }
 
+sub config_chatpoke {
+    my ($self, $args) = @_;
+
+    my $params  = $args->{params};
+    my $who     = $args->{nick};
+    my $user    = $args->{user};
+    my $setting = $user->rel_setting;
+    my $irc     = $self->_irc;
+
+    $irc->msg($who,
+        "Sorry, this command isn't implemented yet. See"
+        . " https://github.com/grifferz/pah-irc/issues/137 for more info.");
+}
 
 # User wants to view or update their pronoun.
 sub config_pronoun {
