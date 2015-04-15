@@ -8,11 +8,14 @@ Copyright ©2015 Andy Smith <andy-pah-irc@strugglers.net>
 Artistic license same as Perl.
 =cut
 
+use warnings;
+use strict;
 use utf8;
 
 use PAH::Log;
 
 use List::Util qw/reduce/;
+use Scalar::Util qw/looks_like_number/;
 
 sub scores {
     my ($self, $args) = @_;
@@ -606,44 +609,129 @@ sub play {
     }
 }
 
-# User wants to set a personal pronoun to be used instead of the default
-# "their".
-#
-# We will allow max five characters, a-zA-Z.
-sub pronoun {
+# User wants to query or set personal configuration.
+sub config {
     my ($self, $args) = @_;
 
     my $params  = $args->{params};
     my $who     = $args->{nick};
     my $user    = $self->db_get_user($who);
+    my $setting = $user->rel_setting;
     my $irc     = $self->_irc;
 
+    $setting = $self->db_create_usetting($user) if (not defined $setting);
+
+    # If they didn't specify any config key then just list off the current
+    # settings of all config keys.
+    if (not defined $params or $params =~ /^\s*$/) {
+        $irc->msg($who, "Your configuration:");
+
+        my @keys = qw/chatpoke pronoun/;
+
+        my $longest = reduce { length($a) > length($b) ? $a : $b } @keys;
+        my $key_len = length($longest);
+
+        foreach my $key (@keys) {
+            my $val = $setting->$key;
+
+            if ($key eq 'pronoun' and not defined $val) {
+                $val = "their";
+            }
+
+            if (not defined $val) {
+                $val = "";
+            } elsif (looks_like_number($val)) {
+                if (0 == $val) {
+                    $val = "Off";
+                } else {
+                    $val = "On";
+                }
+            }
+
+            $irc->msg($who, sprintf("  %-${key_len}s  %s", uc($key), $val));
+        }
+
+        return;
+    }
+
+    # $params contains something, so parse it into key and value.
+    my ($key, $val) = split(/\s+/, $params);
+
+    my $conf_args = {
+        nick   => $who,
+        user   => $user,
+        params => $val,
+    };
+
+    my $disp = $self->{_conf_dispatch};
+
+    # Did they specify a config key that exists?
+    if ($disp->cmd_exists($key)) {
+        my $sub = $disp->get_cmd($key);
+
+        $sub->($self, $conf_args);
+
+        return;
+    }
+
+    # If we got this far then it's an unknown config key.
+    $irc->msg($who,
+        "Sorry, that's not a config key I recognise. See"
+        . " https://github.com/grifferz/pah-irc#usage for more info.");
+}
+
+sub config_chatpoke {
+    my ($self, $args) = @_;
+
+    my $params  = $args->{params};
+    my $who     = $args->{nick};
+    my $user    = $args->{user};
+    my $setting = $user->rel_setting;
+    my $irc     = $self->_irc;
+
+    $irc->msg($who,
+        "Sorry, this command isn't implemented yet. See"
+        . " https://github.com/grifferz/pah-irc/issues/137 for more info.");
+}
+
+# User wants to view or update their pronoun.
+sub config_pronoun {
+    my ($self, $args) = @_;
+
+    my $params  = $args->{params};
+    my $who     = $args->{nick};
+    my $user    = $args->{user};
+    my $setting = $user->rel_setting;
+    my $irc     = $self->_irc;
 
     # If they didn't specify a pronoun then just tell them what their current
     # pronoun is.
     if (not defined $params or $params =~ /^\s*$/) {
-        my $pronoun = $user->pronoun;
+        my $pronoun = do {
+            if (defined $setting->pronoun) { $setting->pronoun }
+            else                           { 'their' }
+        };
 
-        $pronoun = 'their' if (not defined $pronoun);
-
-        $irc->msg($who, sprintf("Your current pronoun is %s.", $pronoun));
+        $irc->msg($who, "Your current pronoun is $pronoun.");
         return;
     }
+
+    # Otherwise set it.
 
     # Remove trailing/leading white space.
     chomp($params);
     $params =~ s/^\s*//;
 
     if ($params =~ /^[a-zA-Z]{1,5}$/) {
-        $user->pronoun($params);
-        $user->update;
+        $setting->pronoun($params);
+        $setting->update;
         $irc->msg($who, "Your pronoun has been updated to $params.");
         return;
     }
 
     # It was invalid.
     $irc->msg($who, "Sorry, that doesn't look like a reasonable pronoun. I'll"
-       . " accept up to five characters, a-z plus A-Z.");
+        . " accept up to five characters, a-z plus A-Z.");
 }
 
 # A user wants to privately list the plays of a completed hand. If the hand is

@@ -49,6 +49,10 @@ __PACKAGE__->add_columns(
         size        => 50,
     },
 
+    # ** NO LONGER USED **
+    #
+    # As of database version 13 this column was moved to the "settings" table.
+    #
     # Possessive pronoun that the bot will use when referring to this user's
     # plays, wins, etc.
     # http://en.wikipedia.org/wiki/Gender-specific_and_gender-neutral_pronouns#Summary
@@ -86,6 +90,12 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
     rel_waiters => 'PAH::Schema::Result::Waiter',
     { 'foreign.user'   => 'self.id' }
+);
+
+# A User might have a Setting.
+__PACKAGE__->might_have(
+    rel_setting => 'PAH::Schema::Result::Setting',
+    { 'foreign.user' => 'self.id' }
 );
 
 1;

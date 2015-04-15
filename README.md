@@ -218,18 +218,6 @@ time that can be left off and the bot will work it out.
 
     Repeat the list of plays, if for some reason you missed it.
 
-*   `pronoun <pronoun>`
-
-    By default the bot uses the "their" pronoun:
-
-    * `<PAH>` dutchie: A game is active! We're just waiting on **dave2** to make their play.
-    * […]
-    * `<PAH>` 3 people just played! We're just waiting on **dg** to make their play.
-
-    If you would prefer for the bot to use a different pronoun in relation to
-    you, use this command to set it. This will apply in all games that you are
-    in.
-
 *   `[#channel] deck`
 
     Returns information about the deck in use:
@@ -239,6 +227,38 @@ time that can be left off and the bot will work it out.
     * Total Black and White Card count.
 
     * How many Black/White cards are left before reshuffle.
+
+*   `config [key] [value]`
+
+    `settings [key] [value]`
+
+    `setting [key] [value]`
+
+    `set [key] [value]`
+
+    View or change a personal configuration setting. With no arguments, this
+    displays the current value of all configuration settings. Specify a key to
+    view just that key. Specify a key and a value to change the key to that
+    value.
+
+    Available configuration:
+
+    * `chatpoke [Yes|1|On|No|0|Off]`
+
+      By default if the bot sees you chatting and knows you have yet to do your
+      duty it will send you a message to poke you in to action. If you don't
+      like that then you can turn it off here.
+
+    * `pronoun <pronoun>`
+
+      By default the bot uses the "their" pronoun:
+
+      * `<PAH>` dutchie: A game is active! We're just waiting on **dave2** to make their play.
+      * […]
+      * `<PAH>` 3 people just played! We're just waiting on **dg** to make their play.
+
+      If you would prefer for the bot to use a different pronoun in relation to
+      you, set it here. This will apply in all games that you are in.
 
 ## Installation
 

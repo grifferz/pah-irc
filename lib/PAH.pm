@@ -187,9 +187,11 @@ sub BUILD {
 
   $self->{_pub_dispatch}  = PAH::Dispatch->new;
   $self->{_priv_dispatch} = PAH::Dispatch->new;
+  $self->{_conf_dispatch} = PAH::Dispatch->new;
 
   my $dpub  = $self->{_pub_dispatch};
   my $dpriv = $self->{_priv_dispatch};
+  my $dconf = $self->{_conf_dispatch};
 
   # Unprivileged commands.
   foreach my $cmd (qw/status scores plays/) {
@@ -227,13 +229,23 @@ sub BUILD {
   }
 
   # Privileged commands.
-  foreach my $cmd (qw/hand play pronoun/) {
+  foreach my $cmd (qw/hand play config/) {
       $dpriv->add_cmd($cmd, \&{ 'PAH::Command::Priv::' . $cmd }, 1);
   }
 
   # 'hand' aliases.
   foreach my $cmd (qw/list/) {
       $dpriv->add_cmd($cmd, \&PAH::Command::Priv::hand, 1);
+  }
+
+  # 'config' aliases.
+  foreach my $cmd (qw/set setting settings/) {
+      $dpriv->add_cmd($cmd, \&PAH::Command::Priv::config, 1);
+  }
+
+  # Config sub-commands.
+  foreach my $cmd (qw/chatpoke pronoun/) {
+      $dconf->add_cmd($cmd, \&{ 'PAH::Command::Priv::config_' . $cmd }, 0);
   }
 
   $self->{_whois_queue} = {};
@@ -590,6 +602,18 @@ sub process_priv_command {
     } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
         $cmd  = $1;
         $rest = $2;
+    }
+
+    if ($cmd =~ /pronoun/i) {
+        # "pronoun" command was moved under "config pronoun", so change $cmd to
+        # "config" and stuff "pronoun" onto the start of $rest.
+        $cmd = 'config';
+
+        if (defined $rest) {
+            $rest = "pronoun $rest";
+        } else {
+            $rest = 'pronoun';
+        }
     }
 
     # Strip off any leading/trailing whitespace.
@@ -1019,9 +1043,12 @@ sub report_game_status {
         if ($num_waiting == 1) {
             # Only one person, so shame them.
             my $user    = $to_play[0]->rel_user;
-            my $pronoun = $user->pronoun;
-
-            $pronoun = 'their' if (not defined $pronoun);
+            my $setting = $user->rel_setting;
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
             my $nick = $user->disp_nick;
 
@@ -2173,12 +2200,19 @@ sub build_waitstring {
         my @to_play = $self->waiting_on($game);
 
         if (1 == scalar @to_play) {
-            my $pronoun = $to_play[0]->rel_user->pronoun;
-            my $nick    = $to_play[0]->rel_user->disp_nick;
+            my $user    = $to_play[0]->rel_user;
+            my $setting = $user->rel_setting;
 
-            $nick = $to_play[0]->rel_user->nick if (not defined $nick);
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
-            $pronoun = "their" if (not defined $pronoun);
+            my $nick = do {
+                if (defined $user->disp_nick) { $user->disp_nick }
+                else                          { $user->nick }
+            };
 
             $waitstring = sprintf("We're just waiting on %s to make %s"
                . " play.", $nick, $pronoun);
@@ -2546,8 +2580,13 @@ sub announce_winner {
                    $winner->wins, $winner->wins == 1 ? '' : 's'));
         } else {
             # Tell player about winner.
-            my $pronoun = $winner->rel_user->pronoun;
-            $pronoun = 'their' if (not defined $pronoun);
+            my $user    = $winner->rel_user;
+            my $setting = $user->rel_setting;
+            my $pronoun = do {
+                if (defined $setting
+                        and defined $setting->pronoun) { $setting->pronoun }
+                else                                   { 'their' }
+            };
 
             $irc->msg($user_nick,
                 sprintf("[%s] The winner was %s, who now has %u"
@@ -3248,6 +3287,30 @@ sub db_delete_discards {
     $discard_rs->delete if ($count);
 
     return $count
+}
+
+# Create a row in the "settings" table for a specified user, with default
+# values.
+#
+# Arguments:
+#
+# - User Schema object.
+#
+# Returns:
+#
+# Setting Schema object.
+sub db_create_usetting {
+    my ($self, $user) = @_;
+
+    my $schema = $self->_schema;
+
+    debug("User %s doesn't have any settings; creating…", $user->nick);
+    $schema->resultset('Setting')->create({ user => $user->id });
+
+    # Refresh the relationship.
+    $user->discard_changes;
+
+    return $user->rel_setting;
 }
 
 # Send a message explaining there is no such game.
