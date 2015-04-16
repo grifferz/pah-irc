@@ -15,6 +15,8 @@ sub new {
 
     my @packlist = split(/\s+/, $packs);
 
+    my $i = 0;
+
     foreach my $name (@packlist) {
         my $yaml = LoadFile("./packs/$name.yml");
 
@@ -27,6 +29,7 @@ sub new {
 
         my $pack = {
             name        => $name,
+            order       => $i,
             description => $yaml->{Description},
             license     => $yaml->{License},
             copyright   => $yaml->{Copyright},
@@ -37,6 +40,8 @@ sub new {
         };
 
         $self->{_packs}->{$name} = $pack;
+
+        $i++;
     }
 
     bless $self, $class;
