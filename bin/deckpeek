@@ -1,0 +1,201 @@
+#!/usr/bin/env perl
+
+=pod
+
+Connect to the Perpetually Against Humanity database and read out some
+information about the deck that's in use.
+
+*** THIS WILL INVOLVE SPOILERS FOR THE ACTIVE GAME(S) ***
+
+=cut
+
+use warnings;
+use strict;
+
+my $VERSION = 0.01;
+
+use Config;
+use FindBin;
+
+use lib "lib", map "pah-libs/lib/perl5/$_", "", $Config{archname};
+
+BEGIN {
+    chdir "$FindBin::Bin/..";
+    binmode STDOUT, ":encoding(UTF-8)";
+    binmode STDERR, ":encoding(UTF-8)";
+}
+
+use Getopt::Auto;
+use Config::Tiny;
+use Time::Piece;
+use List::Util qw/reduce/;
+use Term::ReadKey;
+use Text::Wrap;
+
+use PAH::Schema;
+use PAH::Deck;
+
+our %options;
+
+my $wchar;
+
+eval {
+    local $SIG{__WARN__} = sub { };
+    ($wchar) = GetTerminalSize();
+};
+
+$wchar = 80 if (not defined $wchar);
+
+my %show = (
+    '-d' => 0,
+    '-h' => 0,
+    '-b' => 0,
+    '-w' => 0,
+);
+
+if (! scalar grep { defined $options{$_} } qw/-d -h -b -w/) {
+    # Show everything.
+    foreach my $k (keys %show) {
+        $show{$k} = 1;
+    }
+} else {
+    foreach my $k (keys %options) {
+        $show{$k} = 1 if (exists $show{$k});
+    }
+}
+
+my $config_file = do {
+    if (defined $options{'-c'}) { $options{'-c'} }
+    else                        { 'etc/pah-irc.conf' }
+};
+
+my $ct = Config::Tiny->read($config_file)
+    or die Config::Tiny->errstr;
+
+my $config = $ct->{_};
+
+my $dbfile = $config->{dbfile};
+
+if (not defined $dbfile) {
+    die "Config item 'dbfile' must be specified\n";
+}
+
+my $schema = PAH::Schema->connect("dbi:SQLite:$dbfile", '', '',
+    { sqlite_unicode => 1 });
+
+my $deck;
+my @packs;
+my ($num_black, $num_white);
+
+my $game = $schema->resultset('Game')->search({},
+    {
+        order_by => 'id ASC',
+    }
+);
+
+while (my $g = $game->next) {
+    if (not defined $deck) {
+#        $deck = PAH::Deck->new('cah_uk cah_2nd_uk cah_3rd cah_xmas');
+        $deck = PAH::Deck->new('cah_uk cah_2nd_uk cah_3rd cah_xmas cah_us_uk');
+
+        $num_black = $deck->count('Black');
+        $num_white = $deck->count('White');
+
+        if (1 == $show{'-d'}) {
+            printf("Deck has %u Black and %u White Cards\n", $num_black,
+                $num_white);
+
+            @packs = $deck->packs;
+
+            my $longest = reduce { length($a) > length($b) ? $a : $b } @packs;
+            my $length = length($longest);
+
+            foreach my $p (@packs) {
+                printf("\t%-${length}s (%3u/%3u)\t%s\n", $p,
+                    $deck->pack_count($p, 'Black'),
+                    $deck->pack_count($p, 'White'), $deck->pack_desc($p));
+            }
+        }
+
+        if (1 == $show{'-b'}) {
+            print "Black Cards:\n";
+
+            list_cards(
+                {
+                    color      => 'Black',
+                    count      => $num_black,
+                    term_width => $wchar,
+                    deck       => $deck,
+                }
+            );
+        }
+
+        if (1 == $show{'-w'}) {
+            print "White Cards:\n";
+
+            list_cards(
+                {
+                    color      => 'White',
+                    count      => $num_white,
+                    term_width => $wchar,
+                    deck       => $deck,
+                }
+            );
+        }
+    }
+
+    printf "Game #%u in %s:\n", $g->id, $g->rel_channel->disp_name;
+
+}
+
+exit 0;
+
+sub list_cards {
+    my ($args) = @_;
+
+    my $deck = $args->{deck};
+
+    my $length = length($args->{count});
+    my $filler = ' ' x ($length + 1);
+    my $width  = $args->{term_width} - $length - 1;
+
+    foreach my $i (0 .. ($args->{count} - 1)) {
+        my $text = do {
+            if    ($args->{color} eq 'Black') { $deck->black($i) }
+            elsif ($args->{color} eq 'White') { $deck->white($i) }
+            else { die "color must be Black or White" }
+        };
+
+        foreach my $line (split(/\n/, $text)) {
+            my $prefix = sprintf("%${length}u ", $i);
+            print wrap($prefix, $filler, $line);
+        }
+        print "\n";
+    }
+}
+
+sub debug {
+    eval {
+        printf(STDERR localtime->datetime . " $_[0]\n", @_[1 .. $#_]);
+    };
+
+    if($@) {
+        warn "WTF: $@ (with @_)";
+    }
+}
+
+=pod
+
+=head2 --conf, -c - Specify config file (default: B<etc/pah-irc.conf>)
+
+Uses the same config file as the main pah-irc app.
+
+=head2 --deck, -d - Show info on the deck in use.
+
+=head2 --hands, -h - Show info about the players' hands.
+
+=head2 --black, -b - List Black Cards.
+
+=head2 --white, -w - List White Cards.
+
+=cut
