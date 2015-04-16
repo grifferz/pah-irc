@@ -63,7 +63,9 @@ sub packs {
 
     my $packs = $self->{_packs};
 
-    return map { $packs->{$_}->{name} } keys %{ $packs };
+    return map { $packs->{$_}->{name} }
+           sort { $packs->{$a}->{order} <=> $packs->{$b}->{order} }
+           keys %{ $packs };
 }
 
 # Return a list of strings describing the packs that have been loaded.
@@ -89,7 +91,7 @@ sub pack_descs {
 
     my @descs = map {
         $packs->{$_}->{name} . ' ['. $packs->{$_}->{description} . ']'
-    } keys %{ $packs };
+    } sort { $packs->{$a}->{order} <=> $packs->{$b}->{order} } keys %{ $packs };
 
     return @descs;
 }
