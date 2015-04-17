@@ -1327,7 +1327,7 @@ sub db_populate_cards {
     debug("Shuffling deck of %u %s Cards from packs [%s], for game at %s",
         $num_cards, $color, $packs, $game->rel_channel->disp_name);
 
-    my @card_indices = shuffle (0 .. ($num_cards - 1));
+    my @card_indices = 0 .. ($num_cards - 1);
 
     if ($color eq 'White') {
         # Don't try to insert White Cards that are already in someone's hand.
@@ -1355,6 +1355,8 @@ sub db_populate_cards {
             scalar @hand_card_indices, $game->rel_channel->disp_name);
         @card_indices = keys %seen;
     }
+
+    @card_indices = shuffle @card_indices;
 
     my @cards = map { { game => $game->id, cardidx => $_ } } @card_indices;
 
