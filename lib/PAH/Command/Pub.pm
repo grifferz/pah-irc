@@ -397,6 +397,7 @@ sub start {
             create_time   => time(),
             activity_time => time(),
             status        => 1,
+            packs         => $self->{_config}->{packs},
         }
     );
 
