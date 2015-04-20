@@ -1170,11 +1170,12 @@ sub resign {
         $ug->active(0);
         $ug->update;
 
-        # Give the other players any new cards they need.
-        $self->topup_hands($game);
-
         # Elect the next Tsar.
         $self->pick_new_tsar(undef, undef, $game);
+
+        # Give the players any new cards they need.
+        $self->topup_hands($game);
+
         $self->clear_pokes($game);
     } else {
         # Trash any plays this user may have made.
