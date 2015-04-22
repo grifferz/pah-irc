@@ -1,5 +1,21 @@
 # Change log
 
+## v0.7pre
+### 2015-04-22?
+* Added pack of White Cards from main Cards Against Humanity US edition (Douglas Gardner): [#134](https://github.com/grifferz/pah-irc/issues/134).
+* Added new `config` command and moved `pronoun` command under it (more configuration to come): [#113](https://github.com/grifferz/pah-irc/issues/113).
+* Added new `deck` command which gives information about the packs which comprise the deck: [#129](https://github.com/grifferz/pah-irc/issues/129).
+* Fixed bug where White Cards were not being shuffled properly: [#141](https://github.com/grifferz/pah-irc/issues/141).
+* Fixed bug where multiple resignations during a completed round (i.e. when all plays are in) could extend the round timer by a full `turnclock` for each one: [#130](https://github.com/grifferz/pah-irc/issues/141).
+* Fixed bug where card packs being returned in hash order rather than configured order was causing spurious deck rebuilds: [#140](https://github.com/grifferz/pah-irc/issues/140).
+* Fixed occasional broken punctuation when Black Card had no blanks: [#8](https://github.com/grifferz/pah-irc/issues/8).
+* Fixed bug where players waiting to join would end up with an empty hand if the game was progressed due to resignation of the Card Tsar: [#143](https://github.com/grifferz/pah-irc/issues/143).
+* Fixed bug where new games had a discrepancy between configured pack names and database pack names: [#142](https://github.com/grifferz/pah-irc/issues/142).
+* Typo fixes:
+    * (Jon Fautley): [#144](https://github.com/grifferz/pah-irc/pull/144).
+    * (Josh Holland): [#133](https://github.com/grifferz/pah-irc/pull/133).
+    * [#135](https://github.com/grifferz/pah-irc/issues/135).
+
 ## v0.6
 ### 2015-04-04
 * Cards Against Humanity Holiday 2013 Expansion added (Douglas Gardner): [#127](https://github.com/grifferz/pah-irc/pull/127).
