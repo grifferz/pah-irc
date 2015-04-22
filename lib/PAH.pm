@@ -1875,22 +1875,21 @@ sub build_play {
         # answer, tacked on the end.
         $btext = sprintf("%s %s.", $btext,
             ucfirst($deck->white($ughs->[0]->wcardidx)));
-        return $btext;
-    }
-
-    # Don't modify the passed-in $ughs.
-    my @build_ughs = @{ $ughs };
-    my $ugh        = shift @build_ughs;
-    my $wtext      = $deck->white($ugh->wcardidx);
-
-    $btext =~ s/_{5,}/$wtext/s;
-
-    # If there's still a UserGameHand left, do it again.
-    if (scalar @build_ughs) {
-        $ugh   = shift @build_ughs;
-        $wtext = $deck->white($ugh->wcardidx);
+    } else {
+        # Don't modify the passed-in $ughs.
+        my @build_ughs = @{ $ughs };
+        my $ugh        = shift @build_ughs;
+        my $wtext      = $deck->white($ugh->wcardidx);
 
         $btext =~ s/_{5,}/$wtext/s;
+
+        # If there's still a UserGameHand left, do it again.
+        if (scalar @build_ughs) {
+            $ugh   = shift @build_ughs;
+            $wtext = $deck->white($ugh->wcardidx);
+
+            $btext =~ s/_{5,}/$wtext/s;
+        }
     }
 
     # Remove extra punctuation.
