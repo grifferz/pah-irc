@@ -1206,7 +1206,7 @@ sub resign {
                . " get back up to 4.", $player_count,
                1 == $player_count ? '' : 's'));
         $irc->msg($chan,
-            qq{Would anyone else would like to play? If so type}
+            qq{Would anyone else like to play? If so type}
            . qq{ "$my_nick: me"});
     }
 
