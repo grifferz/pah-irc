@@ -1748,6 +1748,11 @@ sub deal_to_tsar {
     # round).
     $schema->resultset('BCard')->find({ id => $new->id })->delete;
 
+    my $tsar_nick = do {
+        if (defined $tsar->rel_user->disp_nick) { $tsar->rel_user->disp_nick }
+        else                                    { $tsar->rel_user->nick }
+    };
+
     # Notify every player about the new black card, so they don't have to leave
     # their privmsg window to continue playing.
     foreach my $ug (@usergames) {
@@ -1761,7 +1766,8 @@ sub deal_to_tsar {
         };
 
         $irc->msg($who,
-            sprintf("[%s] Time for the next Black Card:", $chan));
+            sprintf("[%s] The new Card Tsar is %s. Time for the next"
+               . " Black Card:", $chan, $tsar_nick));
         $self->notify_bcard($who, $game);
     }
 
