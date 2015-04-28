@@ -1,7 +1,7 @@
 # Change log
 
-## v0.7pre
-### 2015-04-22?
+## v0.7
+### 2015-04-28
 * Added pack of White Cards from main Cards Against Humanity US edition (Douglas Gardner): [#134](https://github.com/grifferz/pah-irc/issues/134).
 * Added new `config` command and moved `pronoun` command under it (more configuration to come): [#113](https://github.com/grifferz/pah-irc/issues/113).
 * Added new `deck` command which gives information about the packs which comprise the deck: [#129](https://github.com/grifferz/pah-irc/issues/129).
