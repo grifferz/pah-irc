@@ -2061,10 +2061,15 @@ sub user_is_tsar {
 sub list_plays {
     my ($self, $game, $target) = @_;
 
-    my $irc     = $self->_irc;
-    my $channel = $game->rel_channel;
-    my $tsar_ug = $game->rel_tsar_usergame;
-    my $chan    = $channel->disp_name;
+    my $irc       = $self->_irc;
+    my $channel   = $game->rel_channel;
+    my $tsar_ug   = $game->rel_tsar_usergame;
+    my $chan      = $channel->disp_name;
+    my $tsar_user = $tsar_ug->rel_user;
+    my $tsar_nick = do {
+        if (defined $tsar_user->disp_nick) { $tsar_user->disp_nick }
+        else                               { $tsar_user->nick }
+    };
 
     my $is_nick = 1;
 
@@ -2085,13 +2090,8 @@ sub list_plays {
         sort { $plays->{$a}->{seq} <=> $plays->{$b}->{seq} }
         keys %{ $plays }) {
 
-        my $seq       = $plays->{$uid}->{seq};
-        my $text      = $plays->{$uid}->{play};
-        my $tsar_user = $tsar_ug->rel_user;
-        my $tsar_nick = do {
-            if (defined $tsar_user->disp_nick) { $tsar_user->disp_nick }
-            else                               { $tsar_user->nick }
-        };
+        my $seq  = $plays->{$uid}->{seq};
+        my $text = $plays->{$uid}->{play};
 
         if (1 == $seq) {
             my $header;
