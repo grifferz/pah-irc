@@ -2117,15 +2117,25 @@ sub list_plays {
             $irc->msg($target, '=' x $header_length);
         }
 
+        my $first_line = 1;
+
         foreach my $line (split(/\n/, $text)) {
             # Sometimes YAML leaves us with a trailing newline in the text.
             next if ($line =~ /^\s*$/);
 
             # Pad play number to two spaces if there's 10 or more of them.
-            if ($num_plays > 9) {
-                $irc->msg($target, sprintf("%2u → %s", $seq, $line));
+            my $num = do {
+                if ($num_plays >= 10) { sprintf("%2u", $seq) }
+                else                  { $seq }
+            };
+
+            # Show the play number on first line only.
+            if ($first_line) {
+                $irc->msg($target, "$num → $line");
+                $first_line = 0;
             } else {
-                $irc->msg($target, "$seq → $line");
+                $irc->msg($target,
+                    sprintf("%s → %s", ' ' x length($num), $line));
             }
         }
     }
