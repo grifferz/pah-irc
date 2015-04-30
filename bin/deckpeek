@@ -166,11 +166,18 @@ sub list_cards {
             else { die "color must be Black or White" }
         };
 
+        my $first_line = 1;
+
         foreach my $line (split(/\n/, $text)) {
             my $prefix = sprintf("%${length}u ", $i);
-            print wrap($prefix, $filler, $line);
+
+            if ($first_line) {
+                print wrap($prefix, $filler, $line), "\n";
+                $first_line = 0;
+            } else {
+                print wrap(' ' x length($prefix), $filler, $line), "\n";
+            }
         }
-        print "\n";
     }
 }
 
