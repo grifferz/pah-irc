@@ -2141,6 +2141,17 @@ sub list_plays {
     }
 
     $irc->msg($target, '=' x $header_length);
+
+    # If this was sent to a channel, was the Tsar actually in the channel? If
+    # not then we'll need to send the Tsar a message.
+    if (not $is_nick and not $self->user_is_in_channel($tsar_user, $target)) {
+        $irc->msg($tsar_nick,
+            "Hey, it's time for you to pick the winner in $target! Please"
+           . " come back (or resign from the game).");
+        $irc->msg($target,
+            "I see that $tsar_nick isn't in the channel right now. I've"
+           . " sent them a message, so hopefully they'll return.");
+    }
 }
 
 # Work out who is still left to make their play.
