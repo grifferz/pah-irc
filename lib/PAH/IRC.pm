@@ -63,6 +63,7 @@ sub connect {
       privatemsg
       irc_318
       irc_330
+      irc_401
       )
   ) {
       my $callback = "on_$_";
@@ -403,9 +404,59 @@ sub on_irc_318 {
     }
 }
 
+# This is the "No such nick" reply. If we get one then we were trying to talk
+# to someone who is no longer here. We'll try to work out which games they were
+# active in and inform those games about what is going on.
+sub on_irc_401 {
+    my ($self, $args) = @_;
+
+    my $who  = $args->{params}->[1];
+    my $user = $self->{parent}->db_get_user($who);
+
+    debug("Received a No such nick for %s", $who);
+
+    foreach my $ug ($user->rel_active_usergames) {
+        debug("…%s active in game at %s", $who,
+            $ug->rel_game->rel_channel->disp_name);
+
+        # How long ago did we last tell the channel about this?
+        my $now  = time();
+        my $game = $ug->rel_game;
+        my $chan = $game->rel_channel;
+        my $last = $self->{parent}->_last;
+
+        if (defined $game and defined $last and defined $last->{$game->id}
+                and defined $last->{$game->id}->{$user->id}
+                and defined $last->{$game->id}->{$user->id}->{nsn}) {
+            my $last_nsn = $last->{$game->id}->{$user->id}->{nsn};
+
+            if (($now - $last_nsn) <= (60 * 60)) {
+                # Last time we did a no such nick for this user in this game
+                # was an hour or less ago.
+                debug("…Not doing anything about No such nick for %s in game at"
+                   . " %s as it was already notified %u secs ago", $who,
+                   $chan->disp_name, $now - $last_nsn);
+                next;
+            }
+        }
+
+        if (defined $game and 2 == $game->status) {
+            # Record timestamp of when we did this.
+            $last->{$game->id}->{$user->id}->{nsn} = $now;
+
+            # And now tell the channel.
+            $self->msg($chan->disp_name,
+                "I can't see $who on this IRC network. If anyone knows where"
+               . " they are please ask them to come back, otherwise we wait"
+               . " until the clock runs out.");
+        }
+    }
+
+}
+
 sub on_debug_recv {
     my $self = shift;
-#    print STDERR Dumper(\@_);
+    print STDERR Dumper(\@_);
 }
 
 1;
