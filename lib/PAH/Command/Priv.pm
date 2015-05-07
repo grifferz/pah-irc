@@ -695,9 +695,31 @@ sub config_chatpoke {
     my $setting = $user->rel_setting;
     my $irc     = $self->_irc;
 
+    # If they didn't specify a setting then just tell them what the current
+    # setting is.
+    if (not defined $params or $params =~ /^\s*$/) {
+        $irc->msg($who,
+            sprintf("CHATPOKE is currently %s.",
+                $setting->chatpoke ? 'On' : 'Off'));
+        return;
+    }
+
+    # Otherwise set it.
+
+    # Remove trailing/leading white space.
+    chomp($params);
+    $params =~ s/^\s*//;
+
+    if ($params =~ /^(On|Y|Yes|1)/i) {
+        $setting->chatpoke(1);
+    } else {
+        $setting->chatpoke(0);
+    }
+    $setting->update;
+
     $irc->msg($who,
-        "Sorry, this command isn't implemented yet. See"
-        . " https://github.com/grifferz/pah-irc/issues/137 for more info.");
+        sprintf("CHATPOKE is now %s.",
+            $setting->chatpoke ? 'On' : 'Off'));
 }
 
 # User wants to view or update their pronoun.
