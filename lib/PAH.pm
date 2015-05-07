@@ -572,13 +572,6 @@ sub process_priv_command {
 
     my $disp = $self->_priv_dispatch;
 
-    # Is it just 1 or two digits? If so then modify it to be the equivalent
-    # play command.
-    if ($cmd =~ /^(\d+)\s*(\d+)?$/) {
-        $cmd = "play $1";
-        $cmd .= " $2" if (defined $2);
-    }
-
     # Does the command have a channel specified?
     #
     # Private commands look like this:
@@ -602,6 +595,14 @@ sub process_priv_command {
     } elsif ($cmd =~ /^\s*(\S+)(.*)?$/) {
         $cmd  = $1;
         $rest = $2;
+    }
+
+    # Is it just 1 or two digits? If so then modify it to be the equivalent
+    # play command.
+    if ($cmd =~ /^(\d+)\s*(\d+)?$/) {
+        $cmd = "play";
+        $rest = $1;
+        $rest .= " $2" if (defined $2);
     }
 
     if ($cmd =~ /pronoun/i) {
