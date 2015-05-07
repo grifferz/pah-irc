@@ -210,6 +210,9 @@ sub hand {
         } @active_usergames;
     }
 
+    # Only count games that are actually running.
+    @active_usergames = grep { 2 == $_->rel_game->status } @active_usergames;
+
     my $game_count = scalar @active_usergames;
 
     if (1 == $game_count) {
@@ -390,6 +393,9 @@ sub play {
             $_->rel_game->rel_channel->name eq $chan
         } @active_usergames;
     }
+
+    # Only count games that are actually running.
+    @active_usergames = grep { 2 == $_->rel_game->status } @active_usergames;
 
     my $game_count = scalar @active_usergames;
 
