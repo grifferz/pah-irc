@@ -2980,6 +2980,13 @@ sub poke {
         return;
     }
 
+    my $setting = $ug->rel_user->rel_setting;
+
+    if (0 == $setting->chatpoke) {
+        # They've disabled CHATPOKE, so give up.
+        return;
+    }
+
     if (exists $self->_pokes->{$game->id}->{$ug->user}) {
         # Already poked them, so give up.
         return;
