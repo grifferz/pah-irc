@@ -1,0 +1,513 @@
+---
+# This is a YAML-formatted document.
+# Read more about YAML here:
+#
+#   http://www.yaml.org/
+
+Description:    Cards Against Science
+License:        Creative Commons BY-NC-SA 2.0
+Copyright:      Unknown
+
+# Once entries have been added and are in use they shouldn't be changed or
+# re-ordered, because the bot is only storing indices into the Black and White
+# arrays.
+#
+# If you need to change the deck in use or add more cards then at the moment
+# the best way is to create a new deck file.
+
+# Five or more underscores (_____) denote placeholder text. Maximum two per
+# text.
+# End these with the correct punctuation.
+Black:
+    - When I opened the incubator this morning, I found _________.
+    - I published my first paper in the journal of _______.
+    - I couldn't finish my proposal because I was detained by ________.
+    - Who is the latest superstar professor to be hired?
+    - _____ taught me all I know about science.
+    - Elon Musk's next company to tackle __________.
+    - Newton was led to the discovery of gravity when a __________ him on the head.
+    - My PCR didn't work due to ________.
+    - >
+        What is the name given to an object so massive it deflects the paths of passing
+        light rays?
+    - What is the source of the Ultra-High Energy Cosmic Rays?
+    - The amazing lyrebird can imitate any sound, except that of ___________.
+    - When I reduced the Hubble Space Telescope images, I saw _________.
+    - Our hierarchical Bayesian analysis resulted in a highconfidence inference of __________.
+    - '"It''s trivial!" said the Professor. "It''s obviously just a __________."'
+    - >
+        We regret to inform you that your investigation into the mating habits of ________
+        will not be funded.
+    - Have you considered the effect of __________?
+    - In the lab, I dropped the ___________ on the __________. That was a mess.
+    # PAH only supports two blanks
+    # - After I mixed _________ and __________ , it resulted in _________.
+    - On the next episode of The Big Bang Theory, Sheldon Cooper faces _____________.
+    - After much deliberation, IUPAC decided to name the next element __________ium.
+    - The best way to obtain publicationquality data is to use _______.
+    - What aspects of STEM public outreach are audiences most clamoring for?
+    - How do you escape a black hole?
+    - Dinosaur bones are really a test of our faith in __________.
+    - Lady Ada often spent the evening at home with her ________.
+    - I was surprised to find that the wormhole led to ____________.
+    - Your advisor's favorite side activity during group meeting.
+    - ______ or perish.
+    - Best excuse for putting off writing a referee report.
+    - _____ is why there aren't enough women in the sciences.
+    - >
+        _____ is why it always takes an extra five minutes to get the computer projector
+        working.
+    - Nothing is denser than ___________.
+    - ______ is the study of herpetologists.
+    - My results may have been influenced by the ______ discovered in my ________.
+    - The experiment started working once the _________ was inserted in the __________.
+    - It's been said that _____ causes autism. Murderers!
+    - Your gut microbiota can help you ________.
+    - I don't think the Large Hadron Collider was expecting to discover __________.
+    - You can use this to calculate the radius of the hydrogen atom.
+    - The gravitational pull of a _______ is so great that not even light can escape.
+    - Einstein described ________ as "his biggest blunder."
+    - Carl Linnaeus would have named it ____________.
+    - ________ caused the Pioneer anomaly.
+    - Organs are best grown in the lab with the addition of ___________.
+    - Everything I know about science I learned from _________.
+    - The peer reviewer suggested _________ might help.
+    - Quantum physicists have succeeded in entangling ___ and ___.
+    - After Joe forgot to put the _________ under the fume hood, all hell broke loose.
+    - The mysterious residue on the lab counter was _________.
+    - In the darkness of the laser lab, Mary mistook the _______ for a polarimeter.
+    - I will be required to dissect 500 ________ to complete my thesis.
+    - When Schrodinger opened the box, he found ___.
+    - >
+        Drinking in the lab on a Friday night is usually not a good idea, because _____
+        tends to be the result.
+    - When I was out doing field work, I caught _________ in my trap.
+    - Darwin's Theory of _____ was invalidated by ___________.
+    - I knew I should not have used my twins for an experiment when I observed _______.
+    - Universities in the southern United States are beginning to hire __________.
+    - I knew I never should have added _______ to the chemical reaction.
+    - _____ plus _____ resulted in science's biggest flop to date.
+    - It's perfectly okay to pipette by mouth, except when using _______.
+    - Why is my bench sticky?
+    - Further study is required to establish a causal link between ____ and ____.
+    - Rutherford's ______ experiment helped determine the basic structure of ________.
+    - >
+        Astronomers watched excitedly as _________ made its final descent into the black
+        hole.
+    - Einstein was also well respected in the academic community for his studies on ______.
+    - Despite some recent progress, _______ are still struggling to understand _______.
+    - While mercifully rare, there is no known cure for ________.
+    - As an experiment, I inserted ______ into ______ and discovered ______.
+    - Hey! We've discovered _______ on Mars!
+    - Before centrifuging ______, never forget to _______.
+    - Oh, those are just mice ________.
+    - My lab mates really hated it when I ______ while listening to _______.
+    - ________. It's a bitch.
+    - I can't wait until I never have to _________.
+    - 'Epigenetics: As easy to understand as _________.'
+    - I hate it when I get busted for _______.
+    - '_______: A misunderstood lab hobby.'
+    - Why can't I get _______ to work?
+    - What contaminated my cell cultures?
+    - To coax mice to mate, I like to ______.
+    - Science. Where truth can be found in ________.
+    - 'Science: A journey that begins with _________.'
+    - 'Science: The perennial quest for ______.'
+    - 'Science: I devoted my life to it because ________.'
+    - 'Science: The only endeavour in which studying _______ is respectable.'
+    - On the Origin of ______ - Darwin's lesser-known tome.
+    - 'Science: The _______ that keeps on giving.'
+    - |
+        Things To Do:
+        1. _________
+        2. _________
+        3. _________
+    - 'Science: Doing its part to help humanity, one _______ at a time.'
+    - I can't believe I get paid to _______.
+    - After I defended, my advisor gave me ________.
+    - Congratulations! Your fellowship includes a stipend and _______.
+    - '_________: Don''t go to a conference without it.'
+    - Don't forget to include ________ in your dissertation acknowledgements.
+    - Why did the dinosaurs die?
+    - Better living through _________.
+    - >
+        A parasite is an organism that takes ________ away from another organism while it
+        is still living.
+    - What astronomers found lurking inside a black hole.
+    - The National Science Foundation recently started handing out grants to study _____________.
+    - What did Carl Sagan put in his bong water?
+    - Grad school was going well until I came across _________.
+    - All models are wrong, but some are _________.
+    - My thermodynamics class failed to mention the law of conservation of _______.
+    - When the ice caps melted we were surprised to find unfrozen _____________.
+    - A hurricane named _________.
+    - The newly discovered species was so fat when it __________ it _____________.
+    - After getting tenure the professor celebrated by _____________.
+    - Chemical equilibrium was reached when ____________.
+    - The best endothermic reaction is _____________.
+    - We knew our grant didn't get funded when ____________.
+    - That's not a hypothesis it's ______________.
+    - I knew my Ph.D. defense wasn't going well when ___________.
+    - Creationists hate it when________.
+    - The last mass extinction event was caused by ____________.
+    - >
+        My paper on ____________ couldn't get published in a peer reviewed journal, so I
+        submitted it to ____________.
+    - The one thing Neil Degrasse Tyson doesn't want you to know about science is __________.
+    - Can you believe the new Texas textbooks said ______________.
+    - In hindsight, I shouldn't have put ______ in the autoclave.
+    - When alone during evenings in the laboratory, I like to ______ .
+    - Josiah Willard Gibbs always thought ________ was pretty hot.
+    - >
+        After pointing the Hubble space telescope at a blank patch of sky for 10 days astronomers
+        were surprised to see ________.
+    # PAH only supports two blanks
+    # - The _____ can be distinguished from the _____ by _____.
+    - ________ results inconclusive.
+    - Applied for a postdoc, all I got was this lousy ________.
+    # PAH only supports two blanks
+    # - _______ can be thought of as a superposition of _______ and _______.
+    - >
+        As Schrodinger stuffed the cat in the box, he had an awful thought: What if the
+        cat is ____________.
+    - Her gravity well tasted surprisingly like _____________.
+    - To increase its Impact Factor, Nature published a special issue about ________.
+    - Physicists will often simplify a system by modeling it as a _________.
+    - Why I chose a career in science.
+    - I just love doing ___________ behind the lab bench!
+    - >
+        Campus lab safety protocol requires you to always put on your __________ before
+        doing _____________.
+    - Your conclusion is flawed because you failed to reconcile __________ with ____________.
+
+# Start with a lower case letter unless the word is always capitalised (e.g.
+# proper noun). End with no punctuation unless required by the text.
+White:
+    - mouth pipetting
+    - repetitive stress injury
+    - computer older than combined age of all grad students
+    - grad student who has been in the department longer than all known faculty
+    - asbestos
+    - golden boy
+    - bayesian statistics
+    - the token female professor
+    - that one female engineer everyone knows but is afraid to ask out
+    - labcest (lab incest)
+    - ecologist chic
+    - gastrointestinal worms
+    - anthrax
+    - Ernst Haeckel
+    - Lotka-Volterra Equation
+    - J.B.S. Haldane
+    - island biogeography
+    - intermediate host
+    - schistosomiasis
+    - rinderpest
+    - E.O. Wilson
+    - an empty pipette
+    - nudibranchs
+    - astral projection
+    - a 3D printed heart
+    - cosmic microwave background radiation
+    - nuclear waste
+    - traumatic insemination
+    - a significant increase in entropy
+    - Carl Sagan's turtlenecks
+    - reviewer 3
+    - tardigrades
+    - the control group
+    - a gravitational lens
+    - an impact crater
+    - crashing into the Sun
+    - nanotechnology
+    - no-one knows
+    - dissolved in a vial of hydrochloric acid
+    - lab rotation students
+    - internet arguments about Richard Dawkins
+    - a DNA ladder
+    - supermassive black hole
+    - the 10 Inuit words for sperm
+    - irrefutable proof of life on Mars
+    - a learning opportunity
+    - fundamental discord between theory and experiment leading to a paradigm shift
+    - evidence that there really is a God
+    - Professor Richard Dawkins
+    - '42'
+    - Newton's virginity
+    - brain parasites
+    - Pauli exclusion principle
+    - hypermatter annihilation reaction
+    - Church of Scientology
+    - violent relaxation
+    - mice with tumors on their butts
+    - falsifying data
+    - nature cover
+    - hunger strike when I don't get tenure
+    - RNases
+    - pipette fatigue
+    - Stephen Pinker's hair
+    - integral charts
+    - lab coat stains
+    - getting scooped
+    - laser spot damage
+    - centrifuge tubes
+    - p < 0.05
+    - machine learning buttressed Bayesian statistical inference
+    - Schrodinger's cat
+    - genome
+    - cleaning up after sex on the Space Shuttle
+    - gravity, sponsored by Red Bull
+    - a hairless black hole
+    - gneiss cleavage
+    - Edwin Hubble's expanding shaft
+    - Watson and Crick slash/fic
+    - Robert Boyle's passed gas
+    - Isaac Newton's nocturnal emissions
+    - LIGO
+    - soft money
+    - leftover pizza
+    - utter and complete lack of faculty presence at social activities
+    - two-body problem
+    - blood-stained lab coat
+    - unethical bastardization of the scientific method
+    - TMNT ooze
+    - friggin black holes, man!
+    - quantum teleportation
+    - tachyons, bitch
+    - positronic neural net. It's a real thing!
+    - cold fusion
+    - magnetic monopoles. That's right, plural!
+    - your advisor marrying one of his other graduate students, who started after you did
+    - astronomers attempting to dance
+    - that one guy everyone in the field hates but who publishes way too damn often somehow
+    - conference hookups
+    - overwhelming incomprehensible overcommitment
+    - wet mergers with dynamical friction
+    - the Leidenfrost Effect
+    - onions
+    - scientology
+    - the Caspian Sea
+    - the Matrix
+    - Kansas Dept. of Education
+    - national Science Foundation
+    - a wellsharpened pencil
+    - the TARDIS
+    - autoclave
+    - natural selection!
+    - Darwin
+    - a crescent moon
+    - phalanges banging
+    - Alan Turing's last blowjob
+    - brightly coloured liquids
+    - uranus
+    - the Cosmological Constant
+    - black Hole
+    - bilateral symmetry
+    - a Petri dish full of spermatozoa
+    - a two-headed snake
+    - a corkscrew duck penis
+    - evolution gone awry
+    - cosmic strings
+    - van Allen belt
+    - reprogrammed stem cells
+    - microscopic black holes
+    - 40-gallon drum of nuclear waste
+    - David Attenborough's vocal stylings
+    - mice sprouting tumors
+    - asymmetrical body parts
+    - interstellar space
+    - the Scoville scale of pepper hotness
+    - fecal transplants
+    - crime scene DNA
+    - nanoparticle swarms
+    - grey goo
+    - solar flares
+    - robot overlords
+    - amberencased insect
+    - humpback whale song
+    - mosquitofish
+    - donor organs
+    - invasive carp
+    - undifferentiated stem cells
+    - cosmic inflation
+    - fractured metatarsals
+    - mad cow disease
+    - electroshocking earthworms
+    - cocaine ordered from Sigma Aldrich
+    - tetrahydrocannibinol
+    - a jar of leeches
+    - replacing polymerase enzyme with rancid komodo dragon saliva
+    - a gravitational constant string
+    - passing out on lab ethanol
+    - the metric system
+    - a spontaneous fission reaction
+    - pickle juice
+    - answers in Genesis
+    - neil DeGrasse Tyson
+    - autism caused by vaccinations
+    - creationists
+    - Isaac Newton's third law of first dates
+    - the control group
+    - unicorns
+    - going inside soap bubbles
+    - opposable thumbs
+    - Carl Sagan's frustrated desire to become a tarot card reader
+    - phylum Echinodermata
+    - sea squirts
+    - coughing on your labmate's plate of primary cells
+    - presenting your data in Comic Sans
+    - prancing about in a bunny suit in the BSL-3 lab
+    - making out with the lab hottie in the dark room
+    - an inverse correlation between error bar size and penile length
+    - bonobo sex
+    - Schrodinger's Cat
+    - a grad student with nothing to lose
+    - awkward advisor interaction
+    - MRSA
+    - chlamydia
+    - spaghettification
+    - the radioactive, undead corspe Marie Curie back from the grave, out for revenge
+    - maxwell's demon
+    - statisticians with haemorrhoids
+    - testing bunnies with cosmetics
+    - artificial insemination
+    - excess production of methane
+    - free radicals
+    - flatlining brain
+    - stonehenge
+    - methane from cows
+    - a type Ia supernova
+    - a temporal anomaly
+    - lab hazing
+    - Schrodinger's cattery
+    - undergrads
+    - mice that eat their babies
+    - putting dry ice in Eppendorf tubes
+    - Pavlov's doggy daycare
+    - explosive testes
+    - experimenting on yourself
+    - three gallons of pure ethanol
+    - '"Field" work'
+    - accidentally falling in a volcano
+    - eating your model system
+    - eating your model organism
+    - your pervy advisor
+    - Steven Hawking talking dirty
+    - John Gurdon's hair
+    - taking shots from the 70% ethanol
+    - falsifying data
+    - herpes
+    - sequencing your own DNA
+    - watching fruit flies having sex
+    - spit in a tube
+    - jizz in a tube
+    - jerk off in an MRI
+    - weigh mouse poop
+    - fucking in zero gravity
+    - robot sex
+    - gonads
+    - blowing shit up
+    - stashing a sixpack in the lab fridge
+    - indescribable frustration
+    - growing pot in the greenhouse
+    - getting stopped by airport security because of the chemicals on your shoes
+    - '"The Elements" by Tom Lehrer'
+    - p=0.06
+    - a spider the size of your face
+    - an everted seastar stomach
+    - a new state of matter
+    - pornographic looking cloud
+    - untethered spacewalk
+    - plasma surfing on solar flares
+    - exploitative advisor
+    - measuring the diameter of a penguin's anus and winning an Ignobel for the trouble
+    - bigfoot's DNA sequence
+    - the Ablation Cascade
+    - selfReplicating Mystery Meat
+    - dihydrogen Monoxide
+    - a supermassive black hole with a taste for human blood
+    - a back of the envelope calculation
+    - my major professor
+    - confirmation bias
+    - long, rambling questions after a conference talk
+    - satellites
+    - a human subject (i.e. myself)
+    - my messy lab
+    - reviewers
+    - highly cited papers
+    - distracting grammatical errors
+    - the scientific method
+    - diuretic shellfish poisoning
+    - I'm Bill Nye, BIATCH!
+    - all the ethanol went missing
+    - Pythagoras's NEW theorem
+    - because the Bible says so
+    - sea level rising...In my pants
+    - birdemic
+    - that's a big pipette
+    - Texas textbooks
+    - we're gonna need a bigger fulcrum
+    - not enough replicates
+    - antibioticresistant gonorrhea
+    - spontaneous combustion of fecal matter
+    - an analytic solution of the Navier-Stokes equation as applied to explosive diarrhea
+    - blowfish
+    - nads the size of Jupiter
+    - hearing a number such as 10000 and wondering what it is in binary
+    - watching a baseball game and plotting trajectories in your head
+    - sprinkling salt on sliced tomatoes and thinking, "Osmois at work!"
+    - speaking out loud in chemical formulas. To yourself
+    - cloacal protuberance
+    - cloacal kiss
+    - great tits
+    - amphiphile
+    - electrical fires
+    - undergrads
+    - liquid nitrogen
+    - traumatic insemination
+    - sequential hermaphroditism
+    - killer cells
+    - protein injection
+    - static electricity
+    - gravity ripples
+    - serial monogamy
+    - regression to the mean
+    - Total Maximum Daily Load
+    - contagious yawning
+    - awkward lab parties
+    - legless lizards
+    - physics envy
+    - arachnophobic entomologists
+    - topological insulators
+    - brain-eating proteins
+    - bremsstrahlung
+    - prostate dysfunction
+    - H5N1 pandemic avian flu
+    - leaky barrels of nuclear waste
+    - mind-bending quantum paradoxes
+    - in precise terms, deady, deady, dead dead
+    - just some goddamn cells, ok?
+    - The God Delusion
+    - shitty verbal on the GRE
+    - the moon
+    - vaginal secretions
+    - a USB, some Red Bull knock-off, and the homeliest lab tech
+    - the footnotes
+    - a horrifying cat that is both dead and alive
+    - the unparalleled genius of Albert Einstein's ball sack
+    - Ed Witten practicing shibari with Leonard Susskind
+    - climate change denial
+    - another goddam postdoc
+    - Bill Nye's bowtie
+    - high-fiving a robot arm
+    - mercury fulminate disguised as crystal meth
+    - a mouse growing a human ear on its back
+    - a research monkey that is smarter than the lab assistant
+    - pouring liquid nitrogen down the back of someone's shirt
+    - a lab mouse that simply refuses to die
+    - stain-covered lab coats
+    - Koko the gorilla's kittens
+    - an illegibly labeled specimen
+    - melting sea ice
+    - a lab full of hot undergrad interns
+    - agar shot

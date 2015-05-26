@@ -436,6 +436,7 @@ Current releases have:
 * Cards Against Humanity PAX Prime.
 * Cards Against Humanity Holiday 2013.
 * Lugradio (not yet really usable).
+* [Cards Against Science](http://cardsagainstscience.com/)
 
 (Emphasis on the UK because most of the IRC channels using this are UK-biased)
 
