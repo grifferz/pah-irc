@@ -18,6 +18,11 @@ Copyright:      Unknown
 # Five or more underscores (_____) denote placeholder text. Maximum two per
 # text.
 # End these with the correct punctuation.
+
+# This black card ommitted because we don't support cards with three answers
+# yet:
+#   - As an experiment, I inserted ______ into ______ and discovered ______.
+
 Black:
     - When I opened the incubator this morning, I found _________.
     - I published my first paper in the journal of _______.
@@ -97,7 +102,6 @@ Black:
     - Einstein was also well respected in the academic community for his studies on ______.
     - Despite some recent progress, _______ are still struggling to understand _______.
     - While mercifully rare, there is no known cure for ________.
-    - As an experiment, I inserted ______ into ______ and discovered ______.
     - Hey! We've discovered _______ on Mars!
     - Before centrifuging ______, never forget to _______.
     - Oh, those are just mice ________.
