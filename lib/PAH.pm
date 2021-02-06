@@ -1,4 +1,7 @@
+=encoding utf8
+
 =pod
+
 Perpetually Against Humanity, IRC Edition (pah-irc)
 
 Play endless games of Cards Against Humanity on IRC.
