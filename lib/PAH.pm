@@ -3622,7 +3622,7 @@ sub identified_to_nick {
 
     my $list = $irc->channel_list;
 
-    foreach my $chan (keys $list) {
+    foreach my $chan (keys %{ $list }) {
         my $modes = $list->{$chan}->{$my_nick};
 
         if (defined $modes->{v}) {
