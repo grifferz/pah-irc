@@ -2985,7 +2985,7 @@ sub poke {
 
     my $setting = $ug->rel_user->rel_setting;
 
-    if (0 == $setting->chatpoke) {
+    if (defined $setting and 0 == $setting->chatpoke) {
         # They've disabled CHATPOKE, so give up.
         return;
     }
