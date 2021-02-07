@@ -1,11 +1,15 @@
 package PAH::Command::Priv;
 
+=encoding utf8
+
 =pod
+
 The commands that can be received from IRC in a private message.
 
 Copyright ©2015 Andy Smith <andy-pah-irc@strugglers.net>
 
 Artistic license same as Perl.
+
 =cut
 
 use warnings;
