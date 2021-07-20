@@ -23,6 +23,14 @@ Copyright:      Unknown
 # yet:
 #   - As an experiment, I inserted ______ into ______ and discovered ______.
 
+# This black card ommitted because we don't support cards with three answers
+# yet:
+#    - |
+#        Things To Do:
+#        1. _________
+#        2. _________
+#        3. _________
+
 Black:
     - When I opened the incubator this morning, I found _________.
     - I published my first paper in the journal of _______.
@@ -121,11 +129,6 @@ Black:
     - 'Science: The only endeavour in which studying _______ is respectable.'
     - On the Origin of ______ - Darwin's lesser-known tome.
     - 'Science: The _______ that keeps on giving.'
-    - |
-        Things To Do:
-        1. _________
-        2. _________
-        3. _________
     - 'Science: Doing its part to help humanity, one _______ at a time.'
     - I can't believe I get paid to _______.
     - After I defended, my advisor gave me ________.
