@@ -2,6 +2,7 @@
 
 # vim:set sw=4 cindent:
 
+=encoding utf8
 =pod
 
 Perpetually Against Humanity, IRC Edition (pah-irc)

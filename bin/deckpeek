@@ -96,7 +96,7 @@ my $game = $schema->resultset('Game')->search({},
 while (my $g = $game->next) {
     if (not defined $deck) {
 #        $deck = PAH::Deck->new('cah_uk cah_2nd_uk cah_3rd cah_xmas');
-        $deck = PAH::Deck->new('cah_uk cah_2nd_uk cah_3rd cah_xmas cah_us_uk');
+        $deck = PAH::Deck->new('cah_uk cah_2nd_uk cah_3rd cah_xmas cah_us_uk cas500');
 
         $num_black = $deck->count('Black');
         $num_white = $deck->count('White');
@@ -193,16 +193,26 @@ sub debug {
 
 =pod
 
-=head2 --conf, -c - Specify config file (default: B<etc/pah-irc.conf>)
+=over
+
+=item --conf, -c - Specify config file (default: B<etc/pah-irc.conf>)
 
 Uses the same config file as the main pah-irc app.
 
-=head2 --deck, -d - Show info on the deck in use.
+=item --deck, -d - Show info on the deck in use.
 
-=head2 --hands, -h - Show info about the players' hands.
+=item --hands, -h - Show info about the players' hands.
 
-=head2 --black, -b - List Black Cards.
+Show info about the players' hands.
 
-=head2 --white, -w - List White Cards.
+=item --black, -b - List Black Cards.
+
+List Black Cards.
+
+=item --white, -w - List White Cards.
+
+List White Cards.
+
+=back
 
 =cut

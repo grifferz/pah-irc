@@ -394,6 +394,10 @@ sub joined {
         debug("…but it's currently %s, so I won't do anything about that",
             $status_txt);
     }
+
+    if ($game->status == 2) {
+        $self->sanity_check_bcard($game)
+    }
 }
 
 # A user joined a channle that we're in. Decide about whether we're going to
@@ -1730,6 +1734,17 @@ sub deal_to_tsar {
             rows     => 1,
         },
     );
+
+    if (not defined $self->_deck->black($new->cardidx)) {
+        debug("No such Black card index %d in %s", $new->cardidx, $chan);
+        $schema->resultset('BCard')->search(
+            {
+                cardidx => $new->cardidx
+            }
+        )->delete;
+        $self->deal_to_tsar($game);
+        return;
+    }
 
     if (not defined $new) {
         # Black deck ran out.
@@ -3298,6 +3313,38 @@ sub db_sanity_check_packs {
             $self->db_switch_packs($game);
         });
     }
+}
+
+sub sanity_check_bcard {
+    my ($self, $game) = @_;
+
+    my $deck   = $self->_deck;
+    my $schema = $self->_schema;
+
+    my $idx = $game->bcardidx;
+
+    if (not defined $deck->black($idx)) {
+        my $channel = $game->rel_channel;
+        my $tsar_ug = $game->rel_tsar_usergame;
+
+        debug("Black card index %d is not defined for game in %s", $idx,
+            $channel->name);
+
+        debug("Cleaning up plays for %s", $channel->name);
+        $self->cleanup_plays($game);
+
+        $tsar_ug->activity_time(time());
+        $tsar_ug->update;
+
+        $self->pick_new_tsar(undef, undef, $game);
+        $self->topup_hands($game);
+        $self->clear_pokes($game);
+    } elsif (length($deck->black($idx)) == 0) {
+        die "Black card index $idx is an empty string for game in"
+            . " $game->rel_channel->name";
+    }
+
+    debug("Black card in %s: %s", $game->rel_channel->name, $deck->black($idx));
 }
 
 # Delete all discard piles for a given game.
