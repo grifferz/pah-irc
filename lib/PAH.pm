@@ -1735,6 +1735,15 @@ sub deal_to_tsar {
         },
     );
 
+    if (not defined $new) {
+        # Black deck ran out.
+        debug("Black deck for game in %s is exhausted; reshuffling",
+            $chan);
+        $self->db_populate_cards($game, 'Black');
+        $self->deal_to_tsar($game);
+        return;
+    }
+
     if (not defined $self->_deck->black($new->cardidx)) {
         debug("No such Black card index %d in %s", $new->cardidx, $chan);
         $schema->resultset('BCard')->search(
@@ -1742,15 +1751,6 @@ sub deal_to_tsar {
                 cardidx => $new->cardidx
             }
         )->delete;
-        $self->deal_to_tsar($game);
-        return;
-    }
-
-    if (not defined $new) {
-        # Black deck ran out.
-        debug("Black deck for game in %s is exhausted; reshuffling",
-            $chan);
-        $self->db_populate_cards($game, 'Black');
         $self->deal_to_tsar($game);
         return;
     }
