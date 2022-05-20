@@ -3095,6 +3095,38 @@ sub db_sanity_check_hands {
     }
 }
 
+# Late check of hands so that users can be told of changes. Check that all
+# hands in all games are valid, and fix them if necessary (and possible). This
+# includes:
+#
+# - Top up hands to 10 White cards.
+#
+# Arguments:
+#
+# None.
+#
+# Returns:
+#
+# Nothing.
+sub db_sanity_check_hands_late {
+    my ($self) = @_;
+
+    my $schema = $self->_schema;
+
+    my $active_games = $schema->resultset('Game')->search(
+        {
+            status => 2,
+        },
+    );
+
+    while (my $game = $active_games->next) {
+        my @active_usergames = $game->rel_active_usergames;
+        foreach my $ug (@active_usergames) {
+            $self->topup_hand($ug);
+        }
+    }
+}
+
 # Re-order a player's hand so that the cards are sequentially numbered.
 #
 # Arguments:
@@ -3651,6 +3683,8 @@ sub user_is_in_channel {
 # NickServ has just told us that we're identified to a nickname, so now we can
 # do some things that require a registered nickname. So far this will be:
 #
+# - Top up hands of all active players (do it here so we can message them about
+#   their new cards).
 # - Ask ChanServ for voice in every channel we are currently in.
 #
 # Arguments:
@@ -3662,6 +3696,8 @@ sub user_is_in_channel {
 # Nothing.
 sub identified_to_nick {
     my ($self) = @_;
+
+    $self->db_sanity_check_hands_late;
 
     my $irc = $self->_irc;
 
